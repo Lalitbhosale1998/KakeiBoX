@@ -23,6 +23,7 @@ data class SpendUiState(
     val selectedCategory: SpendCategory? = null, // null = show all
     val showAddEditSheet: Boolean = false,
     val showDeleteDialog: Boolean = false,
+    val showHistorySheet: Boolean = false,
     val editingEntry: SpendEntry? = null,
     val deletingEntry: SpendEntry? = null,
 
@@ -138,6 +139,7 @@ class SpendViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 showAddEditSheet = true,
+                showHistorySheet = false, // close history if open
                 editingEntry = entry,
                 inputDescription = entry.description,
                 inputAmount = entry.amount.toString(),
@@ -163,11 +165,17 @@ class SpendViewModel @Inject constructor(
     }
 
     fun openDeleteDialog(entry: SpendEntry) {
-        _uiState.update { it.copy(showDeleteDialog = true, deletingEntry = entry) }
+        _uiState.update {
+            it.copy(showDeleteDialog = true, deletingEntry = entry, showHistorySheet = false)
+        }
     }
 
     fun closeDeleteDialog() {
         _uiState.update { it.copy(showDeleteDialog = false, deletingEntry = null) }
+    }
+
+    fun toggleHistorySheet() {
+        _uiState.update { it.copy(showHistorySheet = !it.showHistorySheet) }
     }
 
     // ── Input Updates ─────────────────────────────────

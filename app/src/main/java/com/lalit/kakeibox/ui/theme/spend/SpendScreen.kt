@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.ShoppingBag
@@ -56,6 +57,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -105,12 +107,15 @@ fun SpendScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentMonthEntries by viewModel.currentMonthEntries.collectAsStateWithLifecycle()
+    val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val totalNeed by viewModel.totalNeedThisMonth.collectAsStateWithLifecycle()
     val totalWant by viewModel.totalWantThisMonth.collectAsStateWithLifecycle()
     val totalSpend by viewModel.totalSpendThisMonth.collectAsStateWithLifecycle()
-    val currentSalary by viewModel.currentSalary.collectAsStateWithLifecycle()
+    val salary by viewModel.currentSalary.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val historyBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val needEntries = remember(currentMonthEntries) {
@@ -153,6 +158,11 @@ fun SpendScreen(
                         )
                     }
                 },
+                actions = {
+                    FilledTonalIconButton(onClick = { viewModel.toggleHistorySheet() }) {
+                        Icon(Icons.Filled.History, contentDescription = "History")
+                    }
+                },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.largeTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
@@ -187,7 +197,7 @@ fun SpendScreen(
                     totalSpend = totalSpend ?: 0L,
                     totalNeed = totalNeed ?: 0L,
                     totalWant = totalWant ?: 0L,
-                    salary = currentSalary
+                    salary = salary
                 )
             }
 
@@ -291,6 +301,27 @@ fun SpendScreen(
             onConfirm = viewModel::deleteEntry,
             onDismiss = viewModel::closeDeleteDialog
         )
+    }
+
+    if (uiState.showHistorySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.toggleHistorySheet() },
+            sheetState = historyBottomSheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        ) {
+            SpendHistoryBottomSheet(
+                entries = allEntries,
+                onEdit = { entry ->
+                    viewModel.toggleHistorySheet()
+                    viewModel.openEditSheet(entry)
+                },
+                onDelete = { entry ->
+                    viewModel.toggleHistorySheet()
+                    viewModel.openDeleteDialog(entry)
+                }
+            )
+        }
     }
 }
 
@@ -425,7 +456,8 @@ fun ExpressiveHeroCard(
 fun ExpressiveListItem(
     entry: SpendEntry,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val isNeed = entry.category == SpendCategory.NEED
     val containerColor = if (isNeed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
@@ -433,7 +465,7 @@ fun ExpressiveListItem(
     val onContainerColor = if (isNeed) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         color = containerColor,
         contentColor = onContainerColor
@@ -904,6 +936,66 @@ fun SpendInputField(
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
             )
+        }
+    }
+}
+
+// ── History Bottom Sheet ──────────────────────────────────
+
+@Composable
+fun SpendHistoryBottomSheet(
+    entries: List<SpendEntry>,
+    onEdit: (SpendEntry) -> Unit,
+    onDelete: (SpendEntry) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "History",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(50)
+            ) {
+                Text(
+                    text = "${entries.size} total",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        if (entries.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "No history yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(bottom = 40.dp)
+            ) {
+                items(items = entries, key = { it.id }) { entry ->
+                    ExpressiveListItem(
+                        entry = entry,
+                        onEdit = { onEdit(entry) },
+                        onDelete = { onDelete(entry) },
+                        modifier = Modifier.animateItem()
+                    )
+                }
+            }
         }
     }
 }
