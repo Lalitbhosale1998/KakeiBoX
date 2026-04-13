@@ -1,0 +1,64 @@
+<resources>
+    <string name="app_name">KakeiboX</string>
+
+    <!-- Tab Labels -->
+    <string name="tab_salary">Salary</string>
+    <string name="tab_spend">Spend</string>
+    <string name="tab_commute">Commute</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Salary Screen -->
+    <string name="salary_title">Monthly Salary</string>
+    <string name="salary_amount">Salary Amount</string>
+    <string name="remittance_amount">Remittance</string>
+    <string name="savings_amount">Savings</string>
+    <string name="remaining">Remaining</string>
+    <string name="add_entry">Add</string>
+    <string name="edit_entry">Edit Entry</string>
+    <string name="delete_entry">Delete</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="month">Month</string>
+    <string name="history">History</string>
+    <string name="current_month">Current Month</string>
+
+    <!-- Spend Screen -->
+    <string name="spend_title">Needs &amp; Wants</string>
+    <string name="need">Need</string>
+    <string name="want">Want</string>
+    <string name="description">Description</string>
+    <string name="amount">Amount</string>
+    <string name="category">Category</string>
+    <string name="balance_tip">50/30/20 Tip</string>
+
+    <!-- Commute Screen -->
+    <string name="commute_title">Commute Calculator</string>
+    <string name="one_way_fare">One-Way Fare (¥)</string>
+    <string name="holidays">Holidays</string>
+    <string name="wfh_days">WFH Days</string>
+    <string name="calculate">Calculate</string>
+    <string name="total_cost">Estimated Round-Trip Cost</string>
+    <string name="working_days">Working Days</string>
+    <string name="commute_days">Commute Days</string>
+    <string name="period">Period</string>
+    <string name="to_25th">to 25th</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_japanese">日本語</string>
+    <string name="currency_symbol">Currency Symbol</string>
+    <string name="cycle_start_day">Pay Cycle Start Day</string>
+    <string name="savings_target">Monthly Savings Target</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">Follow system</string>
+    <!-- Short label for segmented control (avoids wrapping in narrow segments) -->
+    <string name="theme_segment_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="dynamic_color">Dynamic color</string>
+    <string name="dynamic_color_summary">Use colors from your wallpaper (Material You).</string>
+    <string name="dynamic_color_unsupported">Available on Android 12 and newer.</string>
+</resources>
