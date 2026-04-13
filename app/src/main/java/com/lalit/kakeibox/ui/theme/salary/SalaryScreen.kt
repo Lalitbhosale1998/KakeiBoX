@@ -348,33 +348,31 @@ fun ExpressiveFab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    androidx.compose.material3.ExtendedFloatingActionButton(
         onClick = onClick,
-        modifier = modifier.size(width = 160.dp, height = 56.dp),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.primary,
-        shadowElevation = 6.dp
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        elevation = androidx.compose.material3.FloatingActionButtonDefaults.elevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 12.dp
+        ),
+        icon = {
             Icon(
                 imageVector = Icons.Filled.Add,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+        },
+        text = {
             Text(
                 text = stringResource(R.string.add_entry),
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black
             )
         }
-    }
+    )
 }
 
 // ── Hero Summary Card ─────────────────────────────────────

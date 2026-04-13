@@ -729,8 +729,7 @@ fun SpendAddEditSheet(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(32.dp),
-            color = activeContainerColor,
-            border = BorderStroke(2.dp, activeColor.copy(alpha = 0.5f))
+            color = activeContainerColor
         ) {
             androidx.compose.material3.TextField(
                 value = uiState.inputAmount,
@@ -869,40 +868,31 @@ fun SpendInputField(
     errorText: String? = null
 ) {
     Column {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .background(
-                    if (isError) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-                    else MaterialTheme.colorScheme.surfaceContainerHighest
+        androidx.compose.material3.OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text(placeholder, fontWeight = FontWeight.Medium) },
+            leadingIcon = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
                 )
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            androidx.compose.material3.OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = { Text(placeholder, fontWeight = FontWeight.Medium) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = if (isError) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                singleLine = true,
-                isError = isError,
-                modifier = Modifier.fillMaxWidth(),
-                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
-        }
+            },
+            singleLine = true,
+            isError = isError,
+            modifier = Modifier.fillMaxWidth(),
+            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                errorBorderColor = Color.Transparent
+            ),
+            shape = RoundedCornerShape(24.dp)
+        )
         AnimatedVisibility(
             visible = isError && errorText != null,
             enter = expandVertically() + fadeIn(),
