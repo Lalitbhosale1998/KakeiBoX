@@ -104,6 +104,8 @@ import androidx.compose.foundation.layout.WindowInsets
 //import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material.icons.outlined.EditNote
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalaryScreen(
@@ -293,7 +295,7 @@ fun SalaryScreen(
                         )
                 )
             },
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             ExpressiveAddEditSheet(
@@ -323,7 +325,7 @@ fun SalaryScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = bottomSheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             HistoryBottomSheet(
@@ -1029,13 +1031,11 @@ fun ExpressiveAddEditSheet(
             }
         }
 
-        OutlinedTextField(
+        ExpressiveInputField(
             value = uiState.inputNote,
             onValueChange = onNoteChange,
-            label = { Text("Note (optional)") },
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            label = "Note (optional)",
+            icon = Icons.Outlined.EditNote
         )
 
         val haptic = LocalHapticFeedback.current
@@ -1111,42 +1111,32 @@ fun ExpressiveInputField(
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     Column {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    if (isError)
-                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                    else containerColor
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            leadingIcon = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
                 )
-                .padding(horizontal = 4.dp)
-        ) {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = if (isError) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                isError = isError,
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
-        }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            isError = isError,
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                errorBorderColor = Color.Transparent
+            ),
+            shape = RoundedCornerShape(24.dp)
+        )
         AnimatedVisibility(
             visible = isError && errorText != null,
             enter = expandVertically() + fadeIn(),
@@ -1183,8 +1173,14 @@ fun MonthDropdown(
             readOnly = true,
             label = { Text(stringResource(R.string.month)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent
+            )
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -1221,8 +1217,14 @@ fun YearDropdown(
             readOnly = true,
             label = { Text("Year") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent
+            )
         )
         ExposedDropdownMenu(
             expanded = expanded,

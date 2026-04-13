@@ -307,7 +307,7 @@ fun SpendScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = historyBottomSheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             SpendHistoryBottomSheet(
