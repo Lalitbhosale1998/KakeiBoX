@@ -37,7 +37,10 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -568,6 +571,58 @@ fun SettingsScreen(
                     }
                 }
             )
+
+            // ── Section: About ──
+            Text(
+                text = stringResource(R.string.settings_section_about),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().height(140.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                BentoCard(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.about_version),
+                    description = stringResource(R.string.about_version_desc),
+                    icon = Icons.Outlined.Info,
+                    isActive = true,
+                    activeContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    activeContentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+
+                BentoCard(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.about_developer),
+                    description = stringResource(R.string.about_developer_desc),
+                    icon = Icons.Outlined.Code,
+                    onClick = {
+                        // Open developer profile or portfolio
+                    }
+                )
+            }
+
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.about_github),
+                description = stringResource(R.string.about_github_desc),
+                icon = Icons.Outlined.Public,
+                onClick = {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/"))
+                    context.startActivity(intent)
+                }
+            ) {
+                Text(
+                    text = stringResource(R.string.about_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
     }
 }
