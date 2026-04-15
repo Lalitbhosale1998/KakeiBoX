@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -449,16 +450,48 @@ fun ExpressivePeriodIsland(currentMonth: Int, currentYear: Int, onMonthChange: (
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 items((1..12).toList()) { month ->
                     val isSelected = currentMonth == month
-                    val bgColor by animateColorAsState(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
-                    val txtColor by animateColorAsState(if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+                    
+                    val targetWidth by animateDpAsState(
+                        targetValue = if (isSelected) 80.dp else 64.dp,
+                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                        label = "month_width"
+                    )
+                    
+                    val bgColor by animateColorAsState(
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        label = "month_bg"
+                    )
+                    val txtColor by animateColorAsState(
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "month_txt"
+                    )
+
                     Surface(
-                        onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onMonthChange(month) },
-                        color = bgColor, contentColor = txtColor, shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.height(36.dp)
-                    ) { Box(modifier = Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) { Text(DateUtils.getShortMonthName(month), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold) } }
+                        onClick = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onMonthChange(month) 
+                        },
+                        color = bgColor,
+                        contentColor = txtColor,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(targetWidth)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = DateUtils.getShortMonthName(month),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
