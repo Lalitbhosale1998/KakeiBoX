@@ -54,7 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
 import com.personal.kakeibox.data.preferences.DarkThemePreference
-import com.personal.kakeibox.ui.spend.ExpressiveTab
+import com.personal.kakeibox.ui.components.ExpressiveTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,42 +184,42 @@ fun SettingsScreen(
                     text = stringResource(R.string.theme_segment_system),
                     isSelected = selected == DarkThemePreference.SYSTEM,
                     selectedColor = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier
+                        .weight(systemWeight)
+                        .semantics { contentDescription = systemCd },
                     selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.setDarkThemePreference(DarkThemePreference.SYSTEM) 
-                    },
-                    modifier = Modifier
-                        .weight(systemWeight)
-                        .semantics { contentDescription = systemCd }
+                    }
                 )
                 // Light — tertiary (warm tone = sunshine/light feeling)
                 ExpressiveTab(
                     text = stringResource(R.string.theme_light),
                     isSelected = selected == DarkThemePreference.LIGHT,
                     selectedColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    modifier = Modifier
+                        .weight(lightWeight)
+                        .semantics { contentDescription = lightCd },
                     selectedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.setDarkThemePreference(DarkThemePreference.LIGHT) 
-                    },
-                    modifier = Modifier
-                        .weight(lightWeight)
-                        .semantics { contentDescription = lightCd }
+                    }
                 )
                 // Dark — secondary (cool tone = night feeling)
                 ExpressiveTab(
                     text = stringResource(R.string.theme_dark),
                     isSelected = selected == DarkThemePreference.DARK,
                     selectedColor = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier
+                        .weight(darkWeight)
+                        .semantics { contentDescription = darkCd },
                     selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.setDarkThemePreference(DarkThemePreference.DARK) 
-                    },
-                    modifier = Modifier
-                        .weight(darkWeight)
-                        .semantics { contentDescription = darkCd }
+                    }
                 )
             }
 

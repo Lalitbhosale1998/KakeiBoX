@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.kakeibox.data.entity.SpendCategory
 import com.personal.kakeibox.data.entity.SpendEntry
+import com.personal.kakeibox.data.entity.SalaryEntry
 import com.personal.kakeibox.data.repository.SpendRepository
 import com.personal.kakeibox.data.repository.SalaryRepository
 import com.personal.kakeibox.util.DateUtils
@@ -50,17 +51,11 @@ class SpendViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SpendUiState())
     val uiState: StateFlow<SpendUiState> = _uiState.asStateFlow()
 
-    // All entries for current month
-    val currentMonthEntries = spendRepository.getEntriesByMonthYear(
-        DateUtils.getCurrentMonth(),
-        DateUtils.getCurrentYear()
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    // All entries for viewed month
+    private val _currentMonthEntries = MutableStateFlow<List<SpendEntry>>(emptyList())
+    val currentMonthEntries: StateFlow<List<SpendEntry>> = _currentMonthEntries.asStateFlow()
 
-    // All entries ever
+    // All entries ever (for history)
     val allEntries = spendRepository.getAllEntries()
         .stateIn(
             scope = viewModelScope,
@@ -69,46 +64,73 @@ class SpendViewModel @Inject constructor(
         )
 
     // Total NEED this month
-    val totalNeedThisMonth = spendRepository.getTotalByCategory(
-        DateUtils.getCurrentMonth(),
-        DateUtils.getCurrentYear(),
-        SpendCategory.NEED
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0L
-    )
+    private val _totalNeedThisMonth = MutableStateFlow(0L)
+    val totalNeedThisMonth: StateFlow<Long> = _totalNeedThisMonth.asStateFlow()
 
     // Total WANT this month
-    val totalWantThisMonth = spendRepository.getTotalByCategory(
-        DateUtils.getCurrentMonth(),
-        DateUtils.getCurrentYear(),
-        SpendCategory.WANT
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0L
-    )
+    private val _totalWantThisMonth = MutableStateFlow(0L)
+    val totalWantThisMonth: StateFlow<Long> = _totalWantThisMonth.asStateFlow()
 
     // Total spend this month
-    val totalSpendThisMonth = spendRepository.getTotalByMonthYear(
-        DateUtils.getCurrentMonth(),
-        DateUtils.getCurrentYear()
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0L
-    )
+    private val _totalSpendThisMonth = MutableStateFlow(0L)
+    val totalSpendThisMonth: StateFlow<Long> = _totalSpendThisMonth.asStateFlow()
 
     // Current month salary — for 50/30/20 tip
-    val currentSalary = salaryRepository.getEntryByMonthYear(
-        DateUtils.getCurrentMonth(),
-        DateUtils.getCurrentYear()
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = null
-    )
+    private val _currentSalary = MutableStateFlow<SalaryEntry?>(null)
+    val currentSalary: StateFlow<SalaryEntry?> = _currentSalary.asStateFlow()
+
+    init {
+        observeMonthData()
+    }
+
+    private fun observeMonthData() {
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                // Update month entries
+                spendRepository.getEntriesByMonthYear(state.currentMonth, state.currentYear).collect {
+                    _currentMonthEntries.value = it
+                }
+            }
+        }
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                spendRepository.getTotalByCategory(state.currentMonth, state.currentYear, SpendCategory.NEED).collect {
+                    _totalNeedThisMonth.value = it ?: 0L
+                }
+            }
+        }
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                spendRepository.getTotalByCategory(state.currentMonth, state.currentYear, SpendCategory.WANT).collect {
+                    _totalWantThisMonth.value = it ?: 0L
+                }
+            }
+        }
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                spendRepository.getTotalByMonthYear(state.currentMonth, state.currentYear).collect {
+                    _totalSpendThisMonth.value = it ?: 0L
+                }
+            }
+        }
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                salaryRepository.getEntryByMonthYear(state.currentMonth, state.currentYear).collect {
+                    _currentSalary.value = it
+                }
+            }
+        }
+    }
+
+    // ── Period Navigation ──────────────────────────────
+
+    fun updateViewedMonth(month: Int) {
+        _uiState.update { it.copy(currentMonth = month) }
+    }
+
+    fun updateViewedYear(year: Int) {
+        _uiState.update { it.copy(currentYear = year) }
+    }
 
     // ── Filter ────────────────────────────────────────
 

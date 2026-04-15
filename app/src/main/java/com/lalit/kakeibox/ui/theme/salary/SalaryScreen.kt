@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -203,8 +204,13 @@ fun SalaryScreen(
 
                 // ── History List ─────────────
                 if (allEntries.isEmpty()) {
-                    item { ExpressiveEmptyState() }
-                } else {
+                item {
+                    ExpressiveEmptyState(
+                        message = "No income logged yet",
+                        icon = "💰"
+                    )
+                }
+            } else {
                     items(
                         items = allEntries.take(3),
                         key = { it.id }
@@ -612,19 +618,7 @@ fun ExpressiveEmptyHero(onAdd: () -> Unit) {
     }
 }
 
-@Composable
-fun ExpressiveEmptyState() {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            "No history yet",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
+
 
 @Composable
 fun ExpressiveAddEditSheet(
