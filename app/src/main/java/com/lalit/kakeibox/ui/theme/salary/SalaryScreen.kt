@@ -825,7 +825,7 @@ fun ExpressiveAddEditSheet(
         
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Bento Island for Period Selection
+        // 1. Period Island (Bento Selection)
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
@@ -848,9 +848,9 @@ fun ExpressiveAddEditSheet(
             }
         }
         
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         
-        // Hero Amount Island for Salary
+        // 2. Hero Amount Island (Bento Card, Focused Scaling)
         val salaryElevation by animateDpAsState(if (isSalaryFocused) 12.dp else 0.dp)
         val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.04f else 1f)
         
@@ -862,7 +862,11 @@ fun ExpressiveAddEditSheet(
                 .fillMaxWidth()
                 .graphicsLayer(scaleX = salaryScale, scaleY = salaryScale)
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Column(
+                modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = "TOTAL EARNINGS",
                     style = MaterialTheme.typography.labelLarge,
@@ -883,26 +887,31 @@ fun ExpressiveAddEditSheet(
                                 if (it.isFocused) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             }
                         },
-                    textStyle = MaterialTheme.typography.displayMedium.copy(
+                    textStyle = MaterialTheme.typography.displayLarge.copy(
                         fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
                         color = if (isSalaryFocused) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Text(
                                 text = "¥",
-                                style = MaterialTheme.typography.displayMedium,
+                                style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Black,
                                 color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Box(modifier = Modifier.weight(1f)) {
+                            Box(contentAlignment = Alignment.Center) {
                                 if (uiState.inputSalary.isEmpty()) {
                                     Text(
                                         text = "0",
-                                        style = MaterialTheme.typography.displayMedium,
+                                        style = MaterialTheme.typography.displayLarge,
                                         fontWeight = FontWeight.Black,
                                         color = if (isSalaryFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f) 
                                                 else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -965,8 +974,8 @@ fun ExpressiveAddEditSheet(
 
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Bento Island for Allocations (Savings & Remittance)
-        val allocationsFocused = isSavingsFocused || isRemittanceFocused
+        // Bento Island for Allocations (Savings & Remittance & Notes)
+        val allocationsFocused = isSavingsFocused || isRemittanceFocused || isNoteFocused
         val allocationsElevation by animateDpAsState(if (allocationsFocused) 8.dp else 0.dp)
         val allocationsScale by animateFloatAsState(if (allocationsFocused) 1.02f else 1f)
 
@@ -1022,47 +1031,45 @@ fun ExpressiveAddEditSheet(
                         )
                     )
                 }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
 
-        val noteElevation by animateDpAsState(if (isNoteFocused) 8.dp else 0.dp)
-        val noteScale by animateFloatAsState(if (isNoteFocused) 1.02f else 1f)
+                // Expanding Note Drawer (Merged into Allocations Card for space efficiency)
+                AnimatedVisibility(
+                    visible = showNoteField,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = uiState.inputNote,
+                            onValueChange = onNoteChange,
+                            label = { Text("Notes (Optional)") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { isNoteFocused = it.isFocused },
+                            leadingIcon = { Icon(Icons.Outlined.NoteAlt, contentDescription = null) },
+                            shape = RoundedCornerShape(16.dp),
+                            placeholder = { Text("Bonus, overtime, etc.") },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                    }
+                }
 
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(28.dp),
-            tonalElevation = noteElevation,
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(scaleX = noteScale, scaleY = noteScale)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Additional Info",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
-                )
-                OutlinedTextField(
-                    value = uiState.inputNote,
-                    onValueChange = onNoteChange,
-                    label = { Text("Notes (Optional)") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { isNoteFocused = it.isFocused },
-                    leadingIcon = { Icon(Icons.Outlined.NoteAlt, contentDescription = null) },
-                    shape = RoundedCornerShape(16.dp),
-                    placeholder = { Text("Bonus, overtime, etc.") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                    )
-                )
+                if (!showNoteField) {
+                    TextButton(
+                        onClick = { showNoteField = true },
+                        modifier = Modifier.align(Alignment.End).padding(top = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Add Note", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
             }
         }
         
