@@ -309,83 +309,77 @@ fun SettingsScreen(
                 icon = Icons.Outlined.Language
             ) {
                 val languages = AppLanguage.values()
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                val currentLanguage = themeSettings.appLanguage
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    languages.forEachIndexed { index, language ->
-                        SegmentedButton(
-                            selected = themeSettings.appLanguage == language,
-                            onClick = { viewModel.setAppLanguage(language) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = languages.size),
-                            label = { Text(language.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                    languages.forEach { language ->
+                        val isSelected = currentLanguage == language
+                        
+                        val segmentWeight by animateFloatAsState(
+                            targetValue = if (isSelected) 1.5f else 1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy, 
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            label = "lang_weight_${language.name}"
+                        )
+
+                        ExpressiveTab(
+                            text = language.name.lowercase().replaceFirstChar { it.uppercase() },
+                            isSelected = isSelected,
+                            selectedColor = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.weight(segmentWeight),
+                            selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setAppLanguage(language) 
+                            }
                         )
                     }
                 }
             }
 
-            // Currency & Date Row
-            Row(
-                modifier = Modifier.fillMaxWidth().height(160.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            // Currency Section
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Currency Symbol",
+                description = "Set your preferred currency symbol for all reports and inputs.",
+                icon = Icons.Outlined.Payments
             ) {
-                // Currency Card
-                BentoCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Currency",
-                    description = "Symbol",
-                    icon = Icons.Outlined.Payments
+                val currencies = listOf("₹", "¥", "$", "€")
+                val currentSymbol = themeSettings.currencySymbol
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val currencies = listOf("₹", "¥", "$", "€")
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        currencies.forEach { symbol ->
-                            Surface(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clickable { viewModel.setCurrencySymbol(symbol) },
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (themeSettings.currencySymbol == symbol) 
-                                    MaterialTheme.colorScheme.primary 
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(
-                                        symbol,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = if (themeSettings.currencySymbol == symbol) 
-                                            MaterialTheme.colorScheme.onPrimary 
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                    currencies.forEach { symbol ->
+                        val isSelected = currentSymbol == symbol
+                        
+                        // Adaptive weight animation similar to Category Tabs
+                        val segmentWeight by animateFloatAsState(
+                            targetValue = if (isSelected) 1.5f else 1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy, 
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            label = "currency_weight_$symbol"
+                        )
 
-                // Date Format Card
-                BentoCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Date Format",
-                    description = "Styles",
-                    icon = Icons.Outlined.CalendarMonth
-                ) {
-                    val formats = listOf("MMM dd", "dd/MM/yy")
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        formats.forEach { format ->
-                            Text(
-                                text = format,
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .clickable { viewModel.setDateFormat(format) }
-                                    .background(if (themeSettings.dateFormat == format) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                                    .padding(4.dp),
-                                color = if (themeSettings.dateFormat == format) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        ExpressiveTab(
+                            text = symbol,
+                            isSelected = isSelected,
+                            selectedColor = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.weight(segmentWeight),
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setCurrencySymbol(symbol) 
+                            }
+                        )
                     }
                 }
             }
