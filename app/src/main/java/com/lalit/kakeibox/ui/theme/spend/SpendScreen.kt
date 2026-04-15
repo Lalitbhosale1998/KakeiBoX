@@ -19,6 +19,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -211,26 +212,16 @@ fun SpendScreen(
         ) {
             // ── Bento Box Hero Grid ──────────────────────
             item {
-                AnimatedContent(
-                    targetState = totalSpendAllTime ?: 0L,
-                    transitionSpec = {
-                        (fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
-                         slideInVertically(initialOffsetY = { it / 2 }))
-                        .togetherWith(fadeOut(animationSpec = spring(stiffness = Spring.StiffnessLow)))
-                    },
-                    label = "hero_anim"
-                ) { targetTotal ->
-                    BentoHeroSection(
-                        totalSpend = targetTotal,
-                        totalNeed = totalNeed,
-                        totalWant = totalWant,
-                        salary = salary,
-                        currentMonth = uiState.currentMonth,
-                        currentYear = uiState.currentYear,
-                        isPrivacyMode = themeSettings.privacyModeEnabled,
-                        onPeriodClick = { /* Scroll to top or show picker if needed */ }
-                    )
-                }
+                BentoHeroSection(
+                    totalSpend = totalSpendAllTime ?: 0L,
+                    totalNeed = totalNeed,
+                    totalWant = totalWant,
+                    salary = salary,
+                    currentMonth = uiState.currentMonth,
+                    currentYear = uiState.currentYear,
+                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                    onPeriodClick = { /* Scroll to top or show picker if needed */ }
+                )
             }
 
             // ── Period Navigation Island ──────────────────
@@ -397,14 +388,10 @@ fun BentoHeroSection(
                     color = LocalContentColor.current.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                AnimatedContent(targetState = totalSpend, label = "total_spent_balance") { valTotal ->
-                    Text(
-                        text = CurrencyUtils.formatYen(valTotal, isPrivacyMode),
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 28.sp
-                    )
-                }
+                ExpressiveTotalSpentTicker(
+                    totalSpend = totalSpend,
+                    isPrivacyMode = isPrivacyMode
+                )
             }
         }
 
@@ -433,6 +420,51 @@ fun BentoHeroSection(
 }
 
 @Composable
+fun ExpressiveTotalSpentTicker(
+    totalSpend: Long,
+    isPrivacyMode: Boolean
+) {
+    val formattedTotal = CurrencyUtils.formatYen(totalSpend, isPrivacyMode)
+    
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isPrivacyMode) {
+            Text(
+                text = formattedTotal,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Black,
+                fontSize = 28.sp
+            )
+        } else {
+            formattedTotal.forEachIndexed { index, char ->
+                val isDigit = char.isDigit()
+                
+                AnimatedContent(
+                    targetState = char,
+                    transitionSpec = {
+                        if (isDigit) {
+                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
+                                .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
+                        } else {
+                            fadeIn(animationSpec = tween(150))
+                                .togetherWith(fadeOut(animationSpec = tween(150)))
+                        }
+                    },
+                    label = "spend_digit_ticker_$index"
+                ) { targetChar ->
+                    Text(
+                        text = targetChar.toString(),
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 28.sp,
+                        softWrap = false
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun BentoStatSmall(
     title: String, 
     amount: Long, 
@@ -450,11 +482,53 @@ fun BentoStatSmall(
         idleContainerColor = containerColor,
         idleContentColor = contentColor
     ) {
-        Text(
-            text = CurrencyUtils.formatYen(amount, isPrivacyMode),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Black
+        ExpressiveSmallStatTicker(
+            amount = amount,
+            isPrivacyMode = isPrivacyMode
         )
+    }
+}
+
+@Composable
+fun ExpressiveSmallStatTicker(
+    amount: Long,
+    isPrivacyMode: Boolean
+) {
+    val formattedTotal = CurrencyUtils.formatYen(amount, isPrivacyMode)
+    
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isPrivacyMode) {
+            Text(
+                text = formattedTotal,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black
+            )
+        } else {
+            formattedTotal.forEachIndexed { index, char ->
+                val isDigit = char.isDigit()
+                
+                AnimatedContent(
+                    targetState = char,
+                    transitionSpec = {
+                        if (isDigit) {
+                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
+                                .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
+                        } else {
+                            fadeIn(animationSpec = tween(150))
+                                .togetherWith(fadeOut(animationSpec = tween(150)))
+                        }
+                    },
+                    label = "small_digit_ticker_$index"
+                ) { targetChar ->
+                    Text(
+                        text = targetChar.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        softWrap = false
+                    )
+                }
+            }
+        }
     }
 }
 
