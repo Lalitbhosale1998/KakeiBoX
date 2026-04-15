@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -50,6 +51,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,6 +66,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.util.DateUtils
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExpressivePeriodSelector(
@@ -74,120 +77,117 @@ fun ExpressivePeriodSelector(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
-    
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = RoundedCornerShape(32.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.CalendarMonth,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Selection Period",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // Month Selection
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items((1..12).toList()) { month ->
-                    val isSelected = selectedMonth == month
-                    
-                    val backgroundColor by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                        label = "month_bg"
-                    )
-                    val contentColor by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                        label = "month_content"
-                    )
-                    val scale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.15f else 1f,
-                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                        label = "month_scale"
-                    )
+    val monthListState = rememberLazyListState()
+    val yearListState = rememberLazyListState()
+    val years = DateUtils.getYearRange()
 
-                    Surface(
-                        onClick = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            onMonthChange(month) 
-                        },
-                        color = backgroundColor,
-                        contentColor = contentColor,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .size(width = 72.dp, height = 48.dp)
-                            .graphicsLayer(scaleX = scale, scaleY = scale)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = DateUtils.getShortMonthName(month),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
-                            )
-                        }
+    // Auto-scroll to selected month
+    LaunchedEffect(selectedMonth) {
+        val index = (selectedMonth - 1).coerceAtLeast(0)
+        monthListState.animateScrollToItem(index)
+    }
+
+    // Auto-scroll to selected year
+    LaunchedEffect(selectedYear) {
+        val index = years.indexOf(selectedYear).coerceAtLeast(0)
+        yearListState.animateScrollToItem(index)
+    }
+    
+    Column(modifier = modifier) {
+        // Month Selection
+        LazyRow(
+            state = monthListState,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items((1..12).toList()) { month ->
+                val isSelected = selectedMonth == month
+                
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                    label = "month_bg"
+                )
+                val contentColor by animateColorAsState(
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                    label = "month_content"
+                )
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.1f else 1f,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                    label = "month_scale"
+                )
+
+                Surface(
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onMonthChange(month) 
+                    },
+                    color = backgroundColor,
+                    contentColor = contentColor,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .size(width = 80.dp, height = 44.dp)
+                        .graphicsLayer(scaleX = scale, scaleY = scale)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = DateUtils.getShortMonthName(month),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                        )
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-            // Year Selection
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(DateUtils.getYearRange()) { year ->
-                    val isSelected = selectedYear == year
-                    
-                    val backgroundColor by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent,
-                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                        label = "year_bg"
-                    )
-                    val contentColor by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                        label = "year_content"
-                    )
-                    val scale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.15f else 1f,
-                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                        label = "year_scale"
-                    )
+        // Year Selection
+        LazyRow(
+            state = yearListState,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(DateUtils.getYearRange()) { year ->
+                val isSelected = selectedYear == year
+                
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                    label = "year_bg"
+                )
+                val contentColor by animateColorAsState(
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                    label = "year_content"
+                )
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.15f else 1f,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                    label = "year_scale"
+                )
 
-                    Surface(
-                        onClick = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            onYearChange(year) 
-                        },
-                        color = backgroundColor,
-                        contentColor = contentColor,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .graphicsLayer(scaleX = scale, scaleY = scale)
-                    ) {
+                Surface(
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onYearChange(year) 
+                    },
+                    color = backgroundColor,
+                    contentColor = contentColor,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .size(if (isSelected) 64.dp else 56.dp)
+                        .graphicsLayer(scaleX = scale, scaleY = scale)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
                         Text(
                             text = year.toString(),
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
                         )
                     }
                 }
