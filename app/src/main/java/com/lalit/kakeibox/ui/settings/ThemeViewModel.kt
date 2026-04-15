@@ -1,5 +1,10 @@
 package com.personal.kakeibox.ui.settings
 
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.kakeibox.data.preferences.AppLanguage
@@ -16,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +31,9 @@ class ThemeViewModel @Inject constructor(
     private val salaryRepository: SalaryRepository,
     private val commuteRepository: CommuteRepository
 ) : ViewModel() {
+
+    private val _isAuthenticated = mutableStateOf(false)
+    val isAuthenticated: State<Boolean> = _isAuthenticated
 
     val themeSettings: StateFlow<ThemeSettings> = preferencesRepository.themeSettings
         .stateIn(
@@ -78,6 +87,31 @@ class ThemeViewModel @Inject constructor(
     fun setBiometricEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setBiometricEnabled(enabled)
+        }
+    }
+
+    fun authenticate(activity: FragmentActivity, executor: Executor) {
+        val biometricManager = BiometricManager.from(activity)
+        val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        
+        if (biometricManager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS) {
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Unlock KakeiboX")
+                .setSubtitle("Authenticate to access your financial data")
+                .setAllowedAuthenticators(authenticators)
+                .build()
+
+            val biometricPrompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    _isAuthenticated.value = true
+                }
+            })
+
+            biometricPrompt.authenticate(promptInfo)
+        } else {
+            // Biometric not available, let them in or handle accordingly
+            _isAuthenticated.value = true
         }
     }
 

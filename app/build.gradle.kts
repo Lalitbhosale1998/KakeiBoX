@@ -71,5 +71,6 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
+    implementation(libs.androidx.biometric)
     implementation(libs.datastore.preferences)
 }
