@@ -3,6 +3,7 @@ package com.personal.kakeibox.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.kakeibox.data.preferences.DarkThemePreference
+import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +34,12 @@ class ThemeViewModel @Inject constructor(
     fun setUseDynamicColor(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setUseDynamicColor(enabled)
+        }
+    }
+
+    fun setNavBarStyle(style: NavBarStyle) {
+        viewModelScope.launch {
+            preferencesRepository.setNavBarStyle(style)
         }
     }
 }

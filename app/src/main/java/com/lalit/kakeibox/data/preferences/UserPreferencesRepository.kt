@@ -13,6 +13,7 @@ import javax.inject.Singleton
 private object Keys {
     val DARK_THEME = stringPreferencesKey("dark_theme")
     val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+    val NAV_BAR_STYLE = stringPreferencesKey("nav_bar_style")
 }
 
 @Singleton
@@ -23,8 +24,13 @@ class UserPreferencesRepository @Inject constructor(
     val themeSettings: Flow<ThemeSettings> = dataStore.data.map { prefs ->
         ThemeSettings(
             darkThemePreference = DarkThemePreference.fromStorage(prefs[Keys.DARK_THEME]),
-            useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true
+            useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
+            navBarStyle = NavBarStyle.fromStorage(prefs[Keys.NAV_BAR_STYLE])
         )
+    }
+
+    suspend fun setNavBarStyle(style: NavBarStyle) {
+        dataStore.edit { it[Keys.NAV_BAR_STYLE] = style.name }
     }
 
     suspend fun setDarkThemePreference(value: DarkThemePreference) {

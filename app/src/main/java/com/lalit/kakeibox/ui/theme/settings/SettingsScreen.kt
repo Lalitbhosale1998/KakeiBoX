@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Dock
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +55,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
 import com.personal.kakeibox.data.preferences.DarkThemePreference
+import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.ui.components.ExpressiveTab
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -279,6 +281,77 @@ fun SettingsScreen(
                         enabled = dynamicSupported
                     )
                 }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+            // ── Navigation Bar Style ───────────────────────
+            Text(
+                text = "Navigation Bar Style",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Dock,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Layout",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            val currentNavStyle = themeSettings.navBarStyle
+            val fullWidthWeight by animateFloatAsState(
+                targetValue = if (currentNavStyle == NavBarStyle.FULL_WIDTH) 1.5f else 1f,
+                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                label = "nav_weight_full"
+            )
+            val floatingWeight by animateFloatAsState(
+                targetValue = if (currentNavStyle == NavBarStyle.FLOATING) 1.5f else 1f,
+                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                label = "nav_weight_floating"
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ExpressiveTab(
+                    text = "Full Width",
+                    isSelected = currentNavStyle == NavBarStyle.FULL_WIDTH,
+                    selectedColor = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.weight(fullWidthWeight),
+                    selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setNavBarStyle(NavBarStyle.FULL_WIDTH)
+                    }
+                )
+                ExpressiveTab(
+                    text = "Floating",
+                    isSelected = currentNavStyle == NavBarStyle.FLOATING,
+                    selectedColor = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.weight(floatingWeight),
+                    selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setNavBarStyle(NavBarStyle.FLOATING)
+                    }
+                )
             }
         }
     }
