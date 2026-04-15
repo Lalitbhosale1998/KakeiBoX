@@ -220,7 +220,8 @@ fun SalaryScreen(
                     ExpressiveStatsGrid(
                         totalSavings = totalSavings ?: 0L,
                         totalRemittance = totalRemittance ?: 0L,
-                        isPrivacyMode = themeSettings.privacyModeEnabled
+                        isPrivacyMode = themeSettings.privacyModeEnabled,
+                        onRemittanceClick = { viewModel.openAddDialog() }
                     )
                 }
 
@@ -457,7 +458,12 @@ fun ExpressiveHeroCard(
 }
 
 @Composable
-fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long, isPrivacyMode: Boolean = false) {
+fun ExpressiveStatsGrid(
+    totalSavings: Long, 
+    totalRemittance: Long, 
+    isPrivacyMode: Boolean = false,
+    onRemittanceClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier.fillMaxWidth().height(160.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -481,7 +487,8 @@ fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long, isPrivacyMode
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
             idleContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            onClick = onRemittanceClick
         ) {
             Text(
                 text = CurrencyUtils.formatYen(totalRemittance, isPrivacyMode),
