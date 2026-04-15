@@ -807,10 +807,13 @@ fun SpendAddEditSheet(
                     modifier = Modifier.padding(start = 4.dp)
                 )
                 
-                // Custom Category Toggle
-                ExpressiveCategoryToggle(
-                    selectedCategory = uiState.inputCategory.name,
-                    onCategoryChange = { onCategoryChange(SpendCategory.valueOf(it)) }
+                // Iconic Bento Category Selection
+                ExpressiveCategoryBento(
+                    selectedCategory = uiState.inputCategory,
+                    onCategoryChange = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onCategoryChange(it) 
+                    }
                 )
 
                 OutlinedTextField(
@@ -877,6 +880,70 @@ fun SpendAddEditSheet(
     }
 }
 
+
+@Composable
+fun ExpressiveCategoryBento(
+    selectedCategory: SpendCategory,
+    onCategoryChange: (SpendCategory) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(100.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Needs Bento Card
+        CategoryBentoItem(
+            modifier = Modifier.weight(1f),
+            title = "Need",
+            isSelected = selectedCategory == SpendCategory.NEED,
+            icon = Icons.Outlined.Home,
+            selectedColor = MaterialTheme.colorScheme.errorContainer,
+            selectedContentColor = MaterialTheme.colorScheme.onErrorContainer,
+            onClick = { onCategoryChange(SpendCategory.NEED) }
+        )
+
+        // Wants Bento Card
+        CategoryBentoItem(
+            modifier = Modifier.weight(1f),
+            title = "Want",
+            isSelected = selectedCategory == SpendCategory.WANT,
+            icon = Icons.Outlined.Star,
+            selectedColor = MaterialTheme.colorScheme.tertiaryContainer,
+            selectedContentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            onClick = { onCategoryChange(SpendCategory.WANT) }
+        )
+    }
+}
+
+@Composable
+fun CategoryBentoItem(
+    modifier: Modifier,
+    title: String,
+    isSelected: Boolean,
+    icon: ImageVector,
+    selectedColor: Color,
+    selectedContentColor: Color,
+    onClick: () -> Unit
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.05f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)
+    )
+    val elevation by animateDpAsState(if (isSelected) 6.dp else 0.dp)
+
+    BentoCard(
+        modifier = modifier
+            .graphicsLayer(scaleX = scale, scaleY = scale)
+            .fillMaxHeight(),
+        title = title,
+        icon = icon,
+        isActive = isSelected,
+        activeContainerColor = selectedColor,
+        activeContentColor = selectedContentColor,
+        idleContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        idleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        onClick = onClick
+    )
+}
 
 @Composable
 fun SpendHistoryBottomSheet(
