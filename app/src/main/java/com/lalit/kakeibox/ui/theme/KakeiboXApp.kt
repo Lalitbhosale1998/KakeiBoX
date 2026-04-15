@@ -236,15 +236,14 @@ fun KakeiboXApp(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp),
-                    shape = RoundedCornerShape(40.dp),
-                    // Use surfaceContainer for a standard M3 bar background
+                        .height(82.dp),
+                    shape = RoundedCornerShape(41.dp),
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     tonalElevation = 0.dp,
-                    shadowElevation = 8.dp,
+                    shadowElevation = 10.dp,
                     border = BorderStroke(
                         width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
                     )
                 ) {
                     Row(
@@ -252,7 +251,7 @@ fun KakeiboXApp(
                             .fillMaxSize()
                             .selectableGroup()
                             .padding(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         bottomNavItems.forEach { item ->
@@ -260,24 +259,35 @@ fun KakeiboXApp(
                                 it.route == item.route
                             } == true
 
-                            val iconScale by animateFloatAsState(
-                                targetValue = if (isSelected) 1.15f else 1f,
+                            // ── Expressive Animations ──
+                            
+                            // 1. Adaptive Weight: Active tab expands
+                            val segmentWeight by animateFloatAsState(
+                                targetValue = if (isSelected) 1.4f else 1f,
                                 animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,
                                     stiffness = Spring.StiffnessLow
                                 ),
+                                label = "weight_anim"
+                            )
+
+                            // 2. Icon Bounce
+                            val iconScale by animateFloatAsState(
+                                targetValue = if (isSelected) 1.2f else 1f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                ),
                                 label = "floating_icon_scale"
                             )
 
-                            // Active: secondaryContainer | Inactive: Transparent
                             val containerColor by animateColorAsState(
                                 targetValue = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
                                              else Color.Transparent,
-                                animationSpec = tween(250),
+                                animationSpec = tween(300),
                                 label = "tab_bg_anim"
                             )
 
-                            // Active: onSecondaryContainer | Inactive: onSurfaceVariant
                             val contentColor by animateColorAsState(
                                 targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer 
                                              else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -286,7 +296,7 @@ fun KakeiboXApp(
 
                             Column(
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .weight(segmentWeight) // Apply adaptive weight
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(32.dp))
                                     .background(containerColor)
@@ -322,7 +332,7 @@ fun KakeiboXApp(
                                 Text(
                                     text = stringResource(item.labelRes),
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
                                         fontSize = 11.sp,
                                         letterSpacing = 0.1.sp
                                     ),
