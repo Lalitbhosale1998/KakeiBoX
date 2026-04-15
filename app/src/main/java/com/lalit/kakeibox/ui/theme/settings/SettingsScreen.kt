@@ -36,8 +36,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
+import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import java.util.Locale
 
@@ -100,54 +104,96 @@ fun SettingsScreen(
                 modifier = Modifier.padding(top = 8.dp, start = 4.dp)
             )
 
-            // Row 1: Theme Pair (System & Dynamic)
+            // Row 1: Theme selection (Full width with Segmented Buttons)
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "App Theme",
+                icon = when(themeSettings.darkThemePreference) {
+                    DarkThemePreference.DARK -> Icons.Outlined.DarkMode
+                    DarkThemePreference.LIGHT -> Icons.Outlined.LightMode
+                    else -> Icons.Outlined.AutoMode
+                }
+            ) {
+                val options = listOf(DarkThemePreference.SYSTEM, DarkThemePreference.LIGHT, DarkThemePreference.DARK)
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+                ) {
+                    options.forEachIndexed { index, preference ->
+                        val isSelected = themeSettings.darkThemePreference == preference
+                        SegmentedButton(
+                            selected = isSelected,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setDarkThemePreference(preference)
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                            label = {
+                                Text(
+                                    preference.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            },
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Row 2: Dynamic Color & Daily Reminders (Interactive Bento Pair)
             Row(
                 modifier = Modifier.fillMaxWidth().height(160.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Dark Mode Card
-                BentoCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Theme",
-                    icon = when(themeSettings.darkThemePreference) {
-                        DarkThemePreference.DARK -> Icons.Outlined.DarkMode
-                        DarkThemePreference.LIGHT -> Icons.Outlined.LightMode
-                        else -> Icons.Outlined.AutoMode
-                    },
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val next = when(themeSettings.darkThemePreference) {
-                            DarkThemePreference.SYSTEM -> DarkThemePreference.LIGHT
-                            DarkThemePreference.LIGHT -> DarkThemePreference.DARK
-                            DarkThemePreference.DARK -> DarkThemePreference.SYSTEM
-                        }
-                        viewModel.setDarkThemePreference(next)
-                    }
-                ) {
-                    Text(
-                        text = themeSettings.darkThemePreference.name.lowercase(Locale.ROOT)
-                            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() },
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
                 // Dynamic Color Card
                 BentoCard(
                     modifier = Modifier.weight(1f),
                     title = "Dynamic",
                     icon = Icons.Outlined.Palette,
-                    enabled = dynamicSupported
+                    enabled = dynamicSupported,
+                    isActive = themeSettings.useDynamicColor && dynamicSupported,
+                    onClick = {
+                        if (dynamicSupported) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.setUseDynamicColor(!themeSettings.useDynamicColor)
+                        }
+                    }
                 ) {
                     Switch(
                         checked = themeSettings.useDynamicColor,
-                        onCheckedChange = { viewModel.setUseDynamicColor(it) },
+                        onCheckedChange = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.setUseDynamicColor(it) 
+                        },
                         enabled = dynamicSupported,
                         modifier = Modifier.graphicsLayer {
                             scaleX = 0.8f
                             scaleY = 0.8f
                         }
+                    )
+                }
+
+                // Daily Reminders Card (State-Aware example)
+                BentoCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Reminders",
+                    icon = if (themeSettings.remindersEnabled) Icons.Outlined.NotificationsActive else Icons.Outlined.NotificationsNone,
+                    isActive = themeSettings.remindersEnabled,
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setRemindersEnabled(!themeSettings.remindersEnabled)
+                    }
+                ) {
+                    Text(
+                        text = if (themeSettings.remindersEnabled) "Everyday 9PM" else "Disabled",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (themeSettings.remindersEnabled) 
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -215,57 +261,3 @@ fun SettingsScreen(
     }
 }
 
-@Composable
-fun BentoCard(
-    modifier: Modifier = Modifier,
-    title: String,
-    icon: ImageVector,
-    enabled: Boolean = true,
-    onClick: (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit = {}
-) {
-    Surface(
-        modifier = modifier
-            .clip(RoundedCornerShape(32.dp))
-            .then(if (onClick != null && enabled) Modifier.clickable { onClick() } else Modifier),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shape = RoundedCornerShape(32.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = if (enabled) 1f else 0.4f),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-            }
-            
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                content()
-            }
-        }
-    }
-}

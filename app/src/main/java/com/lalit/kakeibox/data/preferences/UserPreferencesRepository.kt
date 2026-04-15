@@ -14,6 +14,7 @@ private object Keys {
     val DARK_THEME = stringPreferencesKey("dark_theme")
     val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     val NAV_BAR_STYLE = stringPreferencesKey("nav_bar_style")
+    val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
 }
 
 @Singleton
@@ -25,8 +26,13 @@ class UserPreferencesRepository @Inject constructor(
         ThemeSettings(
             darkThemePreference = DarkThemePreference.fromStorage(prefs[Keys.DARK_THEME]),
             useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
-            navBarStyle = NavBarStyle.fromStorage(prefs[Keys.NAV_BAR_STYLE])
+            navBarStyle = NavBarStyle.fromStorage(prefs[Keys.NAV_BAR_STYLE]),
+            remindersEnabled = prefs[Keys.REMINDERS_ENABLED] ?: false
         )
+    }
+
+    suspend fun setRemindersEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.REMINDERS_ENABLED] = enabled }
     }
 
     suspend fun setNavBarStyle(style: NavBarStyle) {

@@ -37,8 +37,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
 import com.personal.kakeibox.data.entity.CommuteEntry
+import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.util.CurrencyUtils
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.Business
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Train
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -154,28 +159,22 @@ fun CommuteScreen(
 fun CommuteHeroSection(entry: CommuteEntry?) {
     val cost = entry?.totalCost ?: 0L
     
-    Surface(
+    BentoCard(
         modifier = Modifier.fillMaxWidth().height(200.dp),
-        shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.tertiary,
-        contentColor = MaterialTheme.colorScheme.onTertiary
+        title = "ESTIMATED COST",
+        icon = Icons.Outlined.Train,
+        isActive = true,
+        activeContainerColor = MaterialTheme.colorScheme.tertiary,
+        activeContentColor = MaterialTheme.colorScheme.onTertiary
     ) {
-        Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Column {
-                Text(
-                    text = "ESTIMATED COST",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 1.sp
-                )
-                Text(
-                    text = "Current Period",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = LocalContentColor.current.copy(alpha = 0.7f)
-                )
-            }
-            
+        Column {
+            Text(
+                text = "Current Period",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = LocalContentColor.current.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = CurrencyUtils.formatYen(cost),
                 style = MaterialTheme.typography.displayMedium,
@@ -188,45 +187,34 @@ fun CommuteHeroSection(entry: CommuteEntry?) {
 @Composable
 fun CommuteDetailsBento(entry: CommuteEntry) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(140.dp),
+        modifier = Modifier.fillMaxWidth().height(160.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        CommuteStatCard(
+        BentoCard(
             title = "Office Days",
-            value = entry.totalCommuteDays.toString(),
             icon = Icons.Outlined.Business,
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            idleContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            idleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier.weight(1f)
-        )
-        CommuteStatCard(
+        ) {
+            Text(
+                text = entry.totalCommuteDays.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black
+            )
+        }
+        BentoCard(
             title = "WFH Days",
-            value = entry.wfhDays.toString(),
             icon = Icons.Outlined.Home,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            idleContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            idleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-fun CommuteStatCard(
-    title: String,
-    value: String,
-    icon: ImageVector,
-    containerColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.fillMaxHeight(),
-        shape = RoundedCornerShape(24.dp),
-        color = containerColor
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
-            Column {
-                Text(text = value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
-                Text(text = title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            }
+        ) {
+            Text(
+                text = entry.wfhDays.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black
+            )
         }
     }
 }

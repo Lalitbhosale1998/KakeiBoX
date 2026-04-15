@@ -42,4 +42,10 @@ class ThemeViewModel @Inject constructor(
             preferencesRepository.setNavBarStyle(style)
         }
     }
+
+    fun setRemindersEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.setRemindersEnabled(enabled)
+        }
+    }
 }

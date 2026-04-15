@@ -53,6 +53,7 @@ import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.LocalContext
+import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressivePeriodSelector
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -438,66 +439,32 @@ fun ExpressiveHeroCard(
 @Composable
 fun ExpressiveStatsGrid(entry: SalaryEntry) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(160.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ExpressiveStatCard(
+        BentoCard(
             title = "Savings Goal",
-            amount = entry.savingsAmount,
             icon = Icons.Outlined.Savings,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            accentColor = MaterialTheme.colorScheme.primary,
+            idleContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
-        )
-        ExpressiveStatCard(
-            title = "Remittance",
-            amount = entry.remittanceAmount,
-            icon = Icons.AutoMirrored.Outlined.ExitToApp,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            accentColor = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-fun ExpressiveStatCard(
-    title: String,
-    amount: Long,
-    icon: ImageVector,
-    containerColor: Color,
-    accentColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(28.dp),
-        color = containerColor,
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = accentColor.copy(alpha = 0.15f),
-                modifier = Modifier.size(40.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        icon, 
-                        contentDescription = null, 
-                        modifier = Modifier.size(20.dp),
-                        tint = accentColor
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+        ) {
             Text(
-                text = title, 
-                style = MaterialTheme.typography.labelMedium, 
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = CurrencyUtils.formatYen(entry.savingsAmount),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface
             )
+        }
+        BentoCard(
+            title = "Remittance",
+            icon = Icons.AutoMirrored.Outlined.ExitToApp,
+            idleContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            idleContentColor = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
-                text = CurrencyUtils.formatYen(amount),
+                text = CurrencyUtils.formatYen(entry.remittanceAmount),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface

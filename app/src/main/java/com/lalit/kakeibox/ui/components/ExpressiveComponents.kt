@@ -13,9 +13,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -325,5 +328,100 @@ fun ExpressiveEmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun BentoCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    icon: ImageVector,
+    enabled: Boolean = true,
+    isActive: Boolean = false,
+    activeContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    activeContentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    idleContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    idleContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    onClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit = {}
+) {
+    val haptic = LocalHapticFeedback.current
+    
+    val backgroundColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> idleContainerColor.copy(alpha = 0.6f)
+            isActive -> activeContainerColor
+            else -> idleContainerColor
+        },
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "bento_bg"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> idleContentColor.copy(alpha = 0.38f)
+            isActive -> activeContentColor
+            else -> idleContentColor
+        },
+        label = "bento_content"
+    )
+
+    // Icon rotation micro-interaction
+    val iconRotation by animateFloatAsState(
+        targetValue = if (isActive) 12f else 0f,
+        animationSpec = spring(Spring.DampingRatioHighBouncy, Spring.StiffnessLow),
+        label = "icon_rotation"
+    )
+
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(32.dp))
+            .then(if (onClick != null && enabled) Modifier.clickable { 
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick() 
+            } else Modifier),
+        color = backgroundColor,
+        contentColor = contentColor,
+        shape = RoundedCornerShape(32.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = (if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
+                        .copy(alpha = if (enabled) 1f else 0.4f),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = if (isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(8.dp).graphicsLayer {
+                            rotationZ = iconRotation
+                        }
+                    )
+                }
+            }
+            
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Black,
+                    color = contentColor
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                content()
+            }
+        }
     }
 }

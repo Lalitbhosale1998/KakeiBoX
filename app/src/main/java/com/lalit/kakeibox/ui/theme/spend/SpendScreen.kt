@@ -32,6 +32,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.ShoppingBag
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.ui.components.ExpressiveCategoryToggle
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
+import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -347,30 +359,26 @@ fun BentoHeroSection(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Main Balance Card (Tall Bento)
-        Surface(
+        val isOver = remaining < 0
+        BentoCard(
             modifier = Modifier.weight(1.2f).fillMaxHeight(),
-            shape = RoundedCornerShape(32.dp),
-            color = if (remaining >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-            contentColor = if (remaining >= 0) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError
+            title = if (isOver) "OVER" else "LEFT",
+            icon = if (isOver) Icons.Outlined.WarningAmber else Icons.Outlined.AccountBalanceWallet,
+            isActive = true,
+            activeContainerColor = if (isOver) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            activeContentColor = if (isOver) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary,
+            onClick = onPeriodClick
         ) {
-            Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text(
-                        text = DateUtils.getMonthName(currentMonth).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (remaining >= 0) "LEFT" else "OVER",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = LocalContentColor.current.copy(alpha = 0.7f)
-                    )
-                }
-                
-                AnimatedContent(targetState = remaining) { valRemaining ->
+            Column {
+                Text(
+                    text = DateUtils.getMonthName(currentMonth).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp,
+                    color = LocalContentColor.current.copy(alpha = 0.7f)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                AnimatedContent(targetState = remaining, label = "remaining_balance") { valRemaining ->
                     Text(
                         text = CurrencyUtils.formatYen(valRemaining),
                         style = MaterialTheme.typography.headlineLarge,
@@ -386,6 +394,7 @@ fun BentoHeroSection(
             BentoStatSmall(
                 title = "Needs",
                 amount = totalNeed,
+                icon = Icons.Outlined.ShoppingBag,
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f)
@@ -393,6 +402,7 @@ fun BentoHeroSection(
             BentoStatSmall(
                 title = "Wants",
                 amount = totalWant,
+                icon = Icons.Outlined.Star,
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 modifier = Modifier.weight(1f)
@@ -402,12 +412,27 @@ fun BentoHeroSection(
 }
 
 @Composable
-fun BentoStatSmall(title: String, amount: Long, containerColor: Color, contentColor: Color, modifier: Modifier) {
-    Surface(modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = containerColor, contentColor = contentColor) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.Center) {
-            Text(text = title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            Text(text = CurrencyUtils.formatYen(amount), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-        }
+fun BentoStatSmall(
+    title: String, 
+    amount: Long, 
+    icon: ImageVector,
+    containerColor: Color, 
+    contentColor: Color, 
+    modifier: Modifier
+) {
+    BentoCard(
+        modifier = modifier,
+        title = title,
+        icon = icon,
+        isActive = false,
+        idleContainerColor = containerColor,
+        idleContentColor = contentColor
+    ) {
+        Text(
+            text = CurrencyUtils.formatYen(amount),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black
+        )
     }
 }
 
