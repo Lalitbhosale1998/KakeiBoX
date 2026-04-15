@@ -634,45 +634,168 @@ fun SpendAddEditSheet(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    Column(modifier = Modifier.fillMaxWidth().padding(24.dp).navigationBarsPadding().imePadding(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Text(text = if (uiState.editingEntry == null) "New Expense" else "Edit Expense", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp)
+            .navigationBarsPadding()
+            .imePadding(),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (uiState.editingEntry == null) "New Expense" else "Edit Expense",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black
+            )
+            
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Close")
+            }
+        }
         
-        // Custom Category Toggle
-        ExpressiveCategoryToggle(
-            selectedCategory = uiState.inputCategory.name,
-            onCategoryChange = { onCategoryChange(SpendCategory.valueOf(it)) }
-        )
+        // Bento Island for Category & Amount
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    text = "Transaction Details",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+                
+                // Custom Category Toggle
+                ExpressiveCategoryToggle(
+                    selectedCategory = uiState.inputCategory.name,
+                    onCategoryChange = { onCategoryChange(SpendCategory.valueOf(it)) }
+                )
 
-        OutlinedTextField(
-            value = uiState.inputAmount,
-            onValueChange = onAmountChange,
-            label = { Text("Amount (¥)") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            shape = RoundedCornerShape(16.dp),
-            textStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black)
-        )
+                OutlinedTextField(
+                    value = uiState.inputAmount,
+                    onValueChange = onAmountChange,
+                    label = { Text("Amount (¥)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(16.dp),
+                    textStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedBorderColor = Color.Transparent
+                    )
+                )
+            }
+        }
 
-        OutlinedTextField(value = uiState.inputDescription, onValueChange = onDescriptionChange, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp))
-        OutlinedTextField(value = uiState.inputNote, onValueChange = onNoteChange, label = { Text("Note (Optional)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp))
+        // Bento Island for Description & Note
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = uiState.inputDescription,
+                    onValueChange = onDescriptionChange,
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedBorderColor = Color.Transparent
+                    )
+                )
+                OutlinedTextField(
+                    value = uiState.inputNote,
+                    onValueChange = onNoteChange,
+                    label = { Text("Note (Optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedBorderColor = Color.Transparent
+                    )
+                )
+            }
+        }
 
         Button(
             onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSave() },
             modifier = Modifier.fillMaxWidth().height(64.dp),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(20.dp),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp)
         ) {
-            Text("Save Transaction", fontWeight = FontWeight.Black)
+            Icon(Icons.Default.Check, contentDescription = null)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("Confirm Expense", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
     }
 }
 
+
 @Composable
-fun SpendHistoryBottomSheet(entries: List<SpendEntry>, onEdit: (SpendEntry) -> Unit, onDelete: (SpendEntry) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-        Text("History", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(entries) { entry -> ExpressiveListItem(entry, { onEdit(entry) }, { /* handle delete */ }) }
+fun SpendHistoryBottomSheet(
+    entries: List<SpendEntry>,
+    onEdit: (SpendEntry) -> Unit,
+    onDelete: (SpendEntry) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .navigationBarsPadding()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "History",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "${entries.size} Records",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 100.dp)
+        ) {
+            items(entries) { entry ->
+                ExpressiveListItem(
+                    entry = entry,
+                    onEdit = { onEdit(entry) },
+                    onDelete = { onDelete(entry) }
+                )
+            }
         }
     }
 }

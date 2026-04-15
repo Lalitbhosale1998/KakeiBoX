@@ -653,12 +653,13 @@ fun ExpressiveAddEditSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp)
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp)
             .navigationBarsPadding()
             .imePadding()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -668,70 +669,137 @@ fun ExpressiveAddEditSheet(
                 fontWeight = FontWeight.Black
             )
             
-            IconButton(onClick = onDismiss) {
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+            ) {
                 Icon(Icons.Default.Close, contentDescription = "Close")
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Period Selection (Month & Year)
-        ExpressivePeriodSelector(
-            selectedMonth = uiState.inputMonth,
-            selectedYear = uiState.inputYear,
-            onMonthChange = onMonthChange,
-            onYearChange = onYearChange
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedTextField(
-            value = uiState.inputSalary,
-            onValueChange = onSalaryChange,
-            label = { Text("Net Salary Amount (¥)", fontWeight = FontWeight.Bold) },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            shape = RoundedCornerShape(20.dp),
-            singleLine = true,
-            textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            OutlinedTextField(
-                value = uiState.inputSavings,
-                onValueChange = onSavingsChange,
-                label = { Text("Savings Goal") },
-                modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(16.dp),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = uiState.inputRemittance,
-                onValueChange = onRemittanceChange,
-                label = { Text("Remittance") },
-                modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(16.dp),
-                singleLine = true
-            )
+        // Bento Island for Period Selection
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Pay Period",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                )
+                ExpressivePeriodSelector(
+                    selectedMonth = uiState.inputMonth,
+                    selectedYear = uiState.inputYear,
+                    onMonthChange = onMonthChange,
+                    onYearChange = onYearChange
+                )
+            }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+        
+        // Bento Island for Amount
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Earnings",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                )
+                OutlinedTextField(
+                    value = uiState.inputSalary,
+                    onValueChange = onSalaryChange,
+                    label = { Text("Net Salary (¥)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = Color.Transparent
+                    )
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(20.dp))
+        
+        // Bento Island for Goals
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Allocations",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = uiState.inputSavings,
+                        onValueChange = onSavingsChange,
+                        label = { Text("Savings") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedBorderColor = Color.Transparent
+                        )
+                    )
+                    OutlinedTextField(
+                        value = uiState.inputRemittance,
+                        onValueChange = onRemittanceChange,
+                        label = { Text("Remittance") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedBorderColor = Color.Transparent
+                        )
+                    )
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(20.dp))
 
         OutlinedTextField(
             value = uiState.inputNote,
             onValueChange = onNoteChange,
-            label = { Text("Add a note (Optional)") },
+            label = { Text("Notes (Optional)") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            placeholder = { Text("Bonus, overtime, etc.") }
+            shape = RoundedCornerShape(20.dp),
+            placeholder = { Text("Bonus, overtime, etc.") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedBorderColor = Color.Transparent
+            )
         )
         
         Spacer(modifier = Modifier.height(32.dp))
@@ -745,16 +813,19 @@ fun ExpressiveAddEditSheet(
                 .fillMaxWidth()
                 .height(64.dp),
             shape = RoundedCornerShape(20.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
             Icon(Icons.Default.Check, contentDescription = null)
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Save Salary Entry", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            Text("Confirm Entry", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
+
 
 @Composable
 fun ExpressiveDeleteDialog(
@@ -792,6 +863,7 @@ fun HistoryBottomSheet(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
+            .navigationBarsPadding()
     ) {
         Row(
             modifier = Modifier
@@ -822,7 +894,7 @@ fun HistoryBottomSheet(
         LazyColumn(
             modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
             items(entries) { entry ->
                 ExpressiveSalaryCard(

@@ -143,7 +143,8 @@ fun CommuteScreen(
                 onFareChange = viewModel::updateFare,
                 onHolidaysChange = viewModel::updateHolidays,
                 onWfhChange = viewModel::updateWfhDays,
-                onSave = viewModel::saveEntry
+                onSave = viewModel::saveEntry,
+                onDismiss = viewModel::closeAddSheet
             )
         }
     }
@@ -236,52 +237,126 @@ fun CommuteAddEditSheet(
     onFareChange: (String) -> Unit,
     onHolidaysChange: (String) -> Unit,
     onWfhChange: (String) -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
     
     Column(
-        modifier = Modifier.fillMaxWidth().padding(24.dp).navigationBarsPadding().imePadding(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp)
+            .navigationBarsPadding()
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text("Estimate Commute", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Estimate Commute",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black
+            )
+            
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Close")
+            }
+        }
         
-        OutlinedTextField(
-            value = uiState.inputOneWayFare,
-            onValueChange = onFareChange,
-            label = { Text("One-way Fare (¥)") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            shape = RoundedCornerShape(16.dp),
-            isError = uiState.fareError != null
-        )
+        // Bento Island for Fare
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Fare Configuration",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                )
+                OutlinedTextField(
+                    value = uiState.inputOneWayFare,
+                    onValueChange = onFareChange,
+                    label = { Text("One-way Fare (¥)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(16.dp),
+                    isError = uiState.fareError != null,
+                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedBorderColor = Color.Transparent
+                    )
+                )
+            }
+        }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            OutlinedTextField(
-                value = uiState.inputHolidays,
-                onValueChange = onHolidaysChange,
-                label = { Text("Holidays") },
-                modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(16.dp)
-            )
-            OutlinedTextField(
-                value = uiState.inputWfhDays,
-                onValueChange = onWfhChange,
-                label = { Text("WFH Days") },
-                modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(16.dp)
-            )
+        // Bento Island for Days
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Monthly Adjustments",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = uiState.inputHolidays,
+                        onValueChange = onHolidaysChange,
+                        label = { Text("Holidays") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedBorderColor = Color.Transparent
+                        )
+                    )
+                    OutlinedTextField(
+                        value = uiState.inputWfhDays,
+                        onValueChange = onWfhChange,
+                        label = { Text("WFH Days") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedBorderColor = Color.Transparent
+                        )
+                    )
+                }
+            }
         }
 
         Button(
             onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSave() },
             modifier = Modifier.fillMaxWidth().height(64.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp)
         ) {
-            Text("Calculate & Save", fontWeight = FontWeight.Black)
+            Icon(Icons.Default.Calculate, contentDescription = null)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("Calculate & Save", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
     }
 }
