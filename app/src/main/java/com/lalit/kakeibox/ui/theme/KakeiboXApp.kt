@@ -196,7 +196,7 @@ fun KakeiboXApp(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = NavRoutes.Salary.route,
+                startDestination = themeSettings.tabOrder.firstOrNull() ?: NavRoutes.Salary.route,
                 modifier = Modifier.fillMaxSize(),
                 // ── Screen transition animations ──────────────
             enterTransition = {

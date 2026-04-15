@@ -1,15 +1,22 @@
 package com.personal.kakeibox.ui.settings
 
-import android.os.Build
-import androidx.activity.ComponentActivity
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -17,49 +24,73 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.AutoMode
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.DirectionsBus
+import androidx.compose.material.icons.outlined.Dock
+import androidx.compose.material.icons.outlined.DragHandle
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Reorder
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Wallet
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.ui.input.pointer.pointerInput
+import com.personal.kakeibox.ui.settings.ThemeViewModel
 import java.util.Collections
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    viewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+    viewModel: ThemeViewModel = hiltViewModel()
 ) {
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
-    val dynamicSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val haptic = LocalHapticFeedback.current
 
@@ -102,7 +133,8 @@ fun SettingsScreen(
                 .padding(bottom = 120.dp), // Space for floating bar
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            
+            val context = LocalContext.current
+
             // ── Section: Appearance Bento Grid ──
             Text(
                 text = stringResource(R.string.settings_section_appearance),
@@ -162,13 +194,10 @@ fun SettingsScreen(
                     title = "Dynamic",
                     description = "Match app colors to your wallpaper.",
                     icon = Icons.Outlined.Palette,
-                    enabled = dynamicSupported,
-                    isActive = themeSettings.useDynamicColor && dynamicSupported,
+                    isActive = themeSettings.useDynamicColor,
                     onClick = {
-                        if (dynamicSupported) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.setUseDynamicColor(!themeSettings.useDynamicColor)
-                        }
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setUseDynamicColor(!themeSettings.useDynamicColor)
                     }
                 ) {
                     Switch(
@@ -177,7 +206,6 @@ fun SettingsScreen(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.setUseDynamicColor(it) 
                         },
-                        enabled = dynamicSupported,
                         modifier = Modifier.graphicsLayer {
                             scaleX = 0.8f
                             scaleY = 0.8f
@@ -299,42 +327,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Row 4: Privacy Mode (New)
-            BentoCard(
-                modifier = Modifier.fillMaxWidth(),
-                title = "Privacy Mode",
-                description = "Mask currency balances on main screens to keep your finances private in public.",
-                icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Outlined.Visibility,
-                isActive = themeSettings.privacyModeEnabled,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled)
-                }
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = if (themeSettings.privacyModeEnabled) "Balances Masked" else "Balances Visible",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (themeSettings.privacyModeEnabled) 
-                            MaterialTheme.colorScheme.onPrimaryContainer 
-                        else 
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Switch(
-                        checked = themeSettings.privacyModeEnabled,
-                        onCheckedChange = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.setPrivacyModeEnabled(it) 
-                        },
-                        modifier = Modifier.scale(0.8f)
-                    )
-                }
-            }
 
             // ── Section: Localization ──
             Text(
@@ -352,7 +344,7 @@ fun SettingsScreen(
                 description = "Choose your preferred language.",
                 icon = Icons.Outlined.Language
             ) {
-                val languages = AppLanguage.values()
+                val languages = AppLanguage.entries
                 val currentLanguage = themeSettings.appLanguage
                 
                 Row(
@@ -445,7 +437,7 @@ fun SettingsScreen(
             ) {
                 val tabOrder = themeSettings.tabOrder
                 var draggingItemIndex by remember { mutableStateOf<Int?>(null) }
-                var deltaY by remember { mutableStateOf(0f) }
+                var deltaY by remember { mutableFloatStateOf(0f) }
                 
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -533,6 +525,49 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            // ── Section: Data & Privacy ──
+            Text(
+                text = "Data & Privacy",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+            )
+
+            // Privacy Mode Bento Card
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Privacy Mode",
+                description = "Mask sensitive financial amounts across all screens with '••••'.",
+                icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                isActive = themeSettings.privacyModeEnabled,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled)
+                }
+            )
+
+            // Export Data Bento Card
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Export Data",
+                description = "Download your spending and salary history as a CSV file.",
+                icon = Icons.Outlined.FileDownload,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.exportToCsv { csvData ->
+                        if (csvData != null) {
+                            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                type = "text/csv"
+                                putExtra(android.content.Intent.EXTRA_SUBJECT, "KakeiboX Export")
+                                putExtra(android.content.Intent.EXTRA_TEXT, csvData)
+                            }
+                            context.startActivity(android.content.Intent.createChooser(intent, "Export Data"))
+                        }
+                    }
+                }
+            )
         }
     }
 }

@@ -7,16 +7,23 @@ import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
+import com.personal.kakeibox.data.repository.CommuteRepository
+import com.personal.kakeibox.data.repository.SalaryRepository
+import com.personal.kakeibox.data.repository.SpendRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ThemeViewModel @Inject constructor(
-    private val preferencesRepository: UserPreferencesRepository
+    private val preferencesRepository: UserPreferencesRepository,
+    private val spendRepository: SpendRepository,
+    private val salaryRepository: SalaryRepository,
+    private val commuteRepository: CommuteRepository
 ) : ViewModel() {
 
     val themeSettings: StateFlow<ThemeSettings> = preferencesRepository.themeSettings
@@ -83,6 +90,42 @@ class ThemeViewModel @Inject constructor(
     fun setPrivacyModeEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setPrivacyModeEnabled(enabled)
+        }
+    }
+
+    fun exportToCsv(onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val spends = spendRepository.getAllEntries().first()
+                val salaries = salaryRepository.getAllEntries().first()
+                val commutes = commuteRepository.getAllEntries().first()
+
+                val csvBuilder = StringBuilder()
+                
+                // Spend Entries
+                csvBuilder.append("SPENDING HISTORY\n")
+                csvBuilder.append("Date,Description,Amount,Category,Note\n")
+                spends.forEach {
+                    csvBuilder.append("${it.month}/${it.year},${it.description},${it.amount},${it.category},${it.note}\n")
+                }
+
+                csvBuilder.append("\nSALARY HISTORY\n")
+                csvBuilder.append("Date,Salary,Remittance,Savings,Note\n")
+                salaries.forEach {
+                    csvBuilder.append("${it.month}/${it.year},${it.salaryAmount},${it.remittanceAmount},${it.savingsAmount},${it.note}\n")
+                }
+
+                csvBuilder.append("\nCOMMUTE HISTORY\n")
+                csvBuilder.append("Date,One Way Fare,Holidays,WFH Days,Total Cost\n")
+                commutes.forEach {
+                    val total = (it.oneWayFare * 2) * (20 - it.holidays - it.wfhDays) // simplified calc for export
+                    csvBuilder.append("${it.createdAt},${it.oneWayFare},${it.holidays},${it.wfhDays},$total\n")
+                }
+
+                onResult(csvBuilder.toString())
+            } catch (e: Exception) {
+                onResult(null)
+            }
         }
     }
 }
