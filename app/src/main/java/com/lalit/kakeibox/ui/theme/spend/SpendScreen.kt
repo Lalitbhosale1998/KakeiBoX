@@ -63,6 +63,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -81,7 +82,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.LargeFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.SheetState
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -141,45 +146,73 @@ fun SpendScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.spend_title),
-                            fontWeight = FontWeight.Black
-                        )
-                        Text(
-                            text = "Keep Want under Control",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
-                actions = {
-                    FilledTonalIconButton(onClick = { viewModel.toggleHistorySheet() }) {
-                        Icon(Icons.Filled.History, contentDescription = "History")
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+            Box(modifier = Modifier.background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.surfaceContainerLow
+                    )
                 )
-            )
+            )) {
+                LargeTopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text = "Monthly",
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Spending",
+                                style = MaterialTheme.typography.displayMedium,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = { viewModel.toggleHistorySheet() },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.History,
+                                    contentDescription = "History",
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
+                )
+            }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text("New Expense", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
-                icon = { Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(24.dp)) },
+            LargeFloatingActionButton(
                 onClick = { viewModel.openAddSheet() },
+                shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shape = CircleShape,
-                expanded = true
-            )
+                elevation = FloatingActionButtonDefaults.elevation(8.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = "Add",
+                    modifier = Modifier.size(36.dp)
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
@@ -277,7 +310,8 @@ fun SpendScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeSheet() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
             SpendAddEditSheet(
@@ -307,8 +341,9 @@ fun SpendScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = historyBottomSheetState,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
             SpendHistoryBottomSheet(
                 entries = allEntries,
@@ -336,8 +371,8 @@ fun ExpressiveHeroCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shape = RoundedCornerShape(32.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Column(
@@ -460,13 +495,13 @@ fun ExpressiveListItem(
     modifier: Modifier = Modifier
 ) {
     val isNeed = entry.category == SpendCategory.NEED
-    val containerColor = if (isNeed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
+    val containerColor = if (isNeed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
     val iconColor = if (isNeed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
     val onContainerColor = if (isNeed) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(24.dp),
         color = containerColor,
         contentColor = onContainerColor
     ) {

@@ -146,6 +146,7 @@ fun KakeiboXApp() {
         NavHost(
             navController = navController,
             startDestination = NavRoutes.Salary.route,
+            modifier = Modifier.padding(innerPadding),
             // ── Screen transition animations ──────────────
             enterTransition = {
                 fadeIn(tween(280)) + slideInVertically(tween(280)) { it / 8 }
