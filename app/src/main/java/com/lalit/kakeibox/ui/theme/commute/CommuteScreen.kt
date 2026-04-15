@@ -56,6 +56,7 @@ fun CommuteScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val haptic = LocalHapticFeedback.current
 
     val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
     val fabPadding by animateDpAsState(
@@ -87,7 +88,10 @@ fun CommuteScreen(
                 },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    IconButton(onClick = { viewModel.toggleHistory() }) {
+                    IconButton(onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.toggleHistory() 
+                    }) {
                         Icon(Icons.Outlined.History, contentDescription = "History")
                     }
                 },
@@ -99,7 +103,10 @@ fun CommuteScreen(
         },
         floatingActionButton = {
             LargeFloatingActionButton(
-                onClick = { viewModel.openAddSheet() },
+                onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.openAddSheet() 
+                },
                 modifier = Modifier.padding(bottom = fabPadding),
                 shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -119,7 +126,7 @@ fun CommuteScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                CommuteHeroSection(uiState.latestEntry)
+                CommuteHeroSection(uiState.totalCostAllTime)
             }
 
             if (uiState.latestEntry == null) {
@@ -133,6 +140,42 @@ fun CommuteScreen(
                 item {
                     CommuteDetailsBento(uiState.latestEntry!!)
                 }
+
+                item {
+                    Text(
+                        text = "History",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+
+                items(
+                    items = uiState.history,
+                    key = { it.id }
+                ) { entry ->
+                    val swipeState = rememberSwipeToDismissBoxState()
+
+                    LaunchedEffect(swipeState.currentValue) {
+                        if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.openDeleteDialog(entry)
+                            swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                        }
+                    }
+
+                    SwipeToDismissBox(
+                        state = swipeState,
+                        enableDismissFromStartToEnd = false,
+                        backgroundContent = { CommuteSwipeDeleteBackground() },
+                        content = {
+                            CommuteHistoryItem(
+                                entry = entry,
+                                onDelete = { viewModel.openDeleteDialog(entry) }
+                            )
+                        }
+                    )
+                }
             }
         }
     }
@@ -141,6 +184,7 @@ fun CommuteScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeAddSheet() },
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
             CommuteAddEditSheet(
@@ -153,15 +197,34 @@ fun CommuteScreen(
             )
         }
     }
+
+    if (uiState.showDeleteDialog) {
+        CommuteDeleteDialog(
+            onConfirm = { viewModel.deleteEntry(uiState.deletingEntry!!) },
+            onDismiss = { viewModel.closeDeleteDialog() }
+        )
+    }
+
+    if (uiState.showHistorySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.toggleHistory() },
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+        ) {
+            CommuteHistoryBottomSheet(
+                entries = uiState.history,
+                onDelete = { viewModel.openDeleteDialog(it) }
+            )
+        }
+    }
 }
 
 @Composable
-fun CommuteHeroSection(entry: CommuteEntry?) {
-    val cost = entry?.totalCost ?: 0L
-    
+fun CommuteHeroSection(totalCost: Long) {
     BentoCard(
         modifier = Modifier.fillMaxWidth().height(200.dp),
-        title = "ESTIMATED COST",
+        title = "TOTAL COMMUTE COST",
         icon = Icons.Outlined.Train,
         isActive = true,
         activeContainerColor = MaterialTheme.colorScheme.tertiary,
@@ -169,14 +232,14 @@ fun CommuteHeroSection(entry: CommuteEntry?) {
     ) {
         Column {
             Text(
-                text = "Current Period",
+                text = "Cumulative",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = LocalContentColor.current.copy(alpha = 0.7f)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = CurrencyUtils.formatYen(cost),
+                text = CurrencyUtils.formatYen(totalCost),
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Black
             )
@@ -215,6 +278,187 @@ fun CommuteDetailsBento(entry: CommuteEntry) {
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black
             )
+        }
+    }
+}
+
+@Composable
+fun CommuteSwipeDeleteBackground() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.errorContainer),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            Icons.Default.Delete,
+            contentDescription = null,
+            modifier = Modifier.padding(end = 24.dp),
+            tint = MaterialTheme.colorScheme.onErrorContainer
+        )
+    }
+}
+
+@Composable
+fun CommuteDeleteDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete Entry?", fontWeight = FontWeight.Bold) },
+        text = { Text("This action cannot be undone.") },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        shape = RoundedCornerShape(28.dp)
+    )
+}
+
+@Composable
+fun CommuteHistoryItem(
+    entry: CommuteEntry,
+    onDelete: () -> Unit
+) {
+    val date = remember(entry.createdAt) {
+        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(entry.createdAt))
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f),
+                modifier = Modifier.size(56.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Outlined.Train,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = CurrencyUtils.formatYen(entry.totalCost),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = date,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "${entry.totalCommuteDays} Days",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Office",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CommuteHistoryBottomSheet(
+    entries: List<CommuteEntry>,
+    onDelete: (CommuteEntry) -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .navigationBarsPadding()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "History",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Surface(
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "${entries.size} Records",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 100.dp)
+        ) {
+            items(
+                items = entries,
+                key = { it.id }
+            ) { entry ->
+                val swipeState = rememberSwipeToDismissBoxState()
+
+                LaunchedEffect(swipeState.currentValue) {
+                    if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onDelete(entry)
+                        swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                    }
+                }
+
+                SwipeToDismissBox(
+                    state = swipeState,
+                    enableDismissFromStartToEnd = false,
+                    backgroundContent = { CommuteSwipeDeleteBackground() },
+                    content = {
+                        CommuteHistoryItem(
+                            entry = entry,
+                            onDelete = { onDelete(entry) }
+                        )
+                    }
+                )
+            }
         }
     }
 }

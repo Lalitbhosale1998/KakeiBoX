@@ -60,6 +60,10 @@ interface SpendDao {
         category: SpendCategory
     ): Flow<Long?>
 
+    // Total amount ever
+    @Query("SELECT SUM(amount) FROM spend_entries")
+    fun getTotalSpendAllTime(): Flow<Long?>
+
     // All entries ever — for history
     @Query("SELECT * FROM spend_entries ORDER BY year DESC, month DESC, createdAt DESC")
     fun getAllEntries(): Flow<List<SpendEntry>>

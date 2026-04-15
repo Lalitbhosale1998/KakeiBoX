@@ -25,6 +25,10 @@ interface CommuteDao {
     @Query("SELECT * FROM commute_entries ORDER BY createdAt DESC LIMIT 1")
     suspend fun getLatestEntry(): CommuteEntry?
 
+    // Total cost all time
+    @Query("SELECT SUM(totalCost) FROM commute_entries")
+    fun getTotalCostAllTime(): Flow<Long?>
+
     @Query("DELETE FROM commute_entries WHERE id = :id")
     suspend fun deleteById(id: Int)
 }

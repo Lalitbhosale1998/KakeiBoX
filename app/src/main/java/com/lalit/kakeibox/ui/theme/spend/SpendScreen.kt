@@ -92,6 +92,7 @@ fun SpendScreen(
     val totalNeed by viewModel.totalNeedThisMonth.collectAsStateWithLifecycle()
     val totalWant by viewModel.totalWantThisMonth.collectAsStateWithLifecycle()
     val totalSpend by viewModel.totalSpendThisMonth.collectAsStateWithLifecycle()
+    val totalSpendAllTime by viewModel.totalSpendAllTime.collectAsStateWithLifecycle()
     val salary by viewModel.currentSalary.collectAsStateWithLifecycle()
 
     val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
@@ -154,7 +155,10 @@ fun SpendScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { viewModel.toggleHistorySheet() }) {
+                        IconButton(onClick = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.toggleHistorySheet() 
+                        }) {
                             Surface(
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -176,7 +180,10 @@ fun SpendScreen(
         },
         floatingActionButton = {
             LargeFloatingActionButton(
-                onClick = { viewModel.openAddSheet() },
+                onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.openAddSheet() 
+                },
                 modifier = Modifier.padding(bottom = fabPadding),
                 shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -201,7 +208,7 @@ fun SpendScreen(
             // ── Bento Box Hero Grid ──────────────────────
             item {
                 AnimatedContent(
-                    targetState = totalSpend,
+                    targetState = totalSpendAllTime ?: 0L,
                     transitionSpec = {
                         (fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
                          slideInVertically(initialOffsetY = { it / 2 }))
@@ -279,6 +286,7 @@ fun SpendScreen(
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
                             if (value == SwipeToDismissBoxValue.EndToStart) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 viewModel.deleteEntryDirectly(entry); true
                             } else false
                         }
@@ -359,28 +367,27 @@ fun BentoHeroSection(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Main Balance Card (Tall Bento)
-        val isOver = remaining < 0
         BentoCard(
             modifier = Modifier.weight(1.2f).fillMaxHeight(),
-            title = if (isOver) "OVER" else "LEFT",
-            icon = if (isOver) Icons.Outlined.WarningAmber else Icons.Outlined.AccountBalanceWallet,
+            title = "TOTAL SPENT",
+            icon = Icons.Outlined.AccountBalanceWallet,
             isActive = true,
-            activeContainerColor = if (isOver) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            activeContentColor = if (isOver) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary,
+            activeContainerColor = MaterialTheme.colorScheme.primary,
+            activeContentColor = MaterialTheme.colorScheme.onPrimary,
             onClick = onPeriodClick
         ) {
             Column {
                 Text(
-                    text = DateUtils.getMonthName(currentMonth).uppercase(),
+                    text = "Cumulative",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 1.sp,
                     color = LocalContentColor.current.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                AnimatedContent(targetState = remaining, label = "remaining_balance") { valRemaining ->
+                AnimatedContent(targetState = totalSpend, label = "total_spent_balance") { valTotal ->
                     Text(
-                        text = CurrencyUtils.formatYen(valRemaining),
+                        text = CurrencyUtils.formatYen(valTotal),
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Black,
                         fontSize = 28.sp

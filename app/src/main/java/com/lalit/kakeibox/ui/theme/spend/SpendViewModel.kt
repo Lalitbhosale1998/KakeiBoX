@@ -75,6 +75,14 @@ class SpendViewModel @Inject constructor(
     private val _totalSpendThisMonth = MutableStateFlow(0L)
     val totalSpendThisMonth: StateFlow<Long> = _totalSpendThisMonth.asStateFlow()
 
+    // Total spend across all time
+    val totalSpendAllTime = spendRepository.getTotalSpendAllTime()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0L
+        )
+
     // Current month salary — for 50/30/20 tip
     private val _currentSalary = MutableStateFlow<SalaryEntry?>(null)
     val currentSalary: StateFlow<SalaryEntry?> = _currentSalary.asStateFlow()

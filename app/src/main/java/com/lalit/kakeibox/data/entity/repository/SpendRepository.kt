@@ -31,6 +31,9 @@ class SpendRepository @Inject constructor(
     ): Flow<Long?> =
         spendDao.getTotalByCategory(month, year, category)
 
+    fun getTotalSpendAllTime(): Flow<Long?> =
+        spendDao.getTotalSpendAllTime()
+
     fun getAllEntries(): Flow<List<SpendEntry>> =
         spendDao.getAllEntries()
 

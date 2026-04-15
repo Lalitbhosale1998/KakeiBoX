@@ -13,8 +13,11 @@ import javax.inject.Inject
 data class CommuteUiState(
     val latestEntry: CommuteEntry? = null,
     val history: List<CommuteEntry> = emptyList(),
+    val totalCostAllTime: Long = 0L,
     val showAddSheet: Boolean = false,
     val showHistorySheet: Boolean = false,
+    val deletingEntry: CommuteEntry? = null,
+    val showDeleteDialog: Boolean = false,
     
     // Inputs
     val inputOneWayFare: String = "",
@@ -40,6 +43,11 @@ class CommuteViewModel @Inject constructor(
                     history = entries,
                     latestEntry = entries.firstOrNull()
                 ) }
+            }
+        }
+        viewModelScope.launch {
+            repository.getTotalCostAllTime().collect { total ->
+                _uiState.update { it.copy(totalCostAllTime = total ?: 0L) }
             }
         }
     }
@@ -103,7 +111,16 @@ class CommuteViewModel @Inject constructor(
     fun deleteEntry(entry: CommuteEntry) {
         viewModelScope.launch {
             repository.delete(entry)
+            _uiState.update { it.copy(showDeleteDialog = false, deletingEntry = null) }
         }
+    }
+
+    fun openDeleteDialog(entry: CommuteEntry) {
+        _uiState.update { it.copy(showDeleteDialog = true, deletingEntry = entry) }
+    }
+
+    fun closeDeleteDialog() {
+        _uiState.update { it.copy(showDeleteDialog = false, deletingEntry = null) }
     }
 
     fun toggleHistory() {

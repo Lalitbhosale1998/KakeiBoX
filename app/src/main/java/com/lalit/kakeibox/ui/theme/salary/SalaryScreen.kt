@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
@@ -69,6 +70,7 @@ fun SalaryScreen(
     viewModel: SalaryViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
+    val haptic = LocalHapticFeedback.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
@@ -131,7 +133,10 @@ fun SalaryScreen(
                         },
                         actions = {
                             IconButton(
-                                onClick = { viewModel.toggleHistorySheet() },
+                                onClick = { 
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.toggleHistorySheet() 
+                                },
                                 modifier = Modifier.padding(end = 8.dp)
                             ) {
                                 Surface(
@@ -160,8 +165,12 @@ fun SalaryScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             floatingActionButton = {
                 // Large, Expressive FAB pushed up if Nav is floating
+                val haptic = LocalHapticFeedback.current
                 LargeFloatingActionButton(
-                    onClick = { viewModel.openAddDialog() },
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.openAddDialog() 
+                    },
                     modifier = Modifier.padding(bottom = fabPadding),
                     shape = RoundedCornerShape(28.dp),
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -226,21 +235,40 @@ fun SalaryScreen(
 
                 // ── History List ─────────────
                 if (allEntries.isEmpty()) {
-                item {
-                    ExpressiveEmptyState(
-                        message = "No income logged yet",
-                        icon = "💰"
-                    )
-                }
-            } else {
+                    item {
+                        ExpressiveEmptyState(
+                            message = "No income logged yet",
+                            icon = "💰"
+                        )
+                    }
+                } else {
                     items(
                         items = allEntries.take(3),
                         key = { it.id }
                     ) { entry ->
-                        ExpressiveSalaryCard(
-                            entry = entry,
-                            onEdit = { viewModel.openEditDialog(entry) },
-                            onDelete = { viewModel.openDeleteDialog(entry) }
+                        val swipeState = rememberSwipeToDismissBoxState()
+                        
+                        LaunchedEffect(swipeState.currentValue) {
+                            if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.openDeleteDialog(entry)
+                                swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                            }
+                        }
+
+                        SwipeToDismissBox(
+                            state = swipeState,
+                            enableDismissFromStartToEnd = false,
+                            backgroundContent = {
+                                SalarySwipeDeleteBackground()
+                            },
+                            content = {
+                                ExpressiveSalaryCard(
+                                    entry = entry,
+                                    onEdit = { viewModel.openEditDialog(entry) },
+                                    onDelete = { viewModel.openDeleteDialog(entry) }
+                                )
+                            }
                         )
                     }
                 }
@@ -816,11 +844,29 @@ fun ExpressiveDeleteDialog(
 }
 
 @Composable
+fun SalarySwipeDeleteBackground() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.errorContainer),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            Icons.Default.Delete,
+            contentDescription = null,
+            modifier = Modifier.padding(end = 24.dp), tint = MaterialTheme.colorScheme.onErrorContainer
+        )
+    }
+}
+
+@Composable
 fun HistoryBottomSheet(
     entries: List<SalaryEntry>,
     onEdit: (SalaryEntry) -> Unit,
     onDelete: (SalaryEntry) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -858,11 +904,33 @@ fun HistoryBottomSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 100.dp)
         ) {
-            items(entries) { entry ->
-                ExpressiveSalaryCard(
-                    entry = entry,
-                    onEdit = { onEdit(entry) },
-                    onDelete = { onDelete(entry) }
+            items(
+                items = entries,
+                key = { it.id }
+            ) { entry ->
+                val swipeState = rememberSwipeToDismissBoxState()
+                
+                LaunchedEffect(swipeState.currentValue) {
+                    if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onDelete(entry)
+                        swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                    }
+                }
+
+                SwipeToDismissBox(
+                    state = swipeState,
+                    enableDismissFromStartToEnd = false,
+                    backgroundContent = {
+                        SalarySwipeDeleteBackground()
+                    },
+                    content = {
+                        ExpressiveSalaryCard(
+                            entry = entry,
+                            onEdit = { onEdit(entry) },
+                            onDelete = { onDelete(entry) }
+                        )
+                    }
                 )
             }
         }

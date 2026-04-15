@@ -16,6 +16,9 @@ class CommuteRepository @Inject constructor(
     suspend fun getLatestEntry(): CommuteEntry? =
         commuteDao.getLatestEntry()
 
+    fun getTotalCostAllTime(): Flow<Long?> =
+        commuteDao.getTotalCostAllTime()
+
     suspend fun insert(entry: CommuteEntry) =
         commuteDao.insert(entry)
 
