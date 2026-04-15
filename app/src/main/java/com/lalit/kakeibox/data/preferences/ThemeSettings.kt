@@ -12,5 +12,6 @@ data class ThemeSettings(
     val currencySymbol: String = "¥",
     val dateFormat: String = "MMM dd, yyyy",
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
-    val biometricEnabled: Boolean = false
+    val biometricEnabled: Boolean = false,
+    val tabOrder: List<String> = listOf("salary", "spend", "commute", "settings")
 )

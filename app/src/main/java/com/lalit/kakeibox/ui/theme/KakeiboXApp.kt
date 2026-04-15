@@ -90,32 +90,35 @@ fun KakeiboXApp(
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
 
-    val bottomNavItems = listOf(
-        BottomNavItem(
-            route = NavRoutes.Salary.route,
-            labelRes = R.string.tab_salary,
-            icon = Icons.Outlined.Wallet,
-            selectedIcon = Icons.Filled.Wallet
-        ),
-        BottomNavItem(
-            route = NavRoutes.Spend.route,
-            labelRes = R.string.tab_spend,
-            icon = Icons.Outlined.ShoppingCart,
-            selectedIcon = Icons.Filled.ShoppingCart
-        ),
-        BottomNavItem(
-            route = NavRoutes.Commute.route,
-            labelRes = R.string.tab_commute,
-            icon = Icons.Outlined.DirectionsBus,
-            selectedIcon = Icons.Filled.DirectionsBus
-        ),
-        BottomNavItem(
-            route = NavRoutes.Settings.route,
-            labelRes = R.string.tab_settings,
-            icon = Icons.Outlined.Settings,
-            selectedIcon = Icons.Filled.Settings
-        )
-    )
+    val bottomNavItems = themeSettings.tabOrder.mapNotNull { route ->
+        when (route) {
+            NavRoutes.Salary.route -> BottomNavItem(
+                route = NavRoutes.Salary.route,
+                labelRes = R.string.tab_salary,
+                icon = Icons.Outlined.Wallet,
+                selectedIcon = Icons.Filled.Wallet
+            )
+            NavRoutes.Spend.route -> BottomNavItem(
+                route = NavRoutes.Spend.route,
+                labelRes = R.string.tab_spend,
+                icon = Icons.Outlined.ShoppingCart,
+                selectedIcon = Icons.Filled.ShoppingCart
+            )
+            NavRoutes.Commute.route -> BottomNavItem(
+                route = NavRoutes.Commute.route,
+                labelRes = R.string.tab_commute,
+                icon = Icons.Outlined.DirectionsBus,
+                selectedIcon = Icons.Filled.DirectionsBus
+            )
+            NavRoutes.Settings.route -> BottomNavItem(
+                route = NavRoutes.Settings.route,
+                labelRes = R.string.tab_settings,
+                icon = Icons.Outlined.Settings,
+                selectedIcon = Icons.Filled.Settings
+            )
+            else -> null
+        }
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination

@@ -44,6 +44,10 @@ import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.ui.input.pointer.pointerInput
+import java.util.Collections
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -380,6 +384,112 @@ fun SettingsScreen(
                                 viewModel.setCurrencySymbol(symbol) 
                             }
                         )
+                    }
+                }
+            }
+
+            // ── Section: Navigation Customization ──
+            Text(
+                text = "Navigation Customization",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+            )
+
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Tab Order",
+                description = "Long press and drag to reorder navigation tabs.",
+                icon = Icons.Outlined.Reorder
+            ) {
+                val tabOrder = themeSettings.tabOrder
+                var draggingItemIndex by remember { mutableStateOf<Int?>(null) }
+                var deltaY by remember { mutableStateOf(0f) }
+                
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    tabOrder.forEachIndexed { index, route ->
+                        val isDragging = draggingItemIndex == index
+                        val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
+                        val scale by animateFloatAsState(if (isDragging) 1.05f else 1f)
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .graphicsLayer {
+                                    translationY = if (isDragging) deltaY else 0f
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
+                                .pointerInput(Unit) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDragStart = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            draggingItemIndex = index 
+                                        },
+                                        onDrag = { change, dragAmount ->
+                                            change.consume()
+                                            deltaY += dragAmount.y
+                                            
+                                            val newIndex = (index + (deltaY / 60).toInt()).coerceIn(0, tabOrder.size - 1)
+                                            if (newIndex != index && draggingItemIndex != null) {
+                                                val newList = tabOrder.toMutableList()
+                                                Collections.swap(newList, index, newIndex)
+                                                viewModel.setTabOrder(newList)
+                                                draggingItemIndex = newIndex
+                                                deltaY = 0f
+                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            }
+                                        },
+                                        onDragEnd = { 
+                                            draggingItemIndex = null
+                                            deltaY = 0f
+                                        },
+                                        onDragCancel = { 
+                                            draggingItemIndex = null
+                                            deltaY = 0f
+                                        }
+                                    )
+                                },
+                            shape = RoundedCornerShape(16.dp),
+                            color = if (isDragging) MaterialTheme.colorScheme.secondaryContainer 
+                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            tonalElevation = elevation
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = when(route) {
+                                        "salary" -> Icons.Outlined.Wallet
+                                        "spend" -> Icons.Outlined.ShoppingCart
+                                        "commute" -> Icons.Outlined.DirectionsBus
+                                        else -> Icons.Outlined.Settings
+                                    },
+                                    contentDescription = null,
+                                    tint = if (isDragging) MaterialTheme.colorScheme.onSecondaryContainer 
+                                           else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = route.replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (isDragging) MaterialTheme.colorScheme.onSecondaryContainer 
+                                           else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                Icon(
+                                    imageVector = Icons.Outlined.DragHandle,
+                                    contentDescription = "Drag to reorder",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -73,4 +73,10 @@ class ThemeViewModel @Inject constructor(
             preferencesRepository.setBiometricEnabled(enabled)
         }
     }
+
+    fun setTabOrder(order: List<String>) {
+        viewModelScope.launch {
+            preferencesRepository.setTabOrder(order)
+        }
+    }
 }
