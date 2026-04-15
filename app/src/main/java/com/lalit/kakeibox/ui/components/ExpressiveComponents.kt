@@ -341,6 +341,7 @@ fun ExpressiveEmptyState(
 fun BentoCard(
     modifier: Modifier = Modifier,
     title: String,
+    description: String? = null,
     icon: ImageVector,
     enabled: Boolean = true,
     isActive: Boolean = false,
@@ -462,7 +463,16 @@ fun BentoCard(
                     fontWeight = FontWeight.Black,
                     color = contentColor
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = contentColor.copy(alpha = 0.7f),
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Spacer(modifier = Modifier.height(if (description != null) 8.dp else 4.dp))
                 content()
             }
         }

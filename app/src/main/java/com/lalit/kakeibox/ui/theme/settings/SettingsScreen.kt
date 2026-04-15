@@ -108,6 +108,7 @@ fun SettingsScreen(
             BentoCard(
                 modifier = Modifier.fillMaxWidth(),
                 title = "App Theme",
+                description = "Personalize your visual experience with light, dark, or system-adaptive modes.",
                 icon = when(themeSettings.darkThemePreference) {
                     DarkThemePreference.DARK -> Icons.Outlined.DarkMode
                     DarkThemePreference.LIGHT -> Icons.Outlined.LightMode
@@ -151,6 +152,7 @@ fun SettingsScreen(
                 BentoCard(
                     modifier = Modifier.weight(1f),
                     title = "Dynamic",
+                    description = "Match app colors to your wallpaper.",
                     icon = Icons.Outlined.Palette,
                     enabled = dynamicSupported,
                     isActive = themeSettings.useDynamicColor && dynamicSupported,
@@ -179,6 +181,7 @@ fun SettingsScreen(
                 BentoCard(
                     modifier = Modifier.weight(1f),
                     title = "Reminders",
+                    description = "Daily alerts to log spends.",
                     icon = if (themeSettings.remindersEnabled) Icons.Outlined.NotificationsActive else Icons.Outlined.NotificationsNone,
                     isActive = themeSettings.remindersEnabled,
                     onClick = { 
@@ -202,6 +205,7 @@ fun SettingsScreen(
             BentoCard(
                 modifier = Modifier.fillMaxWidth(),
                 title = "Navigation Layout",
+                description = "Choose between a classic full-width bar or a modern floating island.",
                 icon = Icons.Outlined.Dock
             ) {
                 val currentNavStyle = themeSettings.navBarStyle
@@ -247,12 +251,14 @@ fun SettingsScreen(
                 BentoCard(
                     modifier = Modifier.weight(1f),
                     title = "Backups",
+                    description = "Sync your data.",
                     icon = Icons.Outlined.CloudUpload,
                     onClick = { /* TODO */ }
                 )
                 BentoCard(
                     modifier = Modifier.weight(1f),
                     title = "Privacy",
+                    description = "Security settings.",
                     icon = Icons.Outlined.Security,
                     onClick = { /* TODO */ }
                 )
