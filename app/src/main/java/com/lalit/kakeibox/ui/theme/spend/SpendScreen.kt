@@ -81,6 +81,7 @@ import com.personal.kakeibox.util.CurrencyUtils
 import com.personal.kakeibox.util.DateUtils
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.ui.focus.onFocusChanged
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -763,6 +764,10 @@ fun SpendAddEditSheet(
     onDismiss: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
+    
+    // Animation/Focus States
+    var isDescFocused by remember { mutableStateOf(false) }
+    var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
 
     Column(
         modifier = Modifier
@@ -773,6 +778,7 @@ fun SpendAddEditSheet(
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+        // Header
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -792,22 +798,68 @@ fun SpendAddEditSheet(
             }
         }
         
-        // Bento Island for Category & Amount
+        // 1. Hero Amount Island (Centered, Large, Drum-Style numbers)
+        Surface(
+            color = Color.Transparent,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Amount Spent",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Bold
+                )
+                
+                TextField(
+                    value = uiState.inputAmount,
+                    onValueChange = { if (it.length <= 9) onAmountChange(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { 
+                        Text(
+                            "0", 
+                            modifier = Modifier.fillMaxWidth(), 
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.displayLarge,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                        ) 
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    textStyle = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    prefix = { 
+                        Text(
+                            "¥", 
+                            style = MaterialTheme.typography.displaySmall, 
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary
+                        ) 
+                    }
+                )
+            }
+        }
+
+        // 2. Category Island (Bento Selection)
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "Transaction Details",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-                
-                // Iconic Bento Category Selection
+            Box(modifier = Modifier.padding(16.dp)) {
                 ExpressiveCategoryBento(
                     selectedCategory = uiState.inputCategory,
                     onCategoryChange = { 
@@ -815,36 +867,29 @@ fun SpendAddEditSheet(
                         onCategoryChange(it) 
                     }
                 )
-
-                OutlinedTextField(
-                    value = uiState.inputAmount,
-                    onValueChange = onAmountChange,
-                    label = { Text("Amount (¥)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape = RoundedCornerShape(16.dp),
-                    textStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedBorderColor = Color.Transparent
-                    )
-                )
             }
         }
 
-        // Bento Island for Description & Note
+        // 3. Description & Note Island
+        val descElevation by animateDpAsState(if (isDescFocused) 8.dp else 0.dp)
+        val descScale by animateFloatAsState(if (isDescFocused) 1.02f else 1f)
+
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth()
+            tonalElevation = descElevation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(scaleX = descScale, scaleY = descScale)
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = uiState.inputDescription,
                     onValueChange = onDescriptionChange,
-                    label = { Text("Description") },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("What did you buy?") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { isDescFocused = it.isFocused },
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -852,18 +897,37 @@ fun SpendAddEditSheet(
                         unfocusedBorderColor = Color.Transparent
                     )
                 )
-                OutlinedTextField(
-                    value = uiState.inputNote,
-                    onValueChange = onNoteChange,
-                    label = { Text("Note (Optional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedBorderColor = Color.Transparent
+
+                // Expanding Note Drawer
+                AnimatedVisibility(
+                    visible = showNoteField,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    OutlinedTextField(
+                        value = uiState.inputNote,
+                        onValueChange = onNoteChange,
+                        label = { Text("Extra details...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedBorderColor = Color.Transparent
+                        )
                     )
-                )
+                }
+
+                if (!showNoteField) {
+                    TextButton(
+                        onClick = { showNoteField = true },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Add Note", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
             }
         }
 
