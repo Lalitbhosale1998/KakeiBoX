@@ -13,6 +13,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
@@ -56,6 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -177,102 +181,19 @@ fun KakeiboXApp(
                         )
                     }
                 }
-            } else {
-                // ── Floating "Default" Navigation Bar ──────────
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 24.dp)
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp),
-                        shape = RoundedCornerShape(40.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        tonalElevation = 8.dp
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .selectableGroup()
-                                .padding(horizontal = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            bottomNavItems.forEach { item ->
-                                val isSelected = currentDestination?.hierarchy?.any {
-                                    it.route == item.route
-                                } == true
-
-                                val iconScale by animateFloatAsState(
-                                    targetValue = if (isSelected) 1.15f else 1f,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessMedium
-                                    ),
-                                    label = "floating_icon_scale"
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .padding(vertical = 8.dp)
-                                        .clip(CircleShape)
-                                        .selectable(
-                                            selected = isSelected,
-                                            onClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                navController.navigate(item.route) {
-                                                    popUpTo(navController.graph.findStartDestination().id) {
-                                                        saveState = true
-                                                    }
-                                                    launchSingleTop = true
-                                                    restoreState = true
-                                                }
-                                            },
-                                            role = Role.Tab
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    // Active Indicator
-                                    if (isSelected) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(width = 64.dp, height = 48.dp)
-                                                .clip(RoundedCornerShape(20.dp))
-                                                .background(MaterialTheme.colorScheme.secondaryContainer)
-                                        )
-                                    }
-
-                                    Icon(
-                                        imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                        contentDescription = stringResource(item.labelRes),
-                                        tint = if (isSelected) 
-                                            MaterialTheme.colorScheme.onSecondaryContainer 
-                                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.graphicsLayer {
-                                            scaleX = iconScale
-                                            scaleY = iconScale
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = NavRoutes.Salary.route,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            // ── Screen transition animations ──────────────
+                .padding(innerPadding)
+        ) {
+            NavHost(
+                navController = navController,
+                startDestination = NavRoutes.Salary.route,
+                modifier = Modifier.fillMaxSize(),
+                // ── Screen transition animations ──────────────
             enterTransition = {
                 fadeIn(tween(280)) + slideInVertically(tween(280)) { it / 8 }
             },
@@ -299,5 +220,115 @@ fun KakeiboXApp(
                 SettingsScreen()
             }
         }
+
+        // ── Floating "Default" Navigation Bar Overlay ──
+        if (themeSettings.navBarStyle == NavBarStyle.FLOATING) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 16.dp)
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(84.dp),
+                    shape = RoundedCornerShape(42.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.92f),
+                    tonalElevation = 8.dp,
+                    shadowElevation = 12.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .selectableGroup()
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        bottomNavItems.forEach { item ->
+                            val isSelected = currentDestination?.hierarchy?.any {
+                                it.route == item.route
+                            } == true
+
+                            val iconScale by animateFloatAsState(
+                                targetValue = if (isSelected) 1.2f else 1f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                ),
+                                label = "floating_icon_scale"
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .selectable(
+                                        selected = isSelected,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            navController.navigate(item.route) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        },
+                                        role = Role.Tab
+                                    ),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.size(width = 64.dp, height = 32.dp)
+                                ) {
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(MaterialTheme.colorScheme.secondaryContainer)
+                                        )
+                                    }
+
+                                    Icon(
+                                        imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                        contentDescription = stringResource(item.labelRes),
+                                        tint = if (isSelected)
+                                            MaterialTheme.colorScheme.onSecondaryContainer
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.graphicsLayer {
+                                            scaleX = iconScale
+                                            scaleY = iconScale
+                                        }
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = stringResource(item.labelRes),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.ExtraBold,
+                                        fontSize = 12.sp,
+                                        letterSpacing = 0.4.sp
+                                    ),
+                                    color = if (isSelected) MaterialTheme.colorScheme.onSurface
+                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
+}
 }

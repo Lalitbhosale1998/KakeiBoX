@@ -101,7 +101,7 @@ fun SpendScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        contentWindowInsets = WindowInsets.navigationBars,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             Box(modifier = Modifier.background(
                 Brush.verticalGradient(
