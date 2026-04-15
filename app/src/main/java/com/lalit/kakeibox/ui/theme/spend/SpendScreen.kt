@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -766,6 +767,7 @@ fun SpendAddEditSheet(
     val haptic = LocalHapticFeedback.current
     
     // Animation/Focus States
+    var isAmountFocused by remember { mutableStateOf(false) }
     var isDescFocused by remember { mutableStateOf(false) }
     var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
 
@@ -798,27 +800,36 @@ fun SpendAddEditSheet(
             }
         }
         
-        // 1. Hero Amount Island (Centered, Large, Drum-Style numbers)
+        // 1. Hero Amount Island (Bento Card, Focused Scaling)
+        val amountElevation by animateDpAsState(if (isAmountFocused) 12.dp else 0.dp)
+        val amountScale by animateFloatAsState(if (isAmountFocused) 1.04f else 1f)
+
         Surface(
-            color = Color.Transparent,
-            modifier = Modifier.fillMaxWidth()
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(28.dp),
+            tonalElevation = amountElevation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(scaleX = amountScale, scaleY = amountScale)
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.padding(24.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "Amount Spent",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                    fontWeight = FontWeight.Bold
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Black
                 )
                 
                 TextField(
                     value = uiState.inputAmount,
                     onValueChange = { if (it.length <= 9) onAmountChange(it) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { isAmountFocused = it.isFocused },
                     placeholder = { 
                         Text(
                             "0", 
