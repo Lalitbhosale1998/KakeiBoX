@@ -367,21 +367,10 @@ fun ExpressiveHeroCard(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                AnimatedContent(
-                    targetState = CurrencyUtils.formatYen(totalSalary, isPrivacyMode),
-                    transitionSpec = {
-                        (fadeIn(animationSpec = tween(220, delayMillis = 90)) + 
-                         slideInVertically(initialOffsetY = { it / 2 }))
-                        .togetherWith(fadeOut(animationSpec = tween(90)))
-                    },
-                    label = "salary_transition"
-                ) { targetSalary ->
-                    Text(
-                        text = targetSalary,
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Black
-                    )
-                }
+                ExpressiveTotalEarningsTicker(
+                    totalSalary = totalSalary,
+                    isPrivacyMode = isPrivacyMode
+                )
 
                 Text(
                     text = "Cumulative Net Income",
@@ -727,6 +716,53 @@ fun ExpressiveEmptyHero(onAdd: () -> Unit) {
 }
 
 
+
+@Composable
+fun ExpressiveTotalEarningsTicker(
+    totalSalary: Long,
+    isPrivacyMode: Boolean
+) {
+    val formattedTotal = CurrencyUtils.formatYen(totalSalary, isPrivacyMode)
+    
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isPrivacyMode) {
+            Text(
+                text = formattedTotal,
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Black
+            )
+        } else {
+            // Split the formatted string into characters to animate each digit separately
+            // e.g. "¥1,234,567" -> ["¥", "1", ",", "2", "3", "4", ",", "5", "6", "7"]
+            formattedTotal.forEachIndexed { index, char ->
+                val isDigit = char.isDigit()
+                
+                AnimatedContent(
+                    targetState = char,
+                    transitionSpec = {
+                        if (isDigit) {
+                            // The "Physical Drum" Roll effect for digits
+                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
+                                .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
+                        } else {
+                            // Standard fade for symbols like ¥ and ,
+                            fadeIn(animationSpec = tween(150))
+                                .togetherWith(fadeOut(animationSpec = tween(150)))
+                        }
+                    },
+                    label = "digit_ticker_$index"
+                ) { targetChar ->
+                    Text(
+                        text = targetChar.toString(),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black,
+                        softWrap = false
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun ExpressiveAddEditSheet(
