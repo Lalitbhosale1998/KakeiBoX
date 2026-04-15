@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -290,19 +291,42 @@ fun ExpressiveHeroCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = DateUtils.formatMonthYear(currentMonth, currentYear).uppercase(),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                )
+                AnimatedContent(
+                    targetState = DateUtils.formatMonthYear(currentMonth, currentYear).uppercase(),
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(220, delayMillis = 90)) + 
+                         slideInVertically(initialOffsetY = { it / 2 }))
+                        .togetherWith(fadeOut(animationSpec = tween(90)))
+                    },
+                    label = "date_transition"
+                ) { targetDate ->
+                    Text(
+                        text = targetDate,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    )
+                }
+                
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (entry != null) CurrencyUtils.formatYen(entry.salaryAmount) else "No Data",
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Black
-                )
+                
+                AnimatedContent(
+                    targetState = if (entry != null) CurrencyUtils.formatYen(entry.salaryAmount) else "No Data",
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(220, delayMillis = 90)) + 
+                         slideInVertically(initialOffsetY = { it / 2 }))
+                        .togetherWith(fadeOut(animationSpec = tween(90)))
+                    },
+                    label = "salary_transition"
+                ) { targetSalary ->
+                    Text(
+                        text = targetSalary,
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+
                 Text(
                     text = "Net Take Home Salary",
                     style = MaterialTheme.typography.bodyMedium,
@@ -340,7 +364,7 @@ fun ExpressiveHeroCard(
                 val animatedProgress by animateFloatAsState(
                     targetValue = savingsRatio,
                     animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness = Spring.StiffnessLow
                     ),
                     label = "savings_progress"
@@ -666,27 +690,50 @@ fun ExpressiveAddEditSheet(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items((1..12).toList()) { month ->
-                        val isSelected = uiState.inputMonth == month
-                        Surface(
-                            onClick = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onMonthChange(month) 
-                            },
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.size(width = 60.dp, height = 40.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    DateUtils.getShortMonthName(month),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
-                                )
+                // Month Selection with Sliding Indicator
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items((1..12).toList()) { month ->
+                            val isSelected = uiState.inputMonth == month
+                            
+                            val backgroundColor by animateColorAsState(
+                                targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                                label = "month_bg"
+                            )
+                            val contentColor by animateColorAsState(
+                                targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                                label = "month_content"
+                            )
+                            val scale by animateFloatAsState(
+                                targetValue = if (isSelected) 1.1f else 1f,
+                                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                                label = "month_scale"
+                            )
+
+                            Surface(
+                                onClick = { 
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onMonthChange(month) 
+                                },
+                                color = backgroundColor,
+                                contentColor = contentColor,
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier
+                                    .size(width = 64.dp, height = 44.dp)
+                                    .graphicsLayer(scaleX = scale, scaleY = scale)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        DateUtils.getShortMonthName(month),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }
@@ -694,24 +741,44 @@ fun ExpressiveAddEditSheet(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Year Selection with Sliding Indicator
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     items(DateUtils.getYearRange()) { year ->
                         val isSelected = uiState.inputYear == year
+                        
+                        val backgroundColor by animateColorAsState(
+                            targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                            label = "year_bg"
+                        )
+                        val contentColor by animateColorAsState(
+                            targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                            label = "year_content"
+                        )
+                        val scale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.1f else 1f,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                            label = "year_scale"
+                        )
+
                         Surface(
                             onClick = { 
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onYearChange(year) 
                             },
-                            color = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.padding(bottom = 4.dp)
+                            color = backgroundColor,
+                            contentColor = contentColor,
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier
+                                .graphicsLayer(scaleX = scale, scaleY = scale)
                         ) {
                             Text(
                                 text = year.toString(),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
                             )

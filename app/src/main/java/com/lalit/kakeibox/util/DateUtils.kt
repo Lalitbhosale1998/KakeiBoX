@@ -19,10 +19,9 @@ object DateUtils {
         return Month.of(month).getDisplayName(TextStyle.SHORT, locale)
     }
 
-    // Returns list of years from 2020 to current year + 1
+    // Returns list of years from 2022 to 2029
     fun getYearRange(): List<Int> {
-        val currentYear = getCurrentYear()
-        return (2020..currentYear + 1).toList()
+        return (2022..2029).toList()
     }
 
     // Format month/year as display string e.g. "April 2026"

@@ -420,7 +420,7 @@ fun ExpressiveHeroCard(
                         (totalSpend.toFloat() / salaryAmount).coerceIn(0f, 1f)
                     else 0f,
                     animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness = Spring.StiffnessLow
                     ),
                     label = "arc_progress"
