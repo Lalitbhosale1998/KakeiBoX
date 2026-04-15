@@ -2,9 +2,15 @@ package com.personal.kakeibox.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -366,11 +372,46 @@ fun BentoCard(
         label = "bento_content"
     )
 
-    // Icon rotation micro-interaction
-    val iconRotation by animateFloatAsState(
-        targetValue = if (isActive) 12f else 0f,
-        animationSpec = spring(Spring.DampingRatioHighBouncy, Spring.StiffnessLow),
+    // Advanced Micro-interactions: Dynamic icon behavior
+    val infiniteTransition = rememberInfiniteTransition(label = "bento_icon_infinite")
+    
+    // Jiggle for reminders/notifications
+    val jiggleRotation by infiniteTransition.animateFloat(
+        initialValue = -12f,
+        targetValue = 12f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(300, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "jiggle_anim"
+    )
+
+    // Continuous rotation for settings/gears
+    val continuousRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation_anim"
+    )
+
+    val finalIconRotation by animateFloatAsState(
+        targetValue = when {
+            !isActive -> 0f
+            title.contains("Reminder", ignoreCase = true) -> jiggleRotation
+            title.contains("App Theme", ignoreCase = true) || title.contains("Settings", ignoreCase = true) -> continuousRotation
+            else -> 12f // Default slight tilt for active state
+        },
+        animationSpec = if (!isActive) spring(Spring.DampingRatioMediumBouncy) else tween(0), // Direct follow if active
         label = "icon_rotation"
+    )
+
+    val iconScale by animateFloatAsState(
+        targetValue = if (isActive) 1.2f else 1f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "icon_scale"
     )
 
     Surface(
@@ -406,7 +447,9 @@ fun BentoCard(
                         contentDescription = null,
                         tint = if (isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(8.dp).graphicsLayer {
-                            rotationZ = iconRotation
+                            rotationZ = finalIconRotation
+                            scaleX = iconScale
+                            scaleY = iconScale
                         }
                     )
                 }
