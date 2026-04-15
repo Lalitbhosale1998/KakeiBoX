@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.personal.kakeibox.ui.components.ExpressiveCategoryToggle
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -86,6 +87,8 @@ fun SpendScreen(
             null -> currentMonthEntries
         }
     }
+
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let {
@@ -136,12 +139,12 @@ fun SpendScreen(
                         }
                     },
                     scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
-                    )
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                )
                 )
             }
         },
@@ -170,15 +173,25 @@ fun SpendScreen(
         ) {
             // ── Bento Box Hero Grid ──────────────────────
             item {
-                BentoHeroSection(
-                    totalSpend = totalSpend,
-                    totalNeed = totalNeed,
-                    totalWant = totalWant,
-                    salary = salary,
-                    currentMonth = uiState.currentMonth,
-                    currentYear = uiState.currentYear,
-                    onPeriodClick = { /* Scroll to top or show picker if needed */ }
-                )
+                AnimatedContent(
+                    targetState = totalSpend,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
+                         slideInVertically(initialOffsetY = { it / 2 }))
+                        .togetherWith(fadeOut(animationSpec = spring(stiffness = Spring.StiffnessLow)))
+                    },
+                    label = "hero_anim"
+                ) { targetTotal ->
+                    BentoHeroSection(
+                        totalSpend = targetTotal,
+                        totalNeed = totalNeed,
+                        totalWant = totalWant,
+                        salary = salary,
+                        currentMonth = uiState.currentMonth,
+                        currentYear = uiState.currentYear,
+                        onPeriodClick = { /* Scroll to top or show picker if needed */ }
+                    )
+                }
             }
 
             // ── Period Navigation Island ──────────────────
@@ -193,21 +206,36 @@ fun SpendScreen(
 
             // ── Budget Health Bar ────────────────────────
             item {
-                BudgetHealthBeam(
-                    totalNeed = totalNeed,
-                    totalWant = totalWant,
-                    totalSpend = totalSpend,
-                    salaryAmount = salary?.salaryAmount ?: 0L
-                )
+                AnimatedVisibility(
+                    visible = (salary?.salaryAmount ?: 0L) > 0,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    BudgetHealthBeam(
+                        totalNeed = totalNeed,
+                        totalWant = totalWant,
+                        totalSpend = totalSpend,
+                        salaryAmount = salary?.salaryAmount ?: 0L
+                    )
+                }
             }
 
             // ── Category Tabs ─────────────────────────────
             item {
                 ExpressiveCategoryTabs(
                     selectedCategory = uiState.selectedCategory,
-                    onSelectAll = { viewModel.setFilter(null) },
-                    onSelectNeed = { viewModel.setFilter(SpendCategory.NEED) },
-                    onSelectWant = { viewModel.setFilter(SpendCategory.WANT) }
+                    onSelectAll = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        viewModel.setFilter(null) 
+                    },
+                    onSelectNeed = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        viewModel.setFilter(SpendCategory.NEED) 
+                    },
+                    onSelectWant = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        viewModel.setFilter(SpendCategory.WANT) 
+                    }
                 )
             }
 
@@ -446,12 +474,28 @@ fun ExpressiveCategoryTabs(
     onSelectNeed: () -> Unit,
     onSelectWant: () -> Unit
 ) {
+    val allWeight by animateFloatAsState(
+        targetValue = if (selectedCategory == null) 1.5f else 1f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "all_weight"
+    )
+    val needWeight by animateFloatAsState(
+        targetValue = if (selectedCategory == SpendCategory.NEED) 1.5f else 1f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "need_weight"
+    )
+    val wantWeight by animateFloatAsState(
+        targetValue = if (selectedCategory == SpendCategory.WANT) 1.5f else 1f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "want_weight"
+    )
+
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         ExpressiveTab(
             text = "All",
             isSelected = selectedCategory == null,
             selectedColor = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(allWeight),
             selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
             onClick = onSelectAll
         )
@@ -459,7 +503,7 @@ fun ExpressiveCategoryTabs(
             text = "Needs",
             isSelected = selectedCategory == SpendCategory.NEED,
             selectedColor = MaterialTheme.colorScheme.errorContainer,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(needWeight),
             selectedTextColor = MaterialTheme.colorScheme.onErrorContainer,
             onClick = onSelectNeed
         )
@@ -467,7 +511,7 @@ fun ExpressiveCategoryTabs(
             text = "Wants",
             isSelected = selectedCategory == SpendCategory.WANT,
             selectedColor = MaterialTheme.colorScheme.tertiaryContainer,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(wantWeight),
             selectedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
             onClick = onSelectWant
         )
@@ -542,20 +586,15 @@ fun SpendAddEditSheet(
     onDismiss: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
-    val isNeed = uiState.inputCategory == SpendCategory.NEED
 
     Column(modifier = Modifier.fillMaxWidth().padding(24.dp).navigationBarsPadding().imePadding(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Text(text = if (uiState.editingEntry == null) "New Expense" else "Edit Expense", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
         
         // Custom Category Toggle
-        Row(modifier = Modifier.fillMaxWidth().height(56.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest)) {
-            Box(modifier = Modifier.weight(1f).fillMaxHeight().clip(CircleShape).background(if(isNeed) MaterialTheme.colorScheme.error else Color.Transparent).clickable { onCategoryChange(SpendCategory.NEED) }, contentAlignment = Alignment.Center) {
-                Text("NEED", fontWeight = FontWeight.Black, color = if(isNeed) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Box(modifier = Modifier.weight(1f).fillMaxHeight().clip(CircleShape).background(if(!isNeed) MaterialTheme.colorScheme.tertiary else Color.Transparent).clickable { onCategoryChange(SpendCategory.WANT) }, contentAlignment = Alignment.Center) {
-                Text("WANT", fontWeight = FontWeight.Black, color = if(!isNeed) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+        ExpressiveCategoryToggle(
+            selectedCategory = uiState.inputCategory.name,
+            onCategoryChange = { onCategoryChange(SpendCategory.valueOf(it)) }
+        )
 
         OutlinedTextField(
             value = uiState.inputAmount,

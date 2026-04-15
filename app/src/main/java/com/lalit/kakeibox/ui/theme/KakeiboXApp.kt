@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Wallet
+import androidx.compose.material.icons.outlined.DirectionsBus
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Wallet
@@ -44,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.personal.kakeibox.R
 import com.personal.kakeibox.ui.navigation.BottomNavItem
 import com.personal.kakeibox.ui.navigation.NavRoutes
+import com.personal.kakeibox.ui.commute.CommuteScreen
 import com.personal.kakeibox.ui.salary.SalaryScreen
 import com.personal.kakeibox.ui.settings.SettingsScreen
 import com.personal.kakeibox.ui.spend.SpendScreen
@@ -66,6 +69,12 @@ fun KakeiboXApp() {
             labelRes = R.string.tab_spend,
             icon = Icons.Outlined.ShoppingCart,
             selectedIcon = Icons.Filled.ShoppingCart
+        ),
+        BottomNavItem(
+            route = NavRoutes.Commute.route,
+            labelRes = R.string.tab_commute,
+            icon = Icons.Outlined.DirectionsBus,
+            selectedIcon = Icons.Filled.DirectionsBus
         ),
         BottomNavItem(
             route = NavRoutes.Settings.route,
@@ -168,6 +177,9 @@ fun KakeiboXApp() {
             }
             composable(NavRoutes.Spend.route) {
                 SpendScreen()
+            }
+            composable(NavRoutes.Commute.route) {
+                CommuteScreen()
             }
             composable(NavRoutes.Settings.route) {
                 SettingsScreen()
