@@ -3,6 +3,7 @@ package com.personal.kakeibox.ui.salary
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -12,6 +13,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -268,76 +272,117 @@ fun ExpressiveHeroCard(
     currentYear: Int,
     onEdit: () -> Unit
 ) {
-    val contentColor = if (entry != null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-
+    val haptic = LocalHapticFeedback.current
+    
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
-        color = Color.Transparent,
-        contentColor = contentColor
+        color = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        tonalElevation = 8.dp
     ) {
-        Box(
-            modifier = Modifier.background(
-                if (entry != null) {
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
-                        )
-                    )
-                } else {
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                    )
-                }
-            )
+        Row(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = DateUtils.formatMonthYear(currentMonth, currentYear).uppercase(),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp,
-                        color = contentColor.copy(alpha = 0.7f)
-                    )
-                    if (entry != null) {
-                        IconButton(
-                            onClick = onEdit,
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = Color.White.copy(alpha = 0.2f)
-                            )
-                        ) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = DateUtils.formatMonthYear(currentMonth, currentYear).uppercase(),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = if (entry != null) CurrencyUtils.formatYen(entry.salaryAmount) else "No Data",
                     style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Black,
-                    color = contentColor
+                    fontWeight = FontWeight.Black
                 )
-
                 Text(
                     text = "Net Take Home Salary",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    color = contentColor.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
+                
+                if (entry != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    FilledTonalButton(
+                        onClick = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onEdit() 
+                        },
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Edit Details", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            // ── Animated donut arc ─────────────────────────────
+            if (entry != null) {
+                val savingsRatio = if (entry.salaryAmount > 0) 
+                    (entry.savingsAmount.toFloat() / entry.salaryAmount).coerceIn(0f, 1f)
+                else 0f
+                
+                val animatedProgress by animateFloatAsState(
+                    targetValue = savingsRatio,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    label = "savings_progress"
+                )
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(90.dp)
+                ) {
+                    val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
+                    val progressColor = MaterialTheme.colorScheme.onPrimary
+                    
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val stroke = 10.dp.toPx()
+                        drawArc(
+                            color = trackColor,
+                            startAngle = 0f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                        )
+                        drawArc(
+                            color = progressColor,
+                            startAngle = -90f,
+                            sweepAngle = 360f * animatedProgress,
+                            useCenter = false,
+                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "${(savingsRatio * 100).toInt()}%",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            text = "SAVED",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 8.sp
+                        )
+                    }
+                }
             }
         }
     }
@@ -350,19 +395,19 @@ fun ExpressiveStatsGrid(entry: SalaryEntry) {
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ExpressiveStatCard(
-            title = "Savings",
+            title = "Savings Goal",
             amount = entry.savingsAmount,
             icon = Icons.Outlined.Savings,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            accentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
         ExpressiveStatCard(
-            title = stringResource(R.string.remittance_amount),
+            title = "Remittance",
             amount = entry.remittanceAmount,
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            accentColor = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.weight(1f)
         )
     }
@@ -374,23 +419,41 @@ fun ExpressiveStatCard(
     amount: Long,
     icon: ImageVector,
     containerColor: Color,
-    contentColor: Color,
+    accentColor: Color,
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         color = containerColor,
-        contentColor = contentColor
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        Column(modifier = Modifier.padding(20.dp)) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = accentColor.copy(alpha = 0.15f),
+                modifier = Modifier.size(40.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        icon, 
+                        contentDescription = null, 
+                        modifier = Modifier.size(20.dp),
+                        tint = accentColor
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = title, 
+                style = MaterialTheme.typography.labelMedium, 
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Text(
                 text = CurrencyUtils.formatYen(amount),
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -404,8 +467,8 @@ fun ExpressiveSalaryCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         onClick = onEdit
     ) {
         Row(
@@ -413,17 +476,25 @@ fun ExpressiveSalaryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                shape = CircleShape,
+                shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(56.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = DateUtils.getShortMonthName(entry.month),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = DateUtils.getShortMonthName(entry.month).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = entry.year.toString().takeLast(2),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                        )
+                    }
                 }
             }
             
@@ -432,21 +503,33 @@ fun ExpressiveSalaryCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = CurrencyUtils.formatYen(entry.salaryAmount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black
                 )
-                Text(
-                    text = "Saved: ${CurrencyUtils.formatYen(entry.savingsAmount)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.Savings, 
+                        contentDescription = null, 
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Saved: ${CurrencyUtils.formatYen(entry.savingsAmount)}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline
-            )
+            IconButton(onClick = onEdit) {
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.outline
+                )
+            }
         }
     }
 }
@@ -455,31 +538,50 @@ fun ExpressiveSalaryCard(
 fun ExpressiveEmptyHero(onAdd: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        shape = RoundedCornerShape(32.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Column(
             modifier = Modifier.padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                Icons.Outlined.Payments,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("No Salary Recorded", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                modifier = Modifier.size(80.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Outlined.Payments,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
-                "Track your income to see savings potential",
-                style = MaterialTheme.typography.bodySmall,
+                "No Salary Data", 
+                style = MaterialTheme.typography.headlineSmall, 
+                fontWeight = FontWeight.Black
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Track your monthly income and savings to get the full picture of your finances.",
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onAdd) {
-                Text("Add First Salary")
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(
+                onClick = onAdd,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Add Salary Now", fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -511,6 +613,8 @@ fun ExpressiveAddEditSheet(
     onSave: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -518,62 +622,81 @@ fun ExpressiveAddEditSheet(
             .navigationBarsPadding()
             .imePadding()
     ) {
-        Text(
-            text = if (uiState.editingEntry == null) "Add Salary" else "Edit Salary",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Black
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (uiState.editingEntry == null) "Add Salary" else "Edit Salary",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black
+            )
+            
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Default.Close, contentDescription = "Close")
+            }
+        }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         
         OutlinedTextField(
             value = uiState.inputSalary,
             onValueChange = onSalaryChange,
-            label = { Text("Salary Amount (¥)") },
+            label = { Text("Net Salary Amount (¥)", fontWeight = FontWeight.Bold) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(20.dp),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+            )
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             OutlinedTextField(
                 value = uiState.inputSavings,
                 onValueChange = onSavingsChange,
-                label = { Text("Savings") },
+                label = { Text("Savings Goal") },
                 modifier = Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                singleLine = true
             )
             OutlinedTextField(
                 value = uiState.inputRemittance,
                 onValueChange = onRemittanceChange,
-                label = { Text("Sent Home") },
+                label = { Text("Remittance") },
                 modifier = Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                singleLine = true
             )
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         
         Button(
-            onClick = onSave,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp)
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onSave()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp),
+            shape = RoundedCornerShape(20.dp),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
         ) {
-            Text("Save Entry", fontWeight = FontWeight.Bold)
+            Icon(Icons.Default.Check, contentDescription = null)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("Save Salary Entry", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
         
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        TextButton(
-            onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Cancel")
-        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

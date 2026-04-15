@@ -377,119 +377,115 @@ fun ExpressiveHeroCard(
     totalWant: Long,
     salary: SalaryEntry?
 ) {
+    val salaryAmount = salary?.salaryAmount ?: 0L
+    val remaining = salaryAmount - totalSpend
+    
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
-        contentColor = MaterialTheme.colorScheme.onSurface
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shadowElevation = 1.dp
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 32.dp, vertical = 40.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Total Spent",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 1.sp
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            val salaryAmount = salary?.salaryAmount ?: 0L
-
-            // ── Animated donut arc ─────────────────────────────
-            val startAngle = 135f
-            val sweepAngle = 270f
-            val animatedTotal by animateFloatAsState(
-                targetValue = if (salaryAmount > 0)
-                    (totalSpend.toFloat() / salaryAmount).coerceIn(0f, 1f)
-                else 0f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessVeryLow
-                ),
-                label = "arc_total"
-            )
-            val animatedNeed by animateFloatAsState(
-                targetValue = if (totalSpend > 0)
-                    (totalNeed.toFloat() / totalSpend).coerceIn(0f, 1f)
-                else 0f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessVeryLow
-                ),
-                label = "arc_need"
-            )
-            val trackColor  = MaterialTheme.colorScheme.outlineVariant
-            val needColor   = MaterialTheme.colorScheme.error
-            val wantColor   = MaterialTheme.colorScheme.tertiary
-
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(200.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val stroke = 28.dp.toPx()
-                    val inset  = stroke / 2f
-                    val arcSz  = Size(size.width - stroke, size.height - stroke)
-                    val tl     = Offset(inset, inset)
-                    // Background track
-                    drawArc(trackColor, startAngle, sweepAngle, false, tl, arcSz,
-                        style = Stroke(stroke, cap = StrokeCap.Round))
-                    // Want portion (full spending in tertiary)
-                    val totalSweep = sweepAngle * animatedTotal
-                    if (totalSweep > 0f) {
-                        drawArc(wantColor.copy(alpha = 0.55f), startAngle, totalSweep, false, tl, arcSz,
-                            style = Stroke(stroke, cap = StrokeCap.Round))
-                    }
-                    // Need portion (overlaid in error color)
-                    val needSweep = totalSweep * animatedNeed
-                    if (needSweep > 0f) {
-                        drawArc(needColor.copy(alpha = 0.8f), startAngle, needSweep, false, tl, arcSz,
-                            style = Stroke(stroke, cap = StrokeCap.Round))
-                    }
+                Column {
+                    Text(
+                        text = if (remaining >= 0) "Remaining" else "Overspent",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = CurrencyUtils.formatYen(remaining),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Black,
+                        color = if (remaining >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
                 }
-                // Center label inside donut
-                androidx.compose.foundation.layout.Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                
+                // ── Animated donut arc ─────────────────────────────
+                val startAngle = -90f
+                val sweepAngle = 360f
+                val animatedProgress by animateFloatAsState(
+                    targetValue = if (salaryAmount > 0)
+                        (totalSpend.toFloat() / salaryAmount).coerceIn(0f, 1f)
+                    else 0f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    label = "arc_progress"
+                )
+                
+                val primaryColor = MaterialTheme.colorScheme.primary
+                val errorColor = MaterialTheme.colorScheme.error
+                
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(100.dp)
                 ) {
-                    AnimatedContent(targetState = totalSpend, label = "arc_center") { total ->
-                        Text(
-                            text = CurrencyUtils.formatYen(total),
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Black
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val stroke = 12.dp.toPx()
+                        drawArc(
+                            color = Color.LightGray.copy(alpha = 0.2f),
+                            startAngle = 0f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                        )
+                        drawArc(
+                            color = if (remaining >= 0) primaryColor else errorColor,
+                            startAngle = startAngle,
+                            sweepAngle = sweepAngle * animatedProgress,
+                            useCenter = false,
+                            style = Stroke(width = stroke, cap = StrokeCap.Round)
                         )
                     }
-                    if (salaryAmount > 0) {
-                        Text(
-                            text = "of ${CurrencyUtils.formatYen(salaryAmount)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = "${(animatedProgress * 100).toInt()}%",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Text(
-                    text = "Needs: ${CurrencyUtils.formatYen(totalNeed)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.error,
-                    fontWeight = FontWeight.Black
-                )
-                Text(
-                    text = "Wants: ${CurrencyUtils.formatYen(totalWant)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    fontWeight = FontWeight.Black
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Needs", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = CurrencyUtils.formatYen(totalNeed),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Wants", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = CurrencyUtils.formatYen(totalWant),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        fontWeight = FontWeight.Black
+                    )
+                }
             }
         }
     }
@@ -503,37 +499,42 @@ fun ExpressiveListItem(
     modifier: Modifier = Modifier
 ) {
     val isNeed = entry.category == SpendCategory.NEED
-    val containerColor = if (isNeed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
     val iconColor = if (isNeed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
-    val onContainerColor = if (isNeed) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
+    val iconContainerColor = if (isNeed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
 
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = containerColor,
-        contentColor = onContainerColor
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        onClick = onEdit
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp), // Tighter padding
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Clean, borderless icon
-            Icon(
-                imageVector = if (isNeed) Icons.Filled.Home else Icons.Filled.Favorite,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(28.dp)
-            )
+            Surface(
+                shape = CircleShape,
+                color = iconContainerColor,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (isNeed) Icons.Filled.Home else Icons.Filled.Favorite,
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Text Details
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entry.description,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -541,8 +542,8 @@ fun ExpressiveListItem(
                 if (entry.note.isNotBlank()) {
                     Text(
                         text = entry.note,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = onContainerColor.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -551,29 +552,27 @@ fun ExpressiveListItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Amount and Actions
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = CurrencyUtils.formatYen(entry.amount),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
-                    color = iconColor
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
-                // Clean action buttons without the noisy background circles
-                Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                Row {
                     IconButton(
                         onClick = onEdit,
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Edit,
+                            Icons.Filled.Edit,
                             contentDescription = "Edit",
-                            modifier = Modifier.size(18.dp),
-                            tint = onContainerColor.copy(alpha = 0.7f)
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(
@@ -581,10 +580,10 @@ fun ExpressiveListItem(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Delete,
+                            Icons.Filled.Delete,
                             contentDescription = "Delete",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -600,28 +599,20 @@ fun ExpressiveQuickAddButton(
 ) {
     Surface(
         onClick = onClick,
-        modifier = modifier.height(88.dp),
-        shape = RoundedCornerShape(24.dp),
+        modifier = modifier.height(110.dp),
+        shape = RoundedCornerShape(28.dp),
         color = containerColor,
-        contentColor = contentColor
+        contentColor = contentColor,
+        shadowElevation = 2.dp
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            verticalArrangement = Arrangement.Bottom
         ) {
-            Surface(
-                shape = CircleShape,
-                color = contentColor.copy(alpha = 0.15f),
-                modifier = Modifier.size(48.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) { Icon(icon, null, modifier = Modifier.size(24.dp)) }
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                Text(subtitle, style = MaterialTheme.typography.labelMedium, color = contentColor.copy(alpha = 0.8f))
-            }
+            Icon(icon, contentDescription = null, modifier = Modifier.size(28.dp))
+            Spacer(modifier = Modifier.weight(1f))
+            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = contentColor.copy(alpha = 0.7f))
         }
     }
 }

@@ -41,8 +41,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -171,6 +173,8 @@ fun SettingsScreen(
                 label = "theme_weight_dark"
             )
 
+            val haptic = LocalHapticFeedback.current
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -181,7 +185,10 @@ fun SettingsScreen(
                     isSelected = selected == DarkThemePreference.SYSTEM,
                     selectedColor = MaterialTheme.colorScheme.primaryContainer,
                     selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    onClick = { viewModel.setDarkThemePreference(DarkThemePreference.SYSTEM) },
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setDarkThemePreference(DarkThemePreference.SYSTEM) 
+                    },
                     modifier = Modifier
                         .weight(systemWeight)
                         .semantics { contentDescription = systemCd }
@@ -192,7 +199,10 @@ fun SettingsScreen(
                     isSelected = selected == DarkThemePreference.LIGHT,
                     selectedColor = MaterialTheme.colorScheme.tertiaryContainer,
                     selectedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                    onClick = { viewModel.setDarkThemePreference(DarkThemePreference.LIGHT) },
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setDarkThemePreference(DarkThemePreference.LIGHT) 
+                    },
                     modifier = Modifier
                         .weight(lightWeight)
                         .semantics { contentDescription = lightCd }
@@ -203,7 +213,10 @@ fun SettingsScreen(
                     isSelected = selected == DarkThemePreference.DARK,
                     selectedColor = MaterialTheme.colorScheme.secondaryContainer,
                     selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    onClick = { viewModel.setDarkThemePreference(DarkThemePreference.DARK) },
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setDarkThemePreference(DarkThemePreference.DARK) 
+                    },
                     modifier = Modifier
                         .weight(darkWeight)
                         .semantics { contentDescription = darkCd }
