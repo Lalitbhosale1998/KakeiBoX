@@ -22,6 +22,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
+import com.personal.kakeibox.ui.salary.SalaryUiState
+import com.personal.kakeibox.ui.salary.SalaryViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.*
@@ -790,6 +794,7 @@ fun ExpressiveAddEditSheet(
     var isSavingsFocused by remember { mutableStateOf(false) }
     var isRemittanceFocused by remember { mutableStateOf(false) }
     var isNoteFocused by remember { mutableStateOf(false) }
+    var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
 
     Column(
         modifier = Modifier
@@ -845,49 +850,73 @@ fun ExpressiveAddEditSheet(
         
         Spacer(modifier = Modifier.height(20.dp))
         
-        // Bento Island for Amount
-        val salaryElevation by animateDpAsState(if (isSalaryFocused) 8.dp else 0.dp)
-        val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.02f else 1f)
+        // Hero Amount Island for Salary
+        val salaryElevation by animateDpAsState(if (isSalaryFocused) 12.dp else 0.dp)
+        val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.04f else 1f)
         
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = if (isSalaryFocused) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            tonalElevation = salaryElevation,
+            shadowElevation = salaryElevation,
             modifier = Modifier
                 .fillMaxWidth()
                 .graphicsLayer(scaleX = salaryScale, scaleY = salaryScale)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = "Earnings",
+                    text = "TOTAL EARNINGS",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                    color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.2.sp
                 )
-                OutlinedTextField(
+                
+                BasicTextField(
                     value = uiState.inputSalary,
                     onValueChange = onSalaryChange,
-                    label = { Text("Net Salary (¥)") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onFocusChanged { isSalaryFocused = it.isFocused },
-                    leadingIcon = { Icon(Icons.Outlined.Payments, contentDescription = null) },
+                        .padding(top = 8.dp)
+                        .onFocusChanged { 
+                            if (it.isFocused != isSalaryFocused) {
+                                isSalaryFocused = it.isFocused 
+                                if (it.isFocused) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                        },
+                    textStyle = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Black,
+                        color = if (isSalaryFocused) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                    ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color.Transparent
-                    )
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    decorationBox = { innerTextField ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "¥",
+                                style = MaterialTheme.typography.displayMedium,
+                                fontWeight = FontWeight.Black,
+                                color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (uiState.inputSalary.isEmpty()) {
+                                    Text(
+                                        text = "0",
+                                        style = MaterialTheme.typography.displayMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (isSalaryFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f) 
+                                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
+                    }
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Visual Math feedback (The "Remaining" Pill)
         AnimatedVisibility(
@@ -934,9 +963,9 @@ fun ExpressiveAddEditSheet(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         
-        // Bento Island for Goals
+        // Bento Island for Allocations (Savings & Remittance)
         val allocationsFocused = isSavingsFocused || isRemittanceFocused
         val allocationsElevation by animateDpAsState(if (allocationsFocused) 8.dp else 0.dp)
         val allocationsScale by animateFloatAsState(if (allocationsFocused) 1.02f else 1f)
@@ -996,7 +1025,7 @@ fun ExpressiveAddEditSheet(
             }
         }
         
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         val noteElevation by animateDpAsState(if (isNoteFocused) 8.dp else 0.dp)
         val noteScale by animateFloatAsState(if (isNoteFocused) 1.02f else 1f)

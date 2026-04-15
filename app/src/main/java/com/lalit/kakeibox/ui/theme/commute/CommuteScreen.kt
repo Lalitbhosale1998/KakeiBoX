@@ -9,6 +9,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.focus.onFocusChanged
+import com.personal.kakeibox.ui.commute.CommuteUiState
+import com.personal.kakeibox.ui.commute.CommuteViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -514,14 +519,18 @@ fun CommuteAddEditSheet(
 ) {
     val haptic = LocalHapticFeedback.current
     
+    // Focus states for animations
+    var isFareFocused by remember { mutableStateOf(false) }
+    var isHolidaysFocused by remember { mutableStateOf(false) }
+    var isWfhFocused by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()
-            .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .imePadding()
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -542,49 +551,94 @@ fun CommuteAddEditSheet(
             }
         }
         
-        // Bento Island for Fare
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Hero Amount Island for Fare
+        val fareElevation by animateDpAsState(if (isFareFocused) 12.dp else 0.dp)
+        val fareScale by animateFloatAsState(if (isFareFocused) 1.04f else 1f)
+        
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = if (isFareFocused) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth()
+            shadowElevation = fareElevation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(scaleX = fareScale, scaleY = fareScale)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = "Fare Configuration",
+                    text = "ONE-WAY FARE",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                    color = if (isFareFocused) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.2.sp
                 )
-                OutlinedTextField(
+                
+                BasicTextField(
                     value = uiState.inputOneWayFare,
                     onValueChange = onFareChange,
-                    label = { Text("One-way Fare (¥)") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .onFocusChanged { 
+                            if (it.isFocused != isFareFocused) {
+                                isFareFocused = it.isFocused 
+                                if (it.isFocused) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                        },
+                    textStyle = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Black,
+                        color = if (isFareFocused) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurface
+                    ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape = RoundedCornerShape(16.dp),
-                    isError = uiState.fareError != null,
-                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedBorderColor = Color.Transparent
-                    )
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.tertiary),
+                    decorationBox = { innerTextField ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "¥",
+                                style = MaterialTheme.typography.displayMedium,
+                                fontWeight = FontWeight.Black,
+                                color = if (isFareFocused) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (uiState.inputOneWayFare.isEmpty()) {
+                                    Text(
+                                        text = "0",
+                                        style = MaterialTheme.typography.displayMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (isFareFocused) MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.3f) 
+                                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
+                    }
                 )
             }
         }
+        
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Bento Island for Days
+        val daysFocused = isHolidaysFocused || isWfhFocused
+        val daysElevation by animateDpAsState(if (daysFocused) 8.dp else 0.dp)
+        val daysScale by animateFloatAsState(if (daysFocused) 1.02f else 1f)
+
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth()
+            tonalElevation = daysElevation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(scaleX = daysScale, scaleY = daysScale)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = "Monthly Adjustments",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.tertiary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
@@ -593,9 +647,12 @@ fun CommuteAddEditSheet(
                         value = uiState.inputHolidays,
                         onValueChange = onHolidaysChange,
                         label = { Text("Holidays") },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { isHolidaysFocused = it.isFocused },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(16.dp),
+                        leadingIcon = { Icon(Icons.Outlined.EventBusy, contentDescription = null) },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -606,9 +663,12 @@ fun CommuteAddEditSheet(
                         value = uiState.inputWfhDays,
                         onValueChange = onWfhChange,
                         label = { Text("WFH Days") },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { isWfhFocused = it.isFocused },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(16.dp),
+                        leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -619,16 +679,43 @@ fun CommuteAddEditSheet(
             }
         }
 
+        Spacer(modifier = Modifier.height(32.dp))
+
+        val isInputValid = uiState.inputOneWayFare.isNotBlank() && uiState.inputOneWayFare.toDoubleOrNull() != null
+
         Button(
-            onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSave() },
+            onClick = {
+                if (isInputValid) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSave()
+                }
+            },
             modifier = Modifier.fillMaxWidth().height(64.dp),
+            enabled = isInputValid,
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isInputValid) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (isInputValid) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            ),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp)
         ) {
-            Icon(Icons.Default.Calculate, contentDescription = null)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text("Calculate & Save", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            AnimatedContent(
+                targetState = isInputValid,
+                transitionSpec = {
+                    (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut() + slideOutVertically { -it / 2 })
+                },
+                label = "save_button_content"
+            ) { valid ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(if (valid) Icons.Default.Calculate else Icons.Default.Lock, contentDescription = null)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        if (valid) "Calculate & Save" else "Enter Fare to Calculate",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
         }
     }
 }

@@ -32,6 +32,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -803,11 +805,15 @@ fun SpendAddEditSheet(
         // 1. Hero Amount Island (Bento Card, Focused Scaling)
         val amountElevation by animateDpAsState(if (isAmountFocused) 12.dp else 0.dp)
         val amountScale by animateFloatAsState(if (isAmountFocused) 1.04f else 1f)
+        val amountBgColor by animateColorAsState(
+            if (isAmountFocused) MaterialTheme.colorScheme.primaryContainer 
+            else MaterialTheme.colorScheme.surfaceContainerHigh
+        )
 
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = amountBgColor,
             shape = RoundedCornerShape(28.dp),
-            tonalElevation = amountElevation,
+            shadowElevation = amountElevation,
             modifier = Modifier
                 .fillMaxWidth()
                 .graphicsLayer(scaleX = amountScale, scaleY = amountScale)
@@ -818,47 +824,58 @@ fun SpendAddEditSheet(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Amount Spent",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    fontWeight = FontWeight.Black
+                    text = "AMOUNT SPENT",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (isAmountFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.2.sp
                 )
                 
-                TextField(
+                BasicTextField(
                     value = uiState.inputAmount,
                     onValueChange = { if (it.length <= 9) onAmountChange(it) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onFocusChanged { isAmountFocused = it.isFocused },
-                    placeholder = { 
-                        Text(
-                            "0", 
-                            modifier = Modifier.fillMaxWidth(), 
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.displayLarge,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                        ) 
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        .padding(top = 8.dp)
+                        .onFocusChanged { 
+                            if (it.isFocused != isAmountFocused) {
+                                isAmountFocused = it.isFocused 
+                                if (it.isFocused) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                        },
                     textStyle = MaterialTheme.typography.displayLarge.copy(
                         fontWeight = FontWeight.Black,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = if (isAmountFocused) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                     ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    prefix = { 
-                        Text(
-                            "¥", 
-                            style = MaterialTheme.typography.displaySmall, 
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.primary
-                        ) 
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    decorationBox = { innerTextField ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "¥", 
+                                style = MaterialTheme.typography.displaySmall, 
+                                fontWeight = FontWeight.Black,
+                                color = if (isAmountFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            ) 
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(contentAlignment = Alignment.Center) {
+                                if (uiState.inputAmount.isEmpty()) {
+                                    Text(
+                                        "0", 
+                                        style = MaterialTheme.typography.displayLarge,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (isAmountFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f)
+                                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                    ) 
+                                }
+                                innerTextField()
+                            }
+                        }
                     }
                 )
             }
