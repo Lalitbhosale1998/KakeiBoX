@@ -14,10 +14,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +39,7 @@ import com.personal.kakeibox.R
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.ui.components.BentoCard
@@ -248,20 +249,145 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth().height(140.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                var showBackupDetails by remember { mutableStateOf(false) }
+
                 BentoCard(
                     modifier = Modifier.weight(1f),
                     title = "Backups",
                     description = "Sync your data.",
                     icon = Icons.Outlined.CloudUpload,
-                    onClick = { /* TODO */ }
-                )
+                    isActive = showBackupDetails,
+                    onClick = { showBackupDetails = !showBackupDetails }
+                ) {
+                    if (showBackupDetails) {
+                        Text(
+                            "Last: Today, 10:00 AM",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                
+                // App Security (Biometric)
                 BentoCard(
                     modifier = Modifier.weight(1f),
-                    title = "Privacy",
-                    description = "Security settings.",
-                    icon = Icons.Outlined.Security,
-                    onClick = { /* TODO */ }
-                )
+                    title = "Security",
+                    description = "Biometric lock.",
+                    icon = if (themeSettings.biometricEnabled) Icons.Filled.Fingerprint else Icons.Outlined.Fingerprint,
+                    isActive = themeSettings.biometricEnabled,
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.setBiometricEnabled(!themeSettings.biometricEnabled)
+                    }
+                ) {
+                   Text(
+                        text = if (themeSettings.biometricEnabled) "Enabled" else "Disabled",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (themeSettings.biometricEnabled) 
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // ── Section: Localization ──
+            Text(
+                text = "Locale & Currency",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+            )
+
+            // Language Selection
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Language",
+                description = "Choose your preferred language.",
+                icon = Icons.Outlined.Language
+            ) {
+                val languages = AppLanguage.values()
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                ) {
+                    languages.forEachIndexed { index, language ->
+                        SegmentedButton(
+                            selected = themeSettings.appLanguage == language,
+                            onClick = { viewModel.setAppLanguage(language) },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = languages.size),
+                            label = { Text(language.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                        )
+                    }
+                }
+            }
+
+            // Currency & Date Row
+            Row(
+                modifier = Modifier.fillMaxWidth().height(160.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Currency Card
+                BentoCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Currency",
+                    description = "Symbol",
+                    icon = Icons.Outlined.Payments
+                ) {
+                    val currencies = listOf("₹", "¥", "$", "€")
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        currencies.forEach { symbol ->
+                            Surface(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clickable { viewModel.setCurrencySymbol(symbol) },
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (themeSettings.currencySymbol == symbol) 
+                                    MaterialTheme.colorScheme.primary 
+                                else MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        symbol,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (themeSettings.currencySymbol == symbol) 
+                                            MaterialTheme.colorScheme.onPrimary 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Date Format Card
+                BentoCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Date Format",
+                    description = "Styles",
+                    icon = Icons.Outlined.CalendarMonth
+                ) {
+                    val formats = listOf("MMM dd", "dd/MM/yy")
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        formats.forEach { format ->
+                            Text(
+                                text = format,
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .clickable { viewModel.setDateFormat(format) }
+                                    .background(if (themeSettings.dateFormat == format) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+                                    .padding(4.dp),
+                                color = if (themeSettings.dateFormat == format) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
         }
     }

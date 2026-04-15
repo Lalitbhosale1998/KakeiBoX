@@ -15,6 +15,10 @@ private object Keys {
     val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     val NAV_BAR_STYLE = stringPreferencesKey("nav_bar_style")
     val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
+    val CURRENCY_SYMBOL = stringPreferencesKey("currency_symbol")
+    val DATE_FORMAT = stringPreferencesKey("date_format")
+    val APP_LANGUAGE = stringPreferencesKey("app_language")
+    val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
 }
 
 @Singleton
@@ -27,7 +31,11 @@ class UserPreferencesRepository @Inject constructor(
             darkThemePreference = DarkThemePreference.fromStorage(prefs[Keys.DARK_THEME]),
             useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
             navBarStyle = NavBarStyle.fromStorage(prefs[Keys.NAV_BAR_STYLE]),
-            remindersEnabled = prefs[Keys.REMINDERS_ENABLED] ?: false
+            remindersEnabled = prefs[Keys.REMINDERS_ENABLED] ?: false,
+            currencySymbol = prefs[Keys.CURRENCY_SYMBOL] ?: "¥",
+            dateFormat = prefs[Keys.DATE_FORMAT] ?: "MMM dd, yyyy",
+            appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
+            biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false
         )
     }
 
@@ -45,5 +53,21 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setUseDynamicColor(enabled: Boolean) {
         dataStore.edit { it[Keys.DYNAMIC_COLOR] = enabled }
+    }
+
+    suspend fun setCurrencySymbol(symbol: String) {
+        dataStore.edit { it[Keys.CURRENCY_SYMBOL] = symbol }
+    }
+
+    suspend fun setDateFormat(format: String) {
+        dataStore.edit { it[Keys.DATE_FORMAT] = format }
+    }
+
+    suspend fun setAppLanguage(language: AppLanguage) {
+        dataStore.edit { it[Keys.APP_LANGUAGE] = language.name }
+    }
+
+    suspend fun setBiometricEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.BIOMETRIC_ENABLED] = enabled }
     }
 }

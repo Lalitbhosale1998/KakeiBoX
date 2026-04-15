@@ -2,6 +2,7 @@ package com.personal.kakeibox.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
@@ -46,6 +47,30 @@ class ThemeViewModel @Inject constructor(
     fun setRemindersEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setRemindersEnabled(enabled)
+        }
+    }
+
+    fun setCurrencySymbol(symbol: String) {
+        viewModelScope.launch {
+            preferencesRepository.setCurrencySymbol(symbol)
+        }
+    }
+
+    fun setDateFormat(format: String) {
+        viewModelScope.launch {
+            preferencesRepository.setDateFormat(format)
+        }
+    }
+
+    fun setAppLanguage(language: AppLanguage) {
+        viewModelScope.launch {
+            preferencesRepository.setAppLanguage(language)
+        }
+    }
+
+    fun setBiometricEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.setBiometricEnabled(enabled)
         }
     }
 }
