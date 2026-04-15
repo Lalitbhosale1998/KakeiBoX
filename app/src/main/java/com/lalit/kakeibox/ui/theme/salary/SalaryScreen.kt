@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.withTimeoutOrNull
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.activity.ComponentActivity
@@ -57,6 +58,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressivePeriodSelector
+import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -92,8 +94,11 @@ fun SalaryScreen(
     )
 
     LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
+        uiState.snackbarMessage?.let { message ->
+            // Snappier 2-second timeout for Expressive Snackbars
+            withTimeoutOrNull(2000L) {
+                snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Indefinite)
+            }
             viewModel.clearSnackbar()
         }
     }
@@ -162,7 +167,7 @@ fun SalaryScreen(
                     )
                 }
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) },
             floatingActionButton = {
                 // Large, Expressive FAB pushed up if Nav is floating
                 val haptic = LocalHapticFeedback.current
@@ -502,11 +507,15 @@ fun ExpressiveSalaryCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        onClick = onEdit
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onEdit()
+        }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -541,7 +550,9 @@ fun ExpressiveSalaryCard(
                 Text(
                     text = CurrencyUtils.formatYen(entry.salaryAmount),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -556,6 +567,16 @@ fun ExpressiveSalaryCard(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
+                    )
+                }
+                if (entry.note.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = entry.note,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -672,7 +693,7 @@ fun ExpressiveAddEditSheet(
         // Bento Island for Period Selection
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -697,7 +718,7 @@ fun ExpressiveAddEditSheet(
         // Bento Island for Amount
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -732,7 +753,7 @@ fun ExpressiveAddEditSheet(
         // Bento Island for Goals
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -802,7 +823,7 @@ fun ExpressiveAddEditSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(28.dp),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,

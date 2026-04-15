@@ -18,6 +18,7 @@ data class CommuteUiState(
     val showHistorySheet: Boolean = false,
     val deletingEntry: CommuteEntry? = null,
     val showDeleteDialog: Boolean = false,
+    val snackbarMessage: String? = null,
     
     // Inputs
     val inputOneWayFare: String = "",
@@ -104,6 +105,7 @@ class CommuteViewModel @Inject constructor(
                 totalCost = maxOf(0, totalCost.toLong())
             )
             repository.insert(entry)
+            _uiState.update { it.copy(snackbarMessage = "Entry added") }
             closeAddSheet()
         }
     }
@@ -111,7 +113,11 @@ class CommuteViewModel @Inject constructor(
     fun deleteEntry(entry: CommuteEntry) {
         viewModelScope.launch {
             repository.delete(entry)
-            _uiState.update { it.copy(showDeleteDialog = false, deletingEntry = null) }
+            _uiState.update { it.copy(
+                showDeleteDialog = false, 
+                deletingEntry = null,
+                snackbarMessage = "Entry deleted"
+            ) }
         }
     }
 
@@ -125,5 +131,9 @@ class CommuteViewModel @Inject constructor(
 
     fun toggleHistory() {
         _uiState.update { it.copy(showHistorySheet = !it.showHistorySheet) }
+    }
+
+    fun clearSnackbar() {
+        _uiState.update { it.copy(snackbarMessage = null) }
     }
 }

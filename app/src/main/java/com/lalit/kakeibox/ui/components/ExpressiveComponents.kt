@@ -35,11 +35,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +60,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.util.DateUtils
@@ -187,18 +197,91 @@ fun ExpressivePeriodSelector(
 }
 
 @Composable
+fun ExpressiveSnackbarHost(hostState: SnackbarHostState) {
+    val haptic = LocalHapticFeedback.current
+
+    SnackbarHost(hostState) { data ->
+        LaunchedEffect(data) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+
+        val isError = data.visuals.message.contains("Error", ignoreCase = true) || 
+                      data.visuals.message.contains("Failed", ignoreCase = true)
+        val isDelete = data.visuals.message.contains("Delete", ignoreCase = true) || 
+                       data.visuals.message.contains("Removed", ignoreCase = true)
+
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = when {
+                    isError -> MaterialTheme.colorScheme.errorContainer
+                    isDelete -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.primaryContainer
+                },
+                contentColor = when {
+                    isError -> MaterialTheme.colorScheme.onErrorContainer
+                    isDelete -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> MaterialTheme.colorScheme.onPrimaryContainer
+                }
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = when {
+                        isError -> Icons.Outlined.ErrorOutline
+                        isDelete -> Icons.Outlined.Delete
+                        else -> Icons.Outlined.CheckCircle
+                    },
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = when {
+                        isError -> MaterialTheme.colorScheme.error
+                        isDelete -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                )
+                Text(
+                    text = data.visuals.message,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                data.visuals.actionLabel?.let { action ->
+                    TextButton(onClick = { data.performAction() }) {
+                        Text(
+                            text = action,
+                            fontWeight = FontWeight.Black,
+                            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ExpressiveCategoryToggle(
     selectedCategory: String, // "NEED" or "WANT"
     onCategoryChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     val isNeed = selectedCategory == "NEED"
     
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(64.dp)
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(28.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(8.dp)
     ) {
@@ -219,7 +302,10 @@ fun ExpressiveCategoryToggle(
                 .fillMaxHeight()
                 .clip(CircleShape)
                 .background(needBg)
-                .clickable { onCategoryChange("NEED") },
+                .clickable { 
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onCategoryChange("NEED") 
+                },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -246,7 +332,10 @@ fun ExpressiveCategoryToggle(
                 .fillMaxHeight()
                 .clip(CircleShape)
                 .background(wantBg)
-                .clickable { onCategoryChange("WANT") },
+                .clickable { 
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onCategoryChange("WANT") 
+                },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -267,6 +356,7 @@ fun ExpressiveTab(
     selectedTextColor: Color = Color.Unspecified,
     onClick: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     val bgColor by animateColorAsState(
         targetValue = if (isSelected) selectedColor else MaterialTheme.colorScheme.surfaceContainerHigh,
         label = "bgColor"
@@ -282,11 +372,14 @@ fun ExpressiveTab(
     )
 
     Surface(
-        onClick = onClick,
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onClick()
+        },
         modifier = modifier
             .height(56.dp)
             .graphicsLayer(scaleX = scale, scaleY = scale),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(28.dp),
         color = bgColor,
         contentColor = txtColor
     ) {
@@ -461,7 +554,9 @@ fun BentoCard(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Black,
-                    color = contentColor
+                    color = contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (description != null) {
                     Text(
@@ -469,7 +564,9 @@ fun BentoCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = contentColor.copy(alpha = 0.7f),
                         lineHeight = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 Spacer(modifier = Modifier.height(if (description != null) 8.dp else 4.dp))

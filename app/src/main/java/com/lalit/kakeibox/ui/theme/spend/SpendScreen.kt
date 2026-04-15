@@ -64,10 +64,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.withTimeoutOrNull
 import com.personal.kakeibox.ui.components.ExpressiveCategoryToggle
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
+import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -118,8 +120,10 @@ fun SpendScreen(
     val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
+        uiState.snackbarMessage?.let { message ->
+            withTimeoutOrNull(2000L) {
+                snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Indefinite)
+            }
             viewModel.clearSnackbar()
         }
     }
@@ -192,7 +196,7 @@ fun SpendScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) }
     ) { innerPadding ->
 
         LazyColumn(
@@ -453,7 +457,7 @@ fun BudgetHealthBeam(totalNeed: Long, totalWant: Long, totalSpend: Long, salaryA
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -491,7 +495,7 @@ fun ExpressivePeriodIsland(currentMonth: Int, currentYear: Int, onMonthChange: (
     val haptic = LocalHapticFeedback.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
     ) {
@@ -599,12 +603,16 @@ fun ExpressiveCategoryTabs(
 
 @Composable
 fun ExpressiveListItem(entry: SpendEntry, onEdit: () -> Unit, onDelete: () -> Unit) {
+    val haptic = LocalHapticFeedback.current
     val isNeed = entry.category == SpendCategory.NEED
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        onClick = onEdit
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onEdit()
+        }
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
@@ -623,7 +631,7 @@ fun ExpressiveListItem(entry: SpendEntry, onEdit: () -> Unit, onDelete: () -> Un
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entry.description, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(text = entry.note.ifBlank { "No note" }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = entry.note.ifBlank { "No note" }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Text(text = CurrencyUtils.formatYen(entry.amount), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
@@ -634,7 +642,7 @@ fun ExpressiveListItem(entry: SpendEntry, onEdit: () -> Unit, onDelete: () -> Un
 
 @Composable
 fun SpendSwipeDeleteBackground() {
-    Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.errorContainer), contentAlignment = Alignment.CenterEnd) {
+    Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(28.dp)).background(MaterialTheme.colorScheme.errorContainer), contentAlignment = Alignment.CenterEnd) {
         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.padding(end = 24.dp), tint = MaterialTheme.colorScheme.onErrorContainer)
     }
 }
@@ -697,7 +705,7 @@ fun SpendAddEditSheet(
         // Bento Island for Category & Amount
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -735,7 +743,7 @@ fun SpendAddEditSheet(
         // Bento Island for Description & Note
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -769,7 +777,7 @@ fun SpendAddEditSheet(
         Button(
             onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSave() },
             modifier = Modifier.fillMaxWidth().height(64.dp),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(28.dp),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp)
         ) {
             Icon(Icons.Default.Check, contentDescription = null)

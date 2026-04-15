@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.withTimeoutOrNull
+import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -44,6 +46,7 @@ import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Train
+import androidx.compose.ui.text.style.TextOverflow
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -64,6 +67,18 @@ fun CommuteScreen(
         animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "fab_padding"
     )
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { message ->
+            // Snappier 2-second timeout for Expressive Snackbars
+            withTimeoutOrNull(2000L) {
+                snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Indefinite)
+            }
+            viewModel.clearSnackbar()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -114,7 +129,8 @@ fun CommuteScreen(
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
             }
-        }
+        },
+        snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -331,6 +347,7 @@ fun CommuteHistoryItem(
     entry: CommuteEntry,
     onDelete: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     val date = remember(entry.createdAt) {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(entry.createdAt))
     }
@@ -338,7 +355,11 @@ fun CommuteHistoryItem(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            // If there's an edit function, call it here. Currently only delete is shown.
+        }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -364,13 +385,27 @@ fun CommuteHistoryItem(
                 Text(
                     text = CurrencyUtils.formatYen(entry.totalCost),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = date,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+                if (entry.oneWayFare > 0) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Fare: ${CurrencyUtils.formatYen(entry.oneWayFare)} (One-way)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
             
             Column(horizontalAlignment = Alignment.End) {
@@ -505,7 +540,7 @@ fun CommuteAddEditSheet(
         // Bento Island for Fare
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -537,7 +572,7 @@ fun CommuteAddEditSheet(
         // Bento Island for Days
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -582,7 +617,7 @@ fun CommuteAddEditSheet(
         Button(
             onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSave() },
             modifier = Modifier.fillMaxWidth().height(64.dp),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp)
         ) {
