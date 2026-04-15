@@ -19,6 +19,12 @@ class SalaryRepository @Inject constructor(
     fun getTotalSavings(): Flow<Long?> =
         salaryDao.getTotalSavings()
 
+    fun getTotalSalary(): Flow<Long?> =
+        salaryDao.getTotalSalary()
+
+    fun getTotalRemittance(): Flow<Long?> =
+        salaryDao.getTotalRemittance()
+
     fun getEntriesByYear(year: Int): Flow<List<SalaryEntry>> =
         salaryDao.getEntriesByYear(year)
 

@@ -73,6 +73,22 @@ class SalaryViewModel @Inject constructor(
             initialValue = 0L
         )
 
+    // Total salary across all months
+    val totalSalary = repository.getTotalSalary()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0L
+        )
+
+    // Total remittance across all months
+    val totalRemittance = repository.getTotalRemittance()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0L
+        )
+
     // ── Dialog Controls ──────────────────────────────
 
     fun openAddDialog() {

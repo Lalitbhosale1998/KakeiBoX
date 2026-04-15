@@ -48,6 +48,14 @@ interface SalaryDao {
     @Query("SELECT SUM(savingsAmount) FROM salary_entries")
     fun getTotalSavings(): Flow<Long?>
 
+    // Get total salary across all months
+    @Query("SELECT SUM(salaryAmount) FROM salary_entries")
+    fun getTotalSalary(): Flow<Long?>
+
+    // Get total remittance across all months
+    @Query("SELECT SUM(remittanceAmount) FROM salary_entries")
+    fun getTotalRemittance(): Flow<Long?>
+
     // Get entries for a specific year
     @Query("SELECT * FROM salary_entries WHERE year = :year ORDER BY month DESC")
     fun getEntriesByYear(year: Int): Flow<List<SalaryEntry>>

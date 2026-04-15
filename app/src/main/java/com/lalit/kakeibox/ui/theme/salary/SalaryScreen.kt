@@ -74,6 +74,8 @@ fun SalaryScreen(
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val currentEntry by viewModel.currentEntry.collectAsStateWithLifecycle()
     val totalSavings by viewModel.totalSavings.collectAsStateWithLifecycle()
+    val totalSalary by viewModel.totalSalary.collectAsStateWithLifecycle()
+    val totalRemittance by viewModel.totalRemittance.collectAsStateWithLifecycle()
     
     val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
     val fabPadding by animateDpAsState(
@@ -187,7 +189,9 @@ fun SalaryScreen(
                 // ── Hero Section ──────────────
                 item {
                     ExpressiveHeroCard(
-                        entry = currentEntry,
+                        totalSalary = totalSalary ?: 0L,
+                        totalSavings = totalSavings ?: 0L,
+                        currentEntry = currentEntry,
                         currentMonth = uiState.currentMonth,
                         currentYear = uiState.currentYear,
                         onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } }
@@ -196,9 +200,10 @@ fun SalaryScreen(
 
                 // ── Detailed Stats ───────────
                 item {
-                    currentEntry?.let { entry ->
-                        ExpressiveStatsGrid(entry = entry)
-                    } ?: ExpressiveEmptyHero(onAdd = { viewModel.openAddDialog() })
+                    ExpressiveStatsGrid(
+                        totalSavings = totalSavings ?: 0L,
+                        totalRemittance = totalRemittance ?: 0L
+                    )
                 }
 
                 // ── History Header ───────────
@@ -292,7 +297,9 @@ fun SalaryScreen(
 
 @Composable
 fun ExpressiveHeroCard(
-    entry: SalaryEntry?,
+    totalSalary: Long,
+    totalSavings: Long,
+    currentEntry: SalaryEntry?,
     currentMonth: Int,
     currentYear: Int,
     onEdit: () -> Unit
@@ -314,28 +321,18 @@ fun ExpressiveHeroCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                AnimatedContent(
-                    targetState = DateUtils.formatMonthYear(currentMonth, currentYear).uppercase(),
-                    transitionSpec = {
-                        (fadeIn(animationSpec = tween(220, delayMillis = 90)) + 
-                         slideInVertically(initialOffsetY = { it / 2 }))
-                        .togetherWith(fadeOut(animationSpec = tween(90)))
-                    },
-                    label = "date_transition"
-                ) { targetDate ->
-                    Text(
-                        text = targetDate,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                    )
-                }
+                Text(
+                    text = "TOTAL EARNINGS",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                )
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 AnimatedContent(
-                    targetState = if (entry != null) CurrencyUtils.formatYen(entry.salaryAmount) else "No Data",
+                    targetState = CurrencyUtils.formatYen(totalSalary),
                     transitionSpec = {
                         (fadeIn(animationSpec = tween(220, delayMillis = 90)) + 
                          slideInVertically(initialOffsetY = { it / 2 }))
@@ -351,13 +348,13 @@ fun ExpressiveHeroCard(
                 }
 
                 Text(
-                    text = "Net Take Home Salary",
+                    text = "Cumulative Net Income",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
                 
-                if (entry != null) {
+                if (currentEntry != null) {
                     Spacer(modifier = Modifier.height(16.dp))
                     FilledTonalButton(
                         onClick = { 
@@ -373,63 +370,61 @@ fun ExpressiveHeroCard(
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Edit Details", fontWeight = FontWeight.Bold)
+                        Text("Edit ${DateUtils.getShortMonthName(currentEntry.month)} Record", fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
             // ── Animated donut arc ─────────────────────────────
-            if (entry != null) {
-                val savingsRatio = if (entry.salaryAmount > 0) 
-                    (entry.savingsAmount.toFloat() / entry.salaryAmount).coerceIn(0f, 1f)
-                else 0f
-                
-                val animatedProgress by animateFloatAsState(
-                    targetValue = savingsRatio,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow
-                    ),
-                    label = "savings_progress"
-                )
+            val savingsRatio = if (totalSalary > 0) 
+                (totalSavings.toFloat() / totalSalary).coerceIn(0f, 1f)
+            else 0f
+            
+            val animatedProgress by animateFloatAsState(
+                targetValue = savingsRatio,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                ),
+                label = "savings_progress"
+            )
 
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(90.dp)
-                ) {
-                    val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
-                    val progressColor = MaterialTheme.colorScheme.onPrimary
-                    
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val stroke = 10.dp.toPx()
-                        drawArc(
-                            color = trackColor,
-                            startAngle = 0f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            style = Stroke(width = stroke, cap = StrokeCap.Round)
-                        )
-                        drawArc(
-                            color = progressColor,
-                            startAngle = -90f,
-                            sweepAngle = 360f * animatedProgress,
-                            useCenter = false,
-                            style = Stroke(width = stroke, cap = StrokeCap.Round)
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "${(savingsRatio * 100).toInt()}%",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black
-                        )
-                        Text(
-                            text = "SAVED",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 8.sp
-                        )
-                    }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(90.dp)
+            ) {
+                val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
+                val progressColor = MaterialTheme.colorScheme.onPrimary
+                
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val stroke = 10.dp.toPx()
+                    drawArc(
+                        color = trackColor,
+                        startAngle = 0f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round)
+                    )
+                    drawArc(
+                        color = progressColor,
+                        startAngle = -90f,
+                        sweepAngle = 360f * animatedProgress,
+                        useCenter = false,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round)
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "${(savingsRatio * 100).toInt()}%",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "SAVED",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 8.sp
+                    )
                 }
             }
         }
@@ -437,34 +432,34 @@ fun ExpressiveHeroCard(
 }
 
 @Composable
-fun ExpressiveStatsGrid(entry: SalaryEntry) {
+fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long) {
     Row(
         modifier = Modifier.fillMaxWidth().height(160.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         BentoCard(
-            title = "Savings Goal",
+            title = "Total Savings",
             icon = Icons.Outlined.Savings,
             idleContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = CurrencyUtils.formatYen(entry.savingsAmount),
+                text = CurrencyUtils.formatYen(totalSavings),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
         BentoCard(
-            title = "Remittance",
+            title = "Total Remittance",
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
             idleContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = CurrencyUtils.formatYen(entry.remittanceAmount),
+                text = CurrencyUtils.formatYen(totalRemittance),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface
