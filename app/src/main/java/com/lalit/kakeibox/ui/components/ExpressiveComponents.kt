@@ -84,13 +84,14 @@ fun ExpressivePeriodSelector(
     // Auto-scroll to selected month
     LaunchedEffect(selectedMonth) {
         val index = (selectedMonth - 1).coerceAtLeast(0)
-        monthListState.animateScrollToItem(index)
+        // Use a small delay to ensure the list is ready
+        monthListState.animateScrollToItem(index, scrollOffset = -150) // -150 offset to center it more
     }
 
     // Auto-scroll to selected year
     LaunchedEffect(selectedYear) {
         val index = years.indexOf(selectedYear).coerceAtLeast(0)
-        yearListState.animateScrollToItem(index)
+        yearListState.animateScrollToItem(index, scrollOffset = -150)
     }
     
     Column(modifier = modifier) {
