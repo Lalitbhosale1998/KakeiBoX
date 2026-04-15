@@ -1,5 +1,7 @@
 package com.personal.kakeibox.ui
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -221,31 +223,36 @@ fun KakeiboXApp(
             }
         }
 
-        // ── Floating "Default" Navigation Bar Overlay ──
+        // ── Floating "Bento" Navigation Bar Overlay ──
         if (themeSettings.navBarStyle == NavBarStyle.FLOATING) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp)
             ) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(84.dp),
-                    shape = RoundedCornerShape(42.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.92f),
-                    tonalElevation = 8.dp,
-                    shadowElevation = 12.dp
+                        .height(80.dp),
+                    shape = RoundedCornerShape(40.dp),
+                    // Use surfaceContainer for a standard M3 bar background
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 0.dp,
+                    shadowElevation = 8.dp,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
                             .selectableGroup()
-                            .padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         bottomNavItems.forEach { item ->
@@ -254,19 +261,35 @@ fun KakeiboXApp(
                             } == true
 
                             val iconScale by animateFloatAsState(
-                                targetValue = if (isSelected) 1.2f else 1f,
+                                targetValue = if (isSelected) 1.15f else 1f,
                                 animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessMedium
+                                    stiffness = Spring.StiffnessLow
                                 ),
                                 label = "floating_icon_scale"
+                            )
+
+                            // Active: secondaryContainer | Inactive: Transparent
+                            val containerColor by animateColorAsState(
+                                targetValue = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                                             else Color.Transparent,
+                                animationSpec = tween(250),
+                                label = "tab_bg_anim"
+                            )
+
+                            // Active: onSecondaryContainer | Inactive: onSurfaceVariant
+                            val contentColor by animateColorAsState(
+                                targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer 
+                                             else MaterialTheme.colorScheme.onSurfaceVariant,
+                                label = "content_color_anim"
                             )
 
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxHeight()
-                                    .clip(RoundedCornerShape(24.dp))
+                                    .clip(RoundedCornerShape(32.dp))
+                                    .background(containerColor)
                                     .selectable(
                                         selected = isSelected,
                                         onClick = {
@@ -284,43 +307,26 @@ fun KakeiboXApp(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.size(width = 64.dp, height = 32.dp)
-                                ) {
-                                    if (isSelected) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(MaterialTheme.colorScheme.secondaryContainer)
-                                        )
+                                Icon(
+                                    imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                    contentDescription = stringResource(item.labelRes),
+                                    tint = contentColor,
+                                    modifier = Modifier.size(24.dp).graphicsLayer {
+                                        scaleX = iconScale
+                                        scaleY = iconScale
                                     }
+                                )
 
-                                    Icon(
-                                        imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                        contentDescription = stringResource(item.labelRes),
-                                        tint = if (isSelected)
-                                            MaterialTheme.colorScheme.onSecondaryContainer
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.graphicsLayer {
-                                            scaleX = iconScale
-                                            scaleY = iconScale
-                                        }
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(6.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
 
                                 Text(
                                     text = stringResource(item.labelRes),
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.ExtraBold,
-                                        fontSize = 12.sp,
-                                        letterSpacing = 0.4.sp
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 11.sp,
+                                        letterSpacing = 0.1.sp
                                     ),
-                                    color = if (isSelected) MaterialTheme.colorScheme.onSurface
-                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = contentColor,
                                     maxLines = 1
                                 )
                             }

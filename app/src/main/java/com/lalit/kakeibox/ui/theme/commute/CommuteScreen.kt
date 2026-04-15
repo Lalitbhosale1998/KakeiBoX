@@ -24,6 +24,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.ComponentActivity
+import com.personal.kakeibox.ui.settings.ThemeViewModel
+import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,10 +45,19 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommuteScreen(
-    viewModel: CommuteViewModel = hiltViewModel()
+    viewModel: CommuteViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
+    val fabPadding by animateDpAsState(
+        targetValue = if (isFloatingNav) 100.dp else 0.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "fab_padding"
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -82,6 +95,7 @@ fun CommuteScreen(
         floatingActionButton = {
             LargeFloatingActionButton(
                 onClick = { viewModel.openAddSheet() },
+                modifier = Modifier.padding(bottom = fabPadding),
                 shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer

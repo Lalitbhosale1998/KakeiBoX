@@ -47,7 +47,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.ui.unit.sp
+import com.personal.kakeibox.ui.settings.ThemeViewModel
+import com.personal.kakeibox.data.preferences.NavBarStyle
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.LocalContext
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressivePeriodSelector
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -60,13 +65,22 @@ import com.personal.kakeibox.util.DateUtils
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalaryScreen(
-    viewModel: SalaryViewModel = hiltViewModel()
+    viewModel: SalaryViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val currentEntry by viewModel.currentEntry.collectAsStateWithLifecycle()
     val totalSavings by viewModel.totalSavings.collectAsStateWithLifecycle()
     
+    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
+    val fabPadding by animateDpAsState(
+        targetValue = if (isFloatingNav) 100.dp else 0.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "fab_padding"
+    )
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         rememberTopAppBarState()
@@ -142,9 +156,10 @@ fun SalaryScreen(
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             floatingActionButton = {
-                // Large, Expressive FAB correctly placed by Scaffold
+                // Large, Expressive FAB pushed up if Nav is floating
                 LargeFloatingActionButton(
                     onClick = { viewModel.openAddDialog() },
+                    modifier = Modifier.padding(bottom = fabPadding),
                     shape = RoundedCornerShape(28.dp),
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,

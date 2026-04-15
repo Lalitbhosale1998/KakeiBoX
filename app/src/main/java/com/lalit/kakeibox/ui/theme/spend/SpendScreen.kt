@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
+import com.personal.kakeibox.ui.settings.ThemeViewModel
+import com.personal.kakeibox.data.preferences.NavBarStyle
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -66,15 +70,24 @@ import androidx.compose.material.icons.outlined.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpendScreen(
-    viewModel: SpendViewModel = hiltViewModel()
+    viewModel: SpendViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val currentMonthEntries by viewModel.currentMonthEntries.collectAsStateWithLifecycle()
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val totalNeed by viewModel.totalNeedThisMonth.collectAsStateWithLifecycle()
     val totalWant by viewModel.totalWantThisMonth.collectAsStateWithLifecycle()
     val totalSpend by viewModel.totalSpendThisMonth.collectAsStateWithLifecycle()
     val salary by viewModel.currentSalary.collectAsStateWithLifecycle()
+
+    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
+    val fabPadding by animateDpAsState(
+        targetValue = if (isFloatingNav) 100.dp else 0.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "fab_padding"
+    )
 
     val snackbarHostState = remember { SnackbarHostState() }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -152,6 +165,7 @@ fun SpendScreen(
         floatingActionButton = {
             LargeFloatingActionButton(
                 onClick = { viewModel.openAddSheet() },
+                modifier = Modifier.padding(bottom = fabPadding),
                 shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
