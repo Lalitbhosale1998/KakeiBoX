@@ -1,5 +1,7 @@
 package com.personal.kakeibox.ui.spend
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -147,6 +149,7 @@ fun SpendScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentWindowInsets = WindowInsets.navigationBars,
         topBar = {
             Box(modifier = Modifier.background(
                 Brush.verticalGradient(
@@ -192,9 +195,11 @@ fun SpendScreen(
                         }
                     },
                     scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -218,11 +223,14 @@ fun SpendScreen(
     ) { innerPadding ->
 
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 120.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp, 
+                end = 16.dp, 
+                top = innerPadding.calculateTopPadding() + 8.dp,
+                bottom = innerPadding.calculateBottomPadding() + 80.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // ── Chunky Hero Card ──────────────────────────
             item {
@@ -309,7 +317,7 @@ fun SpendScreen(
     if (uiState.showAddEditSheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeSheet() },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            sheetState = bottomSheetState,
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)

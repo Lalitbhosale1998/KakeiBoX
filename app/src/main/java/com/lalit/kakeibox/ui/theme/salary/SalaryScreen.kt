@@ -20,9 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -75,6 +77,7 @@ fun SalaryScreen(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentWindowInsets = WindowInsets.navigationBars,
             topBar = {
                 Box(modifier = Modifier.background(
                     Brush.verticalGradient(
@@ -119,9 +122,11 @@ fun SalaryScreen(
                                 }
                             }
                         },
-                        colors = TopAppBarDefaults.largeTopAppBarColors(
+                        colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
-                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            actionIconContentColor = MaterialTheme.colorScheme.onSurface
                         ),
                         scrollBehavior = scrollBehavior
                     )
@@ -148,8 +153,11 @@ fun SalaryScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
-                contentPadding = PaddingValues(16.dp, 24.dp, 16.dp, 100.dp),
+                    .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(
+                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 80.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 // ── Hero Section ──────────────
@@ -291,127 +299,98 @@ fun ExpressiveHeroCard(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = DateUtils.formatMonthYear(currentMonth, currentYear).uppercase(),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
-                )
-                if (entry != null) {
-                    FilledTonalIconButton(
-                        onClick = onEdit,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = contentColor.copy(alpha = 0.2f),
-                            contentColor = contentColor
-                        )
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = DateUtils.formatMonthYear(currentMonth, currentYear).uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        color = contentColor.copy(alpha = 0.7f)
+                    )
+                    if (entry != null) {
+                        IconButton(
+                            onClick = onEdit,
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = Color.White.copy(alpha = 0.2f)
+                            )
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = if (entry != null) CurrencyUtils.formatYen(entry.salaryAmount) else "No entry yet",
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Black
-            )
+                Text(
+                    text = if (entry != null) CurrencyUtils.formatYen(entry.salaryAmount) else "No Data",
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Black,
+                    color = contentColor
+                )
 
-            if (entry != null) {
                 Text(
                     text = "Net Take Home Salary",
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
                     color = contentColor.copy(alpha = 0.8f)
                 )
             }
         }
     }
 }
-}
 
 @Composable
 fun ExpressiveStatsGrid(entry: SalaryEntry) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        StatBox(
-            modifier = Modifier.weight(1f),
-            label = "Savings",
-            value = CurrencyUtils.formatYen(entry.savingsAmount),
+        ExpressiveStatCard(
+            title = "Savings",
+            amount = entry.savingsAmount,
             icon = Icons.Outlined.Savings,
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.weight(1f)
         )
-        StatBox(
-            modifier = Modifier.weight(1f),
-            label = "Sent Home",
-            value = CurrencyUtils.formatYen(entry.remittanceAmount),
-            icon = Icons.Outlined.SendToMobile,
+        ExpressiveStatCard(
+            title = stringResource(R.string.remittance_amount),
+            amount = entry.remittanceAmount,
+            icon = Icons.AutoMirrored.Outlined.ExitToApp,
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
-fun StatBox(
-    modifier: Modifier,
-    label: String,
-    value: String,
+fun ExpressiveStatCard(
+    title: String,
+    amount: Long,
     icon: ImageVector,
     containerColor: Color,
-    contentColor: Color
+    contentColor: Color,
+    modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(24.dp),
         color = containerColor,
         contentColor = contentColor
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = label, style = MaterialTheme.typography.labelMedium)
-            Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-fun ExpressiveEmptyHero(onAdd: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        onClick = onAdd
-    ) {
-        Column(
-            modifier = Modifier.padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                Icons.Outlined.AddCard,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
             Text(
-                text = "Track this month's salary",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Tap to add your income and savings",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = CurrencyUtils.formatYen(amount),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black
             )
         }
     }
@@ -423,39 +402,38 @@ fun ExpressiveSalaryCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    ElevatedCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        onClick = onEdit
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                modifier = Modifier.size(48.dp)
             ) {
-                Text(
-                    text = DateUtils.getShortMonthName(entry.month),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = DateUtils.getShortMonthName(entry.month),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
-
+            
             Spacer(modifier = Modifier.width(16.dp))
-
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = CurrencyUtils.formatYen(entry.salaryAmount),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Saved: ${CurrencyUtils.formatYen(entry.savingsAmount)}",
@@ -463,48 +441,64 @@ fun ExpressiveSalaryCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
 
-            IconButton(onClick = onEdit) {
-                Icon(Icons.Default.ChevronRight, contentDescription = "Details")
+@Composable
+fun ExpressiveEmptyHero(onAdd: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Outlined.Payments,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("No Salary Recorded", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Track your income to see savings potential",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onAdd) {
+                Text("Add First Salary")
             }
         }
     }
 }
 
-// Keep helper components but update their styling to be more "Expressive"
 @Composable
 fun ExpressiveEmptyState() {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(48.dp),
+        modifier = Modifier.fillMaxWidth().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("📉", fontSize = 64.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("No history available", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(
+            "No history yet",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
-@Composable
-fun ExpressiveDeleteDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                Text("Delete")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        },
-        title = { Text("Delete Entry?", fontWeight = FontWeight.Black) },
-        text = { Text("This will permanently remove the record for this month.") },
-        shape = RoundedCornerShape(28.dp)
-    )
-}
-
-// ── Expressive Add/Edit Bottom Sheet ─────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpressiveAddEditSheet(
     uiState: SalaryUiState,
@@ -517,368 +511,97 @@ fun ExpressiveAddEditSheet(
     onSave: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val isEditing = uiState.editingEntry != null
-    val salary = uiState.inputSalary.toLongOrNull() ?: 0L
-    val remittance = uiState.inputRemittance.toLongOrNull() ?: 0L
-    val savings = uiState.inputSavings.toLongOrNull() ?: 0L
-    val remaining = salary - remittance - savings
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(24.dp)
+            .navigationBarsPadding()
+            .imePadding()
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = if (isEditing) "Edit Entry" else "New Entry",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold
-                )
-                Text(
-                    text = if (isEditing) "Update your salary data"
-                    else "Add your monthly salary",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = onDismiss) {
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
-                ) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = null,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-            }
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            MonthDropdown(
-                selectedMonth = uiState.inputMonth,
-                onMonthSelected = onMonthChange,
-                modifier = Modifier.weight(1f)
-            )
-            YearDropdown(
-                selectedYear = uiState.inputYear,
-                onYearSelected = onYearChange,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        ExpressiveInputField(
+        Text(
+            text = if (uiState.editingEntry == null) "Add Salary" else "Edit Salary",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Black
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        OutlinedTextField(
             value = uiState.inputSalary,
             onValueChange = onSalaryChange,
-            label = stringResource(R.string.salary_amount),
-            icon = Icons.Outlined.CurrencyYen,
-            isError = uiState.salaryError != null,
-            errorText = uiState.salaryError,
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-
-        ExpressiveInputField(
-            value = uiState.inputRemittance,
-            onValueChange = onRemittanceChange,
-            label = stringResource(R.string.remittance_amount),
-            icon = Icons.Outlined.SendToMobile,
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-
-        ExpressiveInputField(
-            value = uiState.inputSavings,
-            onValueChange = onSavingsChange,
-            label = stringResource(R.string.savings_amount),
-            icon = Icons.Filled.Savings,
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        )
-
-        AnimatedContent(
-            targetState = remaining,
-            transitionSpec = {
-                slideInVertically { -it } + fadeIn(tween(200)) togetherWith
-                        slideOutVertically { it } + fadeOut(tween(200))
-            },
-            label = "remaining_preview"
-        ) { rem ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        if (rem >= 0) MaterialTheme.colorScheme.secondaryContainer
-                        else MaterialTheme.colorScheme.errorContainer
-                    )
-                    .padding(horizontal = 20.dp, vertical = 14.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.AccountBalanceWallet,
-                            contentDescription = null,
-                            tint = if (rem >= 0)
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            else MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.remaining),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (rem >= 0)
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            else MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    }
-                    Text(
-                        text = CurrencyUtils.formatYen(rem),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (rem >= 0)
-                            MaterialTheme.colorScheme.onSecondaryContainer
-                        else MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
-        }
-
-        ExpressiveInputField(
-            value = uiState.inputNote,
-            onValueChange = onNoteChange,
-            label = "Note (optional)",
-            icon = Icons.Outlined.EditNote
-        )
-
-        val haptic = LocalHapticFeedback.current
-        Surface(
-            onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onSave()
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.primary
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Filled.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (isEditing) "Update Entry"
-                    else stringResource(R.string.save),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
-    }
-}
-
-// ── Expressive Input Field ────────────────────────────────
-
-@Composable
-fun ExpressiveInputField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    icon: ImageVector,
-    isError: Boolean = false,
-    errorText: String? = null,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
-) {
-    Column {
-        Surface(
+            label = { Text("Salary Amount (¥)") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            color = if (isError)
-                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-            else
-                containerColor
-        ) {
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            shape = RoundedCornerShape(16.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = {
-                    Text(
-                        label,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = if (isError) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
+                value = uiState.inputSavings,
+                onValueChange = onSavingsChange,
+                label = { Text("Savings") },
+                modifier = Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                isError = isError,
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    errorContainerColor = Color.Transparent,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    errorTextColor = MaterialTheme.colorScheme.onSurface,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                shape = RoundedCornerShape(24.dp)
+                shape = RoundedCornerShape(16.dp)
+            )
+            OutlinedTextField(
+                value = uiState.inputRemittance,
+                onValueChange = onRemittanceChange,
+                label = { Text("Sent Home") },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                shape = RoundedCornerShape(16.dp)
             )
         }
-        AnimatedVisibility(
-            visible = isError && errorText != null,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Button(
+            onClick = onSave,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(16.dp)
         ) {
-            Text(
-                text = errorText ?: "",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-            )
+            Text("Save Entry", fontWeight = FontWeight.Bold)
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        TextButton(
+            onClick = onDismiss,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Cancel")
         }
     }
 }
 
-// ── Month Dropdown ────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonthDropdown(
-    selectedMonth: Int,
-    onMonthSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
+fun ExpressiveDeleteDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = DateUtils.getShortMonthName(selectedMonth),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.month)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            (1..12).forEach { month ->
-                DropdownMenuItem(
-                    text = { Text(DateUtils.getShortMonthName(month)) },
-                    onClick = { onMonthSelected(month); expanded = false }
-                )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete Entry?", fontWeight = FontWeight.Bold) },
+        text = { Text("This action cannot be undone.") },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Delete")
             }
-        }
-    }
-}
-
-// ── Year Dropdown ─────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun YearDropdown(
-    selectedYear: Int,
-    onYearSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedYear.toString(),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Year") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DateUtils.getYearRange().forEach { year ->
-                DropdownMenuItem(
-                    text = { Text(year.toString()) },
-                    onClick = { onYearSelected(year); expanded = false }
-                )
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
             }
-        }
-    }
+        },
+        shape = RoundedCornerShape(28.dp)
+    )
 }
-
-// ── History Bottom Sheet ──────────────────────────────────
 
 @Composable
 fun HistoryBottomSheet(
@@ -886,12 +609,15 @@ fun HistoryBottomSheet(
     onEdit: (SalaryEntry) -> Unit,
     onDelete: (SalaryEntry) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -899,16 +625,14 @@ fun HistoryBottomSheet(
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.ExtraBold
             )
+            Spacer(modifier = Modifier.weight(1f))
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(50)
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "${entries.size} total",
-                    modifier = Modifier.padding(
-                        horizontal = 12.dp,
-                        vertical = 4.dp
-                    ),
+                    text = "${entries.size} Records",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontWeight = FontWeight.Bold
@@ -916,32 +640,18 @@ fun HistoryBottomSheet(
             }
         }
 
-        if (entries.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No history yet",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 24.dp)
+        ) {
+            items(entries) { entry ->
+                ExpressiveSalaryCard(
+                    entry = entry,
+                    onEdit = { onEdit(entry) },
+                    onDelete = { onDelete(entry) }
                 )
-            }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 40.dp)
-            ) {
-                items(items = entries, key = { it.id }) { entry ->
-                    ExpressiveSalaryCard(
-                        entry = entry,
-                        onEdit = { onEdit(entry) },
-                        onDelete = { onDelete(entry) }
-                    )
-                }
             }
         }
     }
 }
-
