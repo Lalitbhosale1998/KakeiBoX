@@ -1,11 +1,13 @@
 package com.personal.kakeibox.ui.settings
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,8 +18,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -45,9 +49,11 @@ import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Wallet
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -59,6 +65,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -86,6 +93,7 @@ import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import com.personal.kakeibox.ui.settings.ThemeViewModel
+import kotlinx.coroutines.delay
 import java.util.Collections
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -284,25 +292,58 @@ fun SettingsScreen(
 
             // Row 3: Utility Pair
             Row(
-                modifier = Modifier.fillMaxWidth().height(140.dp),
+                modifier = Modifier.fillMaxWidth().height(160.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                var showBackupDetails by remember { mutableStateOf(false) }
+                var isSyncing by remember { mutableStateOf(false) }
+                val syncScale by animateFloatAsState(
+                    targetValue = if (isSyncing) 0.95f else 1f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                )
 
+                LaunchedEffect(isSyncing) {
+                    if (isSyncing) {
+                        delay(2000)
+                        isSyncing = false
+                    }
+                }
+
+                // Data Health Bento Card
                 BentoCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Backups",
-                    description = "Sync your data.",
-                    icon = Icons.Outlined.CloudUpload,
-                    isActive = showBackupDetails,
-                    onClick = { showBackupDetails = !showBackupDetails }
+                    modifier = Modifier.weight(1f).graphicsLayer(scaleX = syncScale, scaleY = syncScale),
+                    title = "Data Health",
+                    description = if (isSyncing) "Syncing..." else "Data is backed up.",
+                    icon = if (isSyncing) Icons.Outlined.Sync else Icons.Outlined.CloudUpload,
+                    isActive = isSyncing,
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        isSyncing = true 
+                    }
                 ) {
-                    if (showBackupDetails) {
+                    Column(
+                        modifier = Modifier.padding(top = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(
-                            "Last: Today, 10:00 AM",
+                            text = if (isSyncing) "Updating Cloud..." else "Last sync: 2h ago",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSyncing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        
+                        if (isSyncing) {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth().height(4.dp).graphicsLayer(clip = true, shape = RoundedCornerShape(2.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Secure", style = MaterialTheme.typography.labelSmall, color = Color(0xFF4CAF50))
+                            }
+                        }
                     }
                 }
                 
