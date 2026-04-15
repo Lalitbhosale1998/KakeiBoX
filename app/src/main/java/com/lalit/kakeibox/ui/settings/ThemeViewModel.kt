@@ -79,4 +79,10 @@ class ThemeViewModel @Inject constructor(
             preferencesRepository.setTabOrder(order)
         }
     }
+
+    fun setPrivacyModeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.setPrivacyModeEnabled(enabled)
+        }
+    }
 }

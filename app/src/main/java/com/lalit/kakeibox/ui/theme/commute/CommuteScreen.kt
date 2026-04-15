@@ -142,7 +142,7 @@ fun CommuteScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                CommuteHeroSection(uiState.totalCostAllTime)
+                CommuteHeroSection(uiState.totalCostAllTime, isPrivacyMode = themeSettings.privacyModeEnabled)
             }
 
             if (uiState.latestEntry == null) {
@@ -187,6 +187,7 @@ fun CommuteScreen(
                         content = {
                             CommuteHistoryItem(
                                 entry = entry,
+                                isPrivacyMode = themeSettings.privacyModeEnabled,
                                 onDelete = { viewModel.openDeleteDialog(entry) }
                             )
                         }
@@ -230,6 +231,7 @@ fun CommuteScreen(
         ) {
             CommuteHistoryBottomSheet(
                 entries = uiState.history,
+                isPrivacyMode = themeSettings.privacyModeEnabled,
                 onDelete = { viewModel.openDeleteDialog(it) }
             )
         }
@@ -237,7 +239,7 @@ fun CommuteScreen(
 }
 
 @Composable
-fun CommuteHeroSection(totalCost: Long) {
+fun CommuteHeroSection(totalCost: Long, isPrivacyMode: Boolean = false) {
     BentoCard(
         modifier = Modifier.fillMaxWidth().height(200.dp),
         title = "TOTAL COMMUTE COST",
@@ -255,7 +257,7 @@ fun CommuteHeroSection(totalCost: Long) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = CurrencyUtils.formatYen(totalCost),
+                text = CurrencyUtils.formatYen(totalCost, isPrivacyMode),
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Black
             )
@@ -345,6 +347,7 @@ fun CommuteDeleteDialog(
 @Composable
 fun CommuteHistoryItem(
     entry: CommuteEntry,
+    isPrivacyMode: Boolean = false,
     onDelete: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -383,7 +386,7 @@ fun CommuteHistoryItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = CurrencyUtils.formatYen(entry.totalCost),
+                    text = CurrencyUtils.formatYen(entry.totalCost, isPrivacyMode),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
                     maxLines = 1,
@@ -399,7 +402,7 @@ fun CommuteHistoryItem(
                 if (entry.oneWayFare > 0) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Fare: ${CurrencyUtils.formatYen(entry.oneWayFare)} (One-way)",
+                        text = "Fare: ${CurrencyUtils.formatYen(entry.oneWayFare, isPrivacyMode)} (One-way)",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         maxLines = 1,
@@ -428,6 +431,7 @@ fun CommuteHistoryItem(
 @Composable
 fun CommuteHistoryBottomSheet(
     entries: List<CommuteEntry>,
+    isPrivacyMode: Boolean = false,
     onDelete: (CommuteEntry) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -489,6 +493,7 @@ fun CommuteHistoryBottomSheet(
                     content = {
                         CommuteHistoryItem(
                             entry = entry,
+                            isPrivacyMode = isPrivacyMode,
                             onDelete = { onDelete(entry) }
                         )
                     }

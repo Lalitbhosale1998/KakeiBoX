@@ -20,6 +20,7 @@ private object Keys {
     val APP_LANGUAGE = stringPreferencesKey("app_language")
     val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
     val TAB_ORDER = stringPreferencesKey("tab_order")
+    val PRIVACY_MODE = booleanPreferencesKey("privacy_mode")
 }
 
 @Singleton
@@ -37,7 +38,8 @@ class UserPreferencesRepository @Inject constructor(
             dateFormat = prefs[Keys.DATE_FORMAT] ?: "MMM dd, yyyy",
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
-            tabOrder = (prefs[Keys.TAB_ORDER] ?: "salary,spend,commute,settings").split(",")
+            tabOrder = (prefs[Keys.TAB_ORDER] ?: "salary,spend,commute,settings").split(","),
+            privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false
         )
     }
 
@@ -75,5 +77,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setTabOrder(order: List<String>) {
         dataStore.edit { it[Keys.TAB_ORDER] = order.joinToString(",") }
+    }
+
+    suspend fun setPrivacyModeEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.PRIVACY_MODE] = enabled }
     }
 }

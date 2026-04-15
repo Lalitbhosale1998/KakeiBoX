@@ -15,12 +15,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -292,6 +295,43 @@ fun SettingsScreen(
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         else 
                             MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Row 4: Privacy Mode (New)
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Privacy Mode",
+                description = "Mask currency balances on main screens to keep your finances private in public.",
+                icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Outlined.Visibility,
+                isActive = themeSettings.privacyModeEnabled,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled)
+                }
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (themeSettings.privacyModeEnabled) "Balances Masked" else "Balances Visible",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (themeSettings.privacyModeEnabled) 
+                            MaterialTheme.colorScheme.onPrimaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Switch(
+                        checked = themeSettings.privacyModeEnabled,
+                        onCheckedChange = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.setPrivacyModeEnabled(it) 
+                        },
+                        modifier = Modifier.scale(0.8f)
                     )
                 }
             }

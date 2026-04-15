@@ -227,6 +227,7 @@ fun SpendScreen(
                         salary = salary,
                         currentMonth = uiState.currentMonth,
                         currentYear = uiState.currentYear,
+                        isPrivacyMode = themeSettings.privacyModeEnabled,
                         onPeriodClick = { /* Scroll to top or show picker if needed */ }
                     )
                 }
@@ -303,6 +304,7 @@ fun SpendScreen(
                     ) {
                         ExpressiveListItem(
                             entry = entry,
+                            isPrivacyMode = themeSettings.privacyModeEnabled,
                             onEdit = { viewModel.openEditSheet(entry) },
                             onDelete = { viewModel.openDeleteDialog(entry) }
                         )
@@ -346,7 +348,12 @@ fun SpendScreen(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
-            SpendHistoryBottomSheet(allEntries, viewModel::openEditSheet, viewModel::openDeleteDialog)
+            SpendHistoryBottomSheet(
+                entries = allEntries,
+                isPrivacyMode = themeSettings.privacyModeEnabled,
+                onEdit = viewModel::openEditSheet,
+                onDelete = viewModel::openDeleteDialog
+            )
         }
     }
 }
@@ -361,6 +368,7 @@ fun BentoHeroSection(
     salary: SalaryEntry?,
     currentMonth: Int,
     currentYear: Int,
+    isPrivacyMode: Boolean = false,
     onPeriodClick: () -> Unit
 ) {
     val salaryAmount = salary?.salaryAmount ?: 0L
@@ -391,7 +399,7 @@ fun BentoHeroSection(
                 Spacer(modifier = Modifier.height(4.dp))
                 AnimatedContent(targetState = totalSpend, label = "total_spent_balance") { valTotal ->
                     Text(
-                        text = CurrencyUtils.formatYen(valTotal),
+                        text = CurrencyUtils.formatYen(valTotal, isPrivacyMode),
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Black,
                         fontSize = 28.sp
@@ -408,6 +416,7 @@ fun BentoHeroSection(
                 icon = Icons.Outlined.ShoppingBag,
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                isPrivacyMode = isPrivacyMode,
                 modifier = Modifier.weight(1f)
             )
             BentoStatSmall(
@@ -416,6 +425,7 @@ fun BentoHeroSection(
                 icon = Icons.Outlined.Star,
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                isPrivacyMode = isPrivacyMode,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -428,7 +438,8 @@ fun BentoStatSmall(
     amount: Long, 
     icon: ImageVector,
     containerColor: Color, 
-    contentColor: Color, 
+    contentColor: Color,
+    isPrivacyMode: Boolean = false,
     modifier: Modifier
 ) {
     BentoCard(
@@ -440,7 +451,7 @@ fun BentoStatSmall(
         idleContentColor = contentColor
     ) {
         Text(
-            text = CurrencyUtils.formatYen(amount),
+            text = CurrencyUtils.formatYen(amount, isPrivacyMode),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Black
         )
@@ -602,7 +613,12 @@ fun ExpressiveCategoryTabs(
 }
 
 @Composable
-fun ExpressiveListItem(entry: SpendEntry, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun ExpressiveListItem(
+    entry: SpendEntry,
+    isPrivacyMode: Boolean = false,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     val haptic = LocalHapticFeedback.current
     val isNeed = entry.category == SpendCategory.NEED
     Surface(
@@ -633,7 +649,7 @@ fun ExpressiveListItem(entry: SpendEntry, onEdit: () -> Unit, onDelete: () -> Un
                 Text(text = entry.description, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(text = entry.note.ifBlank { "No note" }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Text(text = CurrencyUtils.formatYen(entry.amount), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            Text(text = CurrencyUtils.formatYen(entry.amount, isPrivacyMode), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -791,6 +807,7 @@ fun SpendAddEditSheet(
 @Composable
 fun SpendHistoryBottomSheet(
     entries: List<SpendEntry>,
+    isPrivacyMode: Boolean = false,
     onEdit: (SpendEntry) -> Unit,
     onDelete: (SpendEntry) -> Unit
 ) {
@@ -832,6 +849,7 @@ fun SpendHistoryBottomSheet(
             items(entries) { entry ->
                 ExpressiveListItem(
                     entry = entry,
+                    isPrivacyMode = isPrivacyMode,
                     onEdit = { onEdit(entry) },
                     onDelete = { onDelete(entry) }
                 )

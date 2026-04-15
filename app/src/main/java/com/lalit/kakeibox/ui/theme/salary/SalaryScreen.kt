@@ -208,6 +208,7 @@ fun SalaryScreen(
                         currentEntry = currentEntry,
                         currentMonth = uiState.currentMonth,
                         currentYear = uiState.currentYear,
+                        isPrivacyMode = themeSettings.privacyModeEnabled,
                         onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } }
                     )
                 }
@@ -216,7 +217,8 @@ fun SalaryScreen(
                 item {
                     ExpressiveStatsGrid(
                         totalSavings = totalSavings ?: 0L,
-                        totalRemittance = totalRemittance ?: 0L
+                        totalRemittance = totalRemittance ?: 0L,
+                        isPrivacyMode = themeSettings.privacyModeEnabled
                     )
                 }
 
@@ -270,6 +272,7 @@ fun SalaryScreen(
                             content = {
                                 ExpressiveSalaryCard(
                                     entry = entry,
+                                    isPrivacyMode = themeSettings.privacyModeEnabled,
                                     onEdit = { viewModel.openEditDialog(entry) },
                                     onDelete = { viewModel.openDeleteDialog(entry) }
                                 )
@@ -321,6 +324,7 @@ fun SalaryScreen(
         ) {
             HistoryBottomSheet(
                 entries = allEntries,
+                isPrivacyMode = themeSettings.privacyModeEnabled,
                 onEdit = { entry -> viewModel.toggleHistorySheet(); viewModel.openEditDialog(entry) },
                 onDelete = { entry -> viewModel.toggleHistorySheet(); viewModel.openDeleteDialog(entry) }
             )
@@ -335,6 +339,7 @@ fun ExpressiveHeroCard(
     currentEntry: SalaryEntry?,
     currentMonth: Int,
     currentYear: Int,
+    isPrivacyMode: Boolean = false,
     onEdit: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -365,7 +370,7 @@ fun ExpressiveHeroCard(
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 AnimatedContent(
-                    targetState = CurrencyUtils.formatYen(totalSalary),
+                    targetState = CurrencyUtils.formatYen(totalSalary, isPrivacyMode),
                     transitionSpec = {
                         (fadeIn(animationSpec = tween(220, delayMillis = 90)) + 
                          slideInVertically(initialOffsetY = { it / 2 }))
@@ -465,7 +470,7 @@ fun ExpressiveHeroCard(
 }
 
 @Composable
-fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long) {
+fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long, isPrivacyMode: Boolean = false) {
     Row(
         modifier = Modifier.fillMaxWidth().height(160.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -478,7 +483,7 @@ fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long) {
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = CurrencyUtils.formatYen(totalSavings),
+                text = CurrencyUtils.formatYen(totalSavings, isPrivacyMode),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface
@@ -492,7 +497,7 @@ fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long) {
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = CurrencyUtils.formatYen(totalRemittance),
+                text = CurrencyUtils.formatYen(totalRemittance, isPrivacyMode),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface
@@ -504,6 +509,7 @@ fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long) {
 @Composable
 fun ExpressiveSalaryCard(
     entry: SalaryEntry,
+    isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -548,7 +554,7 @@ fun ExpressiveSalaryCard(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = CurrencyUtils.formatYen(entry.salaryAmount),
+                    text = CurrencyUtils.formatYen(entry.salaryAmount, isPrivacyMode),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
                     maxLines = 1,
@@ -563,7 +569,7 @@ fun ExpressiveSalaryCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Saved: ${CurrencyUtils.formatYen(entry.savingsAmount)}",
+                        text = "Saved: ${CurrencyUtils.formatYen(entry.savingsAmount, isPrivacyMode)}",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
@@ -884,6 +890,7 @@ fun SalarySwipeDeleteBackground() {
 @Composable
 fun HistoryBottomSheet(
     entries: List<SalaryEntry>,
+    isPrivacyMode: Boolean = false,
     onEdit: (SalaryEntry) -> Unit,
     onDelete: (SalaryEntry) -> Unit
 ) {
@@ -948,6 +955,7 @@ fun HistoryBottomSheet(
                     content = {
                         ExpressiveSalaryCard(
                             entry = entry,
+                            isPrivacyMode = isPrivacyMode,
                             onEdit = { onEdit(entry) },
                             onDelete = { onDelete(entry) }
                         )

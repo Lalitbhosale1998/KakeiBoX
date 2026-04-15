@@ -13,5 +13,6 @@ data class ThemeSettings(
     val dateFormat: String = "MMM dd, yyyy",
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
     val biometricEnabled: Boolean = false,
-    val tabOrder: List<String> = listOf("salary", "spend", "commute", "settings")
+    val tabOrder: List<String> = listOf("salary", "spend", "commute", "settings"),
+    val privacyModeEnabled: Boolean = false
 )
