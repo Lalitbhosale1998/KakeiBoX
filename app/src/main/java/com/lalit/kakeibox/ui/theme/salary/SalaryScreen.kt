@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import java.util.Locale
+import androidx.compose.ui.focus.onFocusChanged
 import kotlinx.coroutines.withTimeoutOrNull
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
@@ -249,35 +251,31 @@ fun SalaryScreen(
                         )
                     }
                 } else {
-                    items(
-                        items = allEntries.take(3),
-                        key = { it.id }
-                    ) { entry ->
-                        val swipeState = rememberSwipeToDismissBoxState()
-                        
-                        LaunchedEffect(swipeState.currentValue) {
-                            if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.openDeleteDialog(entry)
-                                swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                    item {
+                        val historyEntries = allEntries.take(4)
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            historyEntries.chunked(2).forEach { rowEntries ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    rowEntries.forEach { entry ->
+                                        ExpressiveHistoryBentoBox(
+                                            entry = entry,
+                                            isPrivacyMode = themeSettings.privacyModeEnabled,
+                                            onEdit = { viewModel.openEditDialog(entry) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    if (rowEntries.size == 1) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
                             }
                         }
-
-                        SwipeToDismissBox(
-                            state = swipeState,
-                            enableDismissFromStartToEnd = false,
-                            backgroundContent = {
-                                SalarySwipeDeleteBackground()
-                            },
-                            content = {
-                                ExpressiveSalaryCard(
-                                    entry = entry,
-                                    isPrivacyMode = themeSettings.privacyModeEnabled,
-                                    onEdit = { viewModel.openEditDialog(entry) },
-                                    onDelete = { viewModel.openDeleteDialog(entry) }
-                                )
-                            }
-                        )
                     }
                 }
             }
@@ -507,6 +505,83 @@ fun ExpressiveStatsGrid(totalSavings: Long, totalRemittance: Long, isPrivacyMode
 }
 
 @Composable
+fun ExpressiveHistoryBentoBox(
+    entry: SalaryEntry,
+    isPrivacyMode: Boolean,
+    onEdit: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptic = LocalHapticFeedback.current
+    Surface(
+        modifier = modifier.aspectRatio(1.1f),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onEdit()
+        }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            ) {
+                Text(
+                    text = DateUtils.getShortMonthName(entry.month).uppercase(),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = CurrencyUtils.formatYen(entry.salaryAmount, isPrivacyMode),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            
+            val savingsPercent = if (entry.salaryAmount > 0) 
+                ((entry.savingsAmount.toFloat() / entry.salaryAmount.toFloat()) * 100).toInt()
+            else 0
+            
+            Text(
+                text = "Saved $savingsPercent%",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // Tiny progress bar at the bottom of the card
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(savingsPercent.toFloat() / 100f)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun ExpressiveSalaryCard(
     entry: SalaryEntry,
     isPrivacyMode: Boolean = false,
@@ -666,6 +741,12 @@ fun ExpressiveAddEditSheet(
     onDismiss: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
+    
+    // Focus states for animations
+    var isSalaryFocused by remember { mutableStateOf(false) }
+    var isSavingsFocused by remember { mutableStateOf(false) }
+    var isRemittanceFocused by remember { mutableStateOf(false) }
+    var isNoteFocused by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -722,10 +803,16 @@ fun ExpressiveAddEditSheet(
         Spacer(modifier = Modifier.height(20.dp))
         
         // Bento Island for Amount
+        val salaryElevation by animateDpAsState(if (isSalaryFocused) 8.dp else 0.dp)
+        val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.02f else 1f)
+        
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth()
+            tonalElevation = salaryElevation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(scaleX = salaryScale, scaleY = salaryScale)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -739,11 +826,14 @@ fun ExpressiveAddEditSheet(
                     value = uiState.inputSalary,
                     onValueChange = onSalaryChange,
                     label = { Text("Net Salary (¥)") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { isSalaryFocused = it.isFocused },
+                    leadingIcon = { Icon(Icons.Outlined.Payments, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -754,13 +844,67 @@ fun ExpressiveAddEditSheet(
             }
         }
         
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Visual Math feedback (The "Remaining" Pill)
+        AnimatedVisibility(
+            visible = uiState.inputSalary.isNotBlank(),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            val salary = uiState.inputSalary.toDoubleOrNull() ?: 0.0
+            val savings = uiState.inputSavings.toDoubleOrNull() ?: 0.0
+            val remittance = uiState.inputRemittance.toDoubleOrNull() ?: 0.0
+            val remaining = salary - savings - remittance
+
+            Surface(
+                color = if (remaining >= 0) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f) 
+                        else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                shape = CircleShape,
+                border = BorderStroke(1.dp, if (remaining >= 0) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f) else MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val remainingText = try {
+                        String.format(Locale.getDefault(), "%,.0f", remaining)
+                    } catch (e: Exception) {
+                        "0"
+                    }
+                    
+                    Icon(
+                        imageVector = if (remaining >= 0) Icons.Outlined.AccountBalanceWallet else Icons.Outlined.Info,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = if (remaining >= 0) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Net Remaining: ¥$remainingText",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (remaining >= 0) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
         
         // Bento Island for Goals
+        val allocationsFocused = isSavingsFocused || isRemittanceFocused
+        val allocationsElevation by animateDpAsState(if (allocationsFocused) 8.dp else 0.dp)
+        val allocationsScale by animateFloatAsState(if (allocationsFocused) 1.02f else 1f)
+
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth()
+            tonalElevation = allocationsElevation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(scaleX = allocationsScale, scaleY = allocationsScale)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -775,7 +919,10 @@ fun ExpressiveAddEditSheet(
                         value = uiState.inputSavings,
                         onValueChange = onSavingsChange,
                         label = { Text("Savings") },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { isSavingsFocused = it.isFocused },
+                        leadingIcon = { Icon(Icons.Outlined.Savings, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true,
@@ -789,7 +936,10 @@ fun ExpressiveAddEditSheet(
                         value = uiState.inputRemittance,
                         onValueChange = onRemittanceChange,
                         label = { Text("Remittance") },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { isRemittanceFocused = it.isFocused },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ExitToApp, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true,
@@ -805,40 +955,84 @@ fun ExpressiveAddEditSheet(
         
         Spacer(modifier = Modifier.height(20.dp))
 
-        OutlinedTextField(
-            value = uiState.inputNote,
-            onValueChange = onNoteChange,
-            label = { Text("Notes (Optional)") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            placeholder = { Text("Bonus, overtime, etc.") },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedBorderColor = Color.Transparent
-            )
-        )
+        val noteElevation by animateDpAsState(if (isNoteFocused) 8.dp else 0.dp)
+        val noteScale by animateFloatAsState(if (isNoteFocused) 1.02f else 1f)
+
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(28.dp),
+            tonalElevation = noteElevation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(scaleX = noteScale, scaleY = noteScale)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Additional Info",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                )
+                OutlinedTextField(
+                    value = uiState.inputNote,
+                    onValueChange = onNoteChange,
+                    label = { Text("Notes (Optional)") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { isNoteFocused = it.isFocused },
+                    leadingIcon = { Icon(Icons.Outlined.NoteAlt, contentDescription = null) },
+                    shape = RoundedCornerShape(16.dp),
+                    placeholder = { Text("Bonus, overtime, etc.") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+        }
         
         Spacer(modifier = Modifier.height(32.dp))
         
+        val isInputValid = uiState.inputSalary.isNotBlank() && uiState.inputSalary.toDoubleOrNull() != null
+        
         Button(
             onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onSave()
+                if (isInputValid) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSave()
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
+            enabled = isInputValid,
             shape = RoundedCornerShape(28.dp),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = if (isInputValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (isInputValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
             )
         ) {
-            Icon(Icons.Default.Check, contentDescription = null)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text("Confirm Entry", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            AnimatedContent(
+                targetState = isInputValid,
+                transitionSpec = {
+                    (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut() + slideOutVertically { -it / 2 })
+                },
+                label = "save_button_content"
+            ) { valid ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(if (valid) Icons.Default.Check else Icons.Default.Lock, contentDescription = null)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        if (valid) "Confirm Entry" else "Enter Salary to Save",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
         }
     }
 }

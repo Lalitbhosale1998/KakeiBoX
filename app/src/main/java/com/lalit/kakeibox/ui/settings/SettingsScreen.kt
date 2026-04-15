@@ -549,7 +549,34 @@ fun SettingsScreen(
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled)
                 }
-            )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (themeSettings.privacyModeEnabled) "Active" else "Inactive",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (themeSettings.privacyModeEnabled) 
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Switch(
+                        checked = themeSettings.privacyModeEnabled,
+                        onCheckedChange = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.setPrivacyModeEnabled(it) 
+                        },
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = 0.7f
+                            scaleY = 0.7f
+                        }
+                    )
+                }
+            }
 
             // Export Data Bento Card
             BentoCard(
