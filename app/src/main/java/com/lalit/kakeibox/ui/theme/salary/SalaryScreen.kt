@@ -152,13 +152,14 @@ fun SalaryScreen(
                             ) {
                                 Surface(
                                     shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    modifier = Modifier.size(48.dp)
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    modifier = Modifier.size(40.dp)
                                 ) {
                                     Icon(
                                         Icons.Outlined.History,
                                         contentDescription = "History",
-                                        modifier = Modifier.padding(12.dp)
+                                        modifier = Modifier.padding(8.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }

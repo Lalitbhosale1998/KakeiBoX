@@ -112,7 +112,18 @@ fun CommuteScreen(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.toggleHistory() 
                     }) {
-                        Icon(Icons.Outlined.History, contentDescription = "History")
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.History, 
+                                contentDescription = "History", 
+                                modifier = Modifier.padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
