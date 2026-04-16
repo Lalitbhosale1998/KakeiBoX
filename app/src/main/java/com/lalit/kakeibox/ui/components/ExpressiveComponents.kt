@@ -355,6 +355,7 @@ fun ExpressiveTab(
     selectedColor: Color,
     modifier: Modifier = Modifier,
     selectedTextColor: Color = Color.Unspecified,
+    icon: ImageVector? = null,
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -384,7 +385,18 @@ fun ExpressiveTab(
         color = bgColor,
         contentColor = txtColor
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (icon != null && isSelected) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                )
+            }
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,

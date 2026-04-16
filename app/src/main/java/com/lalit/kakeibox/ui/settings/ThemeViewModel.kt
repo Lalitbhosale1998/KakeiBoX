@@ -127,6 +127,12 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun setTopBarAlpha(alpha: Float) {
+        viewModelScope.launch {
+            preferencesRepository.setTopBarAlpha(alpha)
+        }
+    }
+
     fun exportToCsv(onResult: (String?) -> Unit) {
         viewModelScope.launch {
             try {

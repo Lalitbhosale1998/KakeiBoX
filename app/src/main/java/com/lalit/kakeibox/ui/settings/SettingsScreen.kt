@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Payments
@@ -113,7 +114,7 @@ fun SettingsScreen(
             Box(modifier = Modifier.background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = themeSettings.topBarAlpha.coerceIn(0f, 1f)),
                         MaterialTheme.colorScheme.surfaceContainerLow
                     )
                 )
@@ -245,6 +246,42 @@ fun SettingsScreen(
                         else 
                             MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+
+            // Top Bar Intensity (Expressive Selection)
+            BentoCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Top Bar Intensity",
+                description = "Adjust the visibility of the expressive gradient background.",
+                icon = Icons.Outlined.Palette
+            ) {
+                val alphaOptions = listOf(0.3f, 0.6f, 1.0f, 2.0f)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    alphaOptions.forEach { alpha ->
+                        val isSelected = themeSettings.topBarAlpha == alpha
+                        val segmentWeight by animateFloatAsState(
+                            targetValue = if (isSelected) 1.5f else 1f,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                            label = "alpha_weight_$alpha"
+                        )
+
+                        ExpressiveTab(
+                            text = if (alpha >= 1.0f) "${alpha.toInt()}x" else alpha.toString(),
+                            isSelected = isSelected,
+                            selectedColor = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.weight(segmentWeight),
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            icon = if (isSelected) Icons.Outlined.Check else null,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setTopBarAlpha(alpha)
+                            }
+                        )
+                    }
                 }
             }
 

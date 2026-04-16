@@ -120,7 +120,7 @@ fun SalaryScreen(
                 Box(modifier = Modifier.background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = themeSettings.topBarAlpha.coerceIn(0f, 1f)),
                             MaterialTheme.colorScheme.surfaceContainerLow
                         )
                     )

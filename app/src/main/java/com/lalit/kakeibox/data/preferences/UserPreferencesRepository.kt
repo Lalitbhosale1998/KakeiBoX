@@ -21,6 +21,7 @@ private object Keys {
     val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
     val TAB_ORDER = stringPreferencesKey("tab_order")
     val PRIVACY_MODE = booleanPreferencesKey("privacy_mode")
+    val TOP_BAR_ALPHA = androidx.datastore.preferences.core.floatPreferencesKey("top_bar_alpha")
 }
 
 @Singleton
@@ -39,7 +40,8 @@ class UserPreferencesRepository @Inject constructor(
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
             tabOrder = (prefs[Keys.TAB_ORDER] ?: "salary,spend,commute,settings").split(","),
-            privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false
+            privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false,
+            topBarAlpha = prefs[Keys.TOP_BAR_ALPHA] ?: 0.3f
         )
     }
 
@@ -81,5 +83,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setPrivacyModeEnabled(enabled: Boolean) {
         dataStore.edit { it[Keys.PRIVACY_MODE] = enabled }
+    }
+
+    suspend fun setTopBarAlpha(alpha: Float) {
+        dataStore.edit { it[Keys.TOP_BAR_ALPHA] = alpha }
     }
 }
