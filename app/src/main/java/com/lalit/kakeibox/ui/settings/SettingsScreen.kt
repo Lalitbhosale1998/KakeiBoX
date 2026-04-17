@@ -187,8 +187,8 @@ fun SettingsScreen(
                                 )
                             },
                             colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                activeContainerColor = MaterialTheme.colorScheme.primary,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         )
                     }
@@ -207,6 +207,8 @@ fun SettingsScreen(
                     description = "Match app colors to your wallpaper.",
                     icon = Icons.Outlined.Palette,
                     isActive = themeSettings.useDynamicColor,
+                    activeContainerColor = MaterialTheme.colorScheme.primary,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.setUseDynamicColor(!themeSettings.useDynamicColor)
@@ -232,6 +234,8 @@ fun SettingsScreen(
                     description = "Daily alerts to log spends.",
                     icon = if (themeSettings.remindersEnabled) Icons.Outlined.NotificationsActive else Icons.Outlined.NotificationsNone,
                     isActive = themeSettings.remindersEnabled,
+                    activeContainerColor = MaterialTheme.colorScheme.primary,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.setRemindersEnabled(!themeSettings.remindersEnabled)
@@ -273,9 +277,9 @@ fun SettingsScreen(
                         ExpressiveTab(
                             text = option.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                             isSelected = isSelected,
-                            selectedColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedColor = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(weight),
-                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
                             onClick = { viewModel.setTopAppBarBackground(option) }
                         )
                     }
@@ -308,17 +312,17 @@ fun SettingsScreen(
                     ExpressiveTab(
                         text = "Full",
                         isSelected = currentNavStyle == NavBarStyle.FULL_WIDTH,
-                        selectedColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedColor = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(fullWidthWeight),
-                        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
                         onClick = { viewModel.setNavBarStyle(NavBarStyle.FULL_WIDTH) }
                     )
                     ExpressiveTab(
                         text = "Floating",
                         isSelected = currentNavStyle == NavBarStyle.FLOATING,
-                        selectedColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedColor = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.weight(floatingWeight),
-                        selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        selectedTextColor = MaterialTheme.colorScheme.onSecondary,
                         onClick = { viewModel.setNavBarStyle(NavBarStyle.FLOATING) }
                     )
                 }
@@ -349,6 +353,8 @@ fun SettingsScreen(
                     description = if (isSyncing) "Syncing..." else "Data is backed up.",
                     icon = if (isSyncing) Icons.Outlined.Sync else Icons.Outlined.CloudUpload,
                     isActive = isSyncing,
+                    activeContainerColor = MaterialTheme.colorScheme.primary,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         isSyncing = true 
@@ -388,6 +394,8 @@ fun SettingsScreen(
                     description = "Biometric lock.",
                     icon = if (themeSettings.biometricEnabled) Icons.Filled.Fingerprint else Icons.Outlined.Fingerprint,
                     isActive = themeSettings.biometricEnabled,
+                    activeContainerColor = MaterialTheme.colorScheme.primary,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.setBiometricEnabled(!themeSettings.biometricEnabled)
@@ -486,9 +494,9 @@ fun SettingsScreen(
                         ExpressiveTab(
                             text = symbol,
                             isSelected = isSelected,
-                            selectedColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedColor = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(segmentWeight),
-                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
                             onClick = { 
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 viewModel.setCurrencySymbol(symbol) 
@@ -620,6 +628,8 @@ fun SettingsScreen(
                 description = "Mask sensitive financial amounts across all screens with '••••'.",
                 icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                 isActive = themeSettings.privacyModeEnabled,
+                activeContainerColor = MaterialTheme.colorScheme.primary,
+                activeContentColor = MaterialTheme.colorScheme.onPrimary,
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled)
