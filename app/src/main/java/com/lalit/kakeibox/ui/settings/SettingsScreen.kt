@@ -91,6 +91,7 @@ import com.personal.kakeibox.R
 import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
+import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import com.personal.kakeibox.ui.settings.ThemeViewModel
@@ -106,34 +107,34 @@ fun SettingsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val haptic = LocalHapticFeedback.current
 
+    val topAppBarContainerColor by animateColorAsState(
+        targetValue = when (themeSettings.topAppBarBackground) {
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
+            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.SURFACE_CONTAINER -> MaterialTheme.colorScheme.surfaceContainer
+        },
+        label = "top_app_bar_container_color"
+    )
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = topAppBarContainerColor,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            Box(modifier = Modifier.background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = themeSettings.topBarAlpha.coerceIn(0f, 1f)),
-                        MaterialTheme.colorScheme.surfaceContainerLow
+            LargeTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black
                     )
-                )
-            )) {
-                LargeTopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.settings_title),
-                            style = MaterialTheme.typography.displayMedium,
-                            fontWeight = FontWeight.Black
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                    scrollBehavior = scrollBehavior
-                )
-            }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = topAppBarContainerColor,
+                    scrolledContainerColor = topAppBarContainerColor,
+                ),
+                scrollBehavior = scrollBehavior
+            )
         }
     ) { innerPadding ->
         Column(
@@ -249,37 +250,34 @@ fun SettingsScreen(
                 }
             }
 
-            // Top Bar Intensity (Expressive Selection)
+            // Row 2: Nav Style (Wide Bento)
             BentoCard(
                 modifier = Modifier.fillMaxWidth(),
-                title = "Top Bar Intensity",
-                description = "Adjust the visibility of the expressive gradient background.",
+                title = "Top App Bar Background",
+                description = "Choose the background color for the top navigation bar.",
                 icon = Icons.Outlined.Palette
             ) {
-                val alphaOptions = listOf(0.3f, 0.6f, 1.0f, 2.0f)
+                val currentBackground = themeSettings.topAppBarBackground
+                val options = TopAppBarBackground.entries
+                
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    alphaOptions.forEach { alpha ->
-                        val isSelected = themeSettings.topBarAlpha == alpha
-                        val segmentWeight by animateFloatAsState(
-                            targetValue = if (isSelected) 1.5f else 1f,
-                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                            label = "alpha_weight_$alpha"
+                    options.forEach { option ->
+                        val isSelected = currentBackground == option
+                        val weight by animateFloatAsState(
+                            targetValue = if (isSelected) 1.2f else 1f,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
                         )
 
                         ExpressiveTab(
-                            text = if (alpha >= 1.0f) "${alpha.toInt()}x" else alpha.toString(),
+                            text = option.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                             isSelected = isSelected,
                             selectedColor = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.weight(segmentWeight),
+                            modifier = Modifier.weight(weight),
                             selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            icon = if (isSelected) Icons.Outlined.Check else null,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setTopBarAlpha(alpha)
-                            }
+                            onClick = { viewModel.setTopAppBarBackground(option) }
                         )
                     }
                 }

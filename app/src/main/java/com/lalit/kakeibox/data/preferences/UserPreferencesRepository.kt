@@ -21,7 +21,7 @@ private object Keys {
     val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
     val TAB_ORDER = stringPreferencesKey("tab_order")
     val PRIVACY_MODE = booleanPreferencesKey("privacy_mode")
-    val TOP_BAR_ALPHA = androidx.datastore.preferences.core.floatPreferencesKey("top_bar_alpha")
+    val TOP_APP_BAR_BACKGROUND = stringPreferencesKey("top_app_bar_background")
 }
 
 @Singleton
@@ -41,7 +41,9 @@ class UserPreferencesRepository @Inject constructor(
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
             tabOrder = (prefs[Keys.TAB_ORDER] ?: "salary,spend,commute,settings").split(","),
             privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false,
-            topBarAlpha = prefs[Keys.TOP_BAR_ALPHA] ?: 0.3f
+            topAppBarBackground = TopAppBarBackground.valueOf(
+                prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.SURFACE.name
+            )
         )
     }
 
@@ -85,7 +87,8 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { it[Keys.PRIVACY_MODE] = enabled }
     }
 
-    suspend fun setTopBarAlpha(alpha: Float) {
-        dataStore.edit { it[Keys.TOP_BAR_ALPHA] = alpha }
+    suspend fun setTopAppBarBackground(background: TopAppBarBackground) {
+        dataStore.edit { it[Keys.TOP_APP_BAR_BACKGROUND] = background.name }
     }
+
 }

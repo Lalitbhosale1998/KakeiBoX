@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
+import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
 import com.personal.kakeibox.data.repository.CommuteRepository
@@ -127,9 +128,9 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
-    fun setTopBarAlpha(alpha: Float) {
+    fun setTopAppBarBackground(background: TopAppBarBackground) {
         viewModelScope.launch {
-            preferencesRepository.setTopBarAlpha(alpha)
+            preferencesRepository.setTopAppBarBackground(background)
         }
     }
 

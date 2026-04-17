@@ -15,5 +15,5 @@ data class ThemeSettings(
     val biometricEnabled: Boolean = false,
     val tabOrder: List<String> = listOf("salary", "spend", "commute", "settings"),
     val privacyModeEnabled: Boolean = false,
-    val topBarAlpha: Float = 0.3f
+    val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.SURFACE
 )

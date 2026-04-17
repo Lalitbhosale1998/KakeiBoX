@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.activity.ComponentActivity
@@ -114,6 +115,15 @@ fun SpendScreen(
     val historyBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+    val topAppBarContainerColor by animateColorAsState(
+        targetValue = when (themeSettings.topAppBarBackground) {
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
+            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.SURFACE_CONTAINER -> MaterialTheme.colorScheme.surfaceContainer
+        },
+        label = "top_app_bar_container_color"
+    )
+
     val filteredEntries = remember(uiState.selectedCategory, currentMonthEntries) {
         when (uiState.selectedCategory) {
             SpendCategory.NEED -> currentMonthEntries.filter { it.category == SpendCategory.NEED }
@@ -135,62 +145,53 @@ fun SpendScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = topAppBarContainerColor,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            Box(modifier = Modifier.background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = themeSettings.topBarAlpha.coerceIn(0f, 1f)),
-                        MaterialTheme.colorScheme.surfaceContainerLow
-                    )
-                )
-            )) {
-                LargeTopAppBar(
-                    title = {
-                        Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Text(
-                                text = "Monthly",
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Spending",
-                                style = MaterialTheme.typography.displayMedium,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary
+            LargeTopAppBar(
+                title = {
+                    Column(modifier = Modifier.padding(start = 8.dp)) {
+                        Text(
+                            text = "Monthly",
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Spending",
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.toggleHistorySheet() 
+                    }) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.History, 
+                                contentDescription = "History", 
+                                modifier = Modifier.padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                    },
-                    actions = {
-                        IconButton(onClick = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.toggleHistorySheet() 
-                        }) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.History, 
-                                    contentDescription = "History", 
-                                    modifier = Modifier.padding(8.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                    },
-                    scrollBehavior = scrollBehavior,
+                    }
+                },
+                scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    containerColor = topAppBarContainerColor,
+                    scrolledContainerColor = topAppBarContainerColor,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                     actionIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
-                )
-            }
+            )
         },
         floatingActionButton = {
             LargeFloatingActionButton(

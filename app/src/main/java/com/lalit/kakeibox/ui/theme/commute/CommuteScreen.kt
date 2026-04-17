@@ -31,6 +31,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
 import androidx.activity.ComponentActivity
+import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.compose.ui.res.stringResource
@@ -75,6 +76,15 @@ fun CommuteScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val topAppBarContainerColor by animateColorAsState(
+        targetValue = when (themeSettings.topAppBarBackground) {
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
+            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.SURFACE_CONTAINER -> MaterialTheme.colorScheme.surfaceContainer
+        },
+        label = "top_app_bar_container_color"
+    )
+
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
             // Snappier 2-second timeout for Expressive Snackbars
@@ -87,59 +97,50 @@ fun CommuteScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = topAppBarContainerColor,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            Box(modifier = Modifier.background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
-                        MaterialTheme.colorScheme.surfaceContainerLow
-                    )
-                )
-            )) {
-                LargeTopAppBar(
-                    title = {
-                        Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Text(
-                                text = "Work",
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                            Text(
-                                text = "Commute",
-                                style = MaterialTheme.typography.displayMedium,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.tertiary
+            LargeTopAppBar(
+                title = {
+                    Column(modifier = Modifier.padding(start = 8.dp)) {
+                        Text(
+                            text = "Work",
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            text = "Commute",
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+                actions = {
+                    IconButton(onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.toggleHistory() 
+                    }) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.History, 
+                                contentDescription = "History", 
+                                modifier = Modifier.padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                    },
-                    scrollBehavior = scrollBehavior,
-                    actions = {
-                        IconButton(onClick = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.toggleHistory() 
-                        }) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.History, 
-                                    contentDescription = "History", 
-                                    modifier = Modifier.padding(8.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                    )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = topAppBarContainerColor,
+                    scrolledContainerColor = topAppBarContainerColor
                 )
-            }
+            )
         },
         floatingActionButton = {
             LargeFloatingActionButton(
