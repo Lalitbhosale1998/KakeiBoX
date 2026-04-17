@@ -42,20 +42,31 @@ import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Wallet
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -63,7 +74,10 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,10 +106,15 @@ import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
+import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import kotlinx.coroutines.delay
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Collections
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,8 +123,12 @@ fun SettingsScreen(
     viewModel: ThemeViewModel = hiltViewModel()
 ) {
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
+    val birthdays by viewModel.birthdays.collectAsStateWithLifecycle()
+    val showBirthdaySheet by viewModel.showBirthdaySheet.collectAsStateWithLifecycle()
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val haptic = LocalHapticFeedback.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
@@ -230,23 +253,23 @@ fun SettingsScreen(
                 // Daily Reminders Card (State-Aware example)
                 BentoCard(
                     modifier = Modifier.weight(1f),
-                    title = "Reminders",
-                    description = "Daily alerts to log spends.",
-                    icon = if (themeSettings.remindersEnabled) Icons.Outlined.NotificationsActive else Icons.Outlined.NotificationsNone,
-                    isActive = themeSettings.remindersEnabled,
-                    activeContainerColor = MaterialTheme.colorScheme.primary,
-                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                    title = "Birthdays",
+                    description = "Manage birthday alerts.",
+                    icon = Icons.Outlined.Cake,
+                    isActive = birthdays.isNotEmpty(),
+                    activeContainerColor = MaterialTheme.colorScheme.secondary,
+                    activeContentColor = MaterialTheme.colorScheme.onSecondary,
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.setRemindersEnabled(!themeSettings.remindersEnabled)
+                        viewModel.toggleBirthdaySheet(true)
                     }
                 ) {
                     Text(
-                        text = if (themeSettings.remindersEnabled) "Everyday 9PM" else "Disabled",
+                        text = if (birthdays.isEmpty()) "No reminders" else "${birthdays.size} active",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
-                        color = if (themeSettings.remindersEnabled) 
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        color = if (birthdays.isNotEmpty()) 
+                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                         else 
                             MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -733,6 +756,231 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+    }
+
+    // ── Birthday Management Bottom Sheet ──
+    if (showBirthdaySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.toggleBirthdaySheet(false) },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(32.dp)
+                        .height(4.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                )
+            }
+        ) {
+            BirthdayManagementContent(
+                birthdays = birthdays,
+                onAdd = viewModel::addBirthday,
+                onDelete = viewModel::deleteBirthday,
+                onToggleEnabled = { birthday ->
+                    viewModel.updateBirthday(birthday.copy(isEnabled = !birthday.isEnabled))
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BirthdayManagementContent(
+    birthdays: List<BirthdayEntry>,
+    onAdd: (String, LocalDate) -> Unit,
+    onDelete: (BirthdayEntry) -> Unit,
+    onToggleEnabled: (BirthdayEntry) -> Unit
+) {
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newName by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 48.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Birthdays Hub",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(
+                onClick = { showAddDialog = true },
+                modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+            ) {
+                Icon(Icons.Outlined.Add, contentDescription = "Add Birthday", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (birthdays.isEmpty()) {
+            Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Outlined.Cake,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "No birthdays saved yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                birthdays.forEach { birthday ->
+                    BirthdayRow(
+                        birthday = birthday,
+                        onDelete = { onDelete(birthday) },
+                        onToggle = { onToggleEnabled(birthday) }
+                    )
+                }
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        ModalBottomSheet(
+            onDismissRequest = { showAddDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Add New Birthday",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    label = { Text("Person's Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                OutlinedTextField(
+                    value = selectedDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
+                    onValueChange = { },
+                    readOnly = true,
+                    label = { Text("Birthday Date") },
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePicker = true }) {
+                            Icon(Icons.Outlined.Event, contentDescription = "Select Date")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Button(
+                    onClick = {
+                        if (newName.isNotBlank()) {
+                            onAdd(newName, selectedDate)
+                            newName = ""
+                            selectedDate = LocalDate.now()
+                            showAddDialog = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Save Birthday")
+                }
+            }
+        }
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                    }
+                    showDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
+@Composable
+fun BirthdayRow(
+    birthday: BirthdayEntry,
+    onDelete: () -> Unit,
+    onToggle: () -> Unit
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = birthday.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = birthday.date.format(DateTimeFormatter.ofPattern("MMMM dd")),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Switch(
+                checked = birthday.isEnabled,
+                onCheckedChange = { onToggle() },
+                modifier = Modifier.graphicsLayer { scaleX = 0.8f; scaleY = 0.8f }
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Outlined.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 )
             }
         }

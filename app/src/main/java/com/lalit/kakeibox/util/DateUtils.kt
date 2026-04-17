@@ -12,11 +12,13 @@ object DateUtils {
     fun getCurrentYear(): Int = LocalDate.now().year
 
     fun getMonthName(month: Int, locale: Locale = Locale.getDefault()): String {
-        return Month.of(month).getDisplayName(TextStyle.FULL, locale)
+        val m = try { Month.of(month) } catch(e: Exception) { Month.JANUARY }
+        return m.getDisplayName(TextStyle.FULL, locale)
     }
 
     fun getShortMonthName(month: Int, locale: Locale = Locale.getDefault()): String {
-        return Month.of(month).getDisplayName(TextStyle.SHORT, locale)
+        val m = try { Month.of(month) } catch(e: Exception) { Month.JANUARY }
+        return m.getDisplayName(TextStyle.SHORT, locale)
     }
 
     // Returns list of years from 2022 to 2029

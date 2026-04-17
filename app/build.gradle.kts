@@ -35,6 +35,11 @@ android {
     buildFeatures {
         compose = true
     }
+
+    androidResources {
+        generateLocaleConfig = true
+        localeFilters += listOf("en", "ja")
+    }
 }
 
 // AGP 9.x — jvmTarget goes here, NOT inside android {}
@@ -46,6 +51,7 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
@@ -73,4 +79,7 @@ dependencies {
 
     implementation(libs.androidx.biometric)
     implementation(libs.datastore.preferences)
+    implementation(libs.androidx.work.runtime)
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
 }

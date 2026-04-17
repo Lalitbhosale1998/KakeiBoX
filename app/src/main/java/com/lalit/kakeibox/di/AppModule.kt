@@ -8,10 +8,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
+import com.personal.kakeibox.data.dao.BirthdayDao
 import com.personal.kakeibox.data.dao.CommuteDao
 import com.personal.kakeibox.data.dao.SalaryDao
 import com.personal.kakeibox.data.dao.SpendDao
 import com.personal.kakeibox.data.database.KakeiboXDatabase
+import com.personal.kakeibox.data.repository.BirthdayRepository
 import com.personal.kakeibox.data.repository.CommuteRepository
 import com.personal.kakeibox.data.repository.SalaryRepository
 import com.personal.kakeibox.data.repository.SpendRepository
@@ -50,7 +52,9 @@ object AppModule {
             context,
             KakeiboXDatabase::class.java,
             "kakeibox_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
@@ -70,6 +74,11 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideBirthdayDao(database: KakeiboXDatabase): BirthdayDao =
+        database.birthdayDao()
+
+    @Provides
+    @Singleton
     fun provideSalaryRepository(salaryDao: SalaryDao): SalaryRepository =
         SalaryRepository(salaryDao)
 
@@ -82,4 +91,9 @@ object AppModule {
     @Singleton
     fun provideCommuteRepository(commuteDao: CommuteDao): CommuteRepository =
         CommuteRepository(commuteDao)
+
+    @Provides
+    @Singleton
+    fun provideBirthdayRepository(birthdayDao: BirthdayDao): BirthdayRepository =
+        BirthdayRepository(birthdayDao)
 }
