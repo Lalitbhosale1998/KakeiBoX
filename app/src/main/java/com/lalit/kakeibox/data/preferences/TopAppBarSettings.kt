@@ -2,6 +2,5 @@ package com.personal.kakeibox.data.preferences
 
 enum class TopAppBarBackground {
     SURFACE,
-    PRIMARY_CONTAINER,
-    SURFACE_CONTAINER
+    PRIMARY_CONTAINER
 }

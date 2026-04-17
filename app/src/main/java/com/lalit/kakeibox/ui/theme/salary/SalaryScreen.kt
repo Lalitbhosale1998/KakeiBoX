@@ -104,7 +104,6 @@ fun SalaryScreen(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
             TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
-            TopAppBarBackground.SURFACE_CONTAINER -> MaterialTheme.colorScheme.surfaceContainer
         },
         label = "top_app_bar_container_color"
     )
