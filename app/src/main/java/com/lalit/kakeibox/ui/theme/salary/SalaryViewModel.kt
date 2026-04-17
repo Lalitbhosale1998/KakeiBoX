@@ -254,4 +254,52 @@ class SalaryViewModel @Inject constructor(
     fun clearSnackbar() {
         _uiState.update { it.copy(snackbarMessage = null) }
     }
+
+    fun addDummyData() {
+        val dummyData = listOf(
+            "2024-12" to 194068L,
+            "2025-01" to 224094L,
+            "2025-02" to 198981L,
+            "2025-03" to 213838L,
+            "2025-04" to 233014L,
+            "2025-05" to 229988L,
+            "2025-06" to 256836L,
+            "2025-07" to 241884L,
+            "2025-08" to 256816L,
+            "2025-09" to 252330L,
+            "2025-10" to 227927L,
+            "2025-11" to 174626L,
+            "2025-12" to 182330L,
+            "2026-01" to 228301L,
+            "2026-02" to 223663L,
+            "2026-03" to 241888L
+        )
+
+        viewModelScope.launch {
+            var addedCount = 0
+            dummyData.forEach { (date, amount) ->
+                val parts = date.split("-")
+                val year = parts[0].toInt()
+                val month = parts[1].toInt()
+
+                val existing = repository.getEntryByMonthYearOnce(month, year)
+                if (existing == null) {
+                    val entry = SalaryEntry(
+                        month = month,
+                        year = year,
+                        salaryAmount = amount,
+                        remittanceAmount = 0L,
+                        savingsAmount = 0L,
+                        remainingAmount = amount,
+                        note = "Dummy Data"
+                    )
+                    repository.insert(entry)
+                    addedCount++
+                }
+            }
+            if (addedCount > 0) {
+                _uiState.update { it.copy(snackbarMessage = "Added $addedCount dummy entries") }
+            }
+        }
+    }
 }

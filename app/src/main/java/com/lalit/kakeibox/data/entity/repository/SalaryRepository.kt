@@ -28,6 +28,9 @@ class SalaryRepository @Inject constructor(
     fun getEntriesByYear(year: Int): Flow<List<SalaryEntry>> =
         salaryDao.getEntriesByYear(year)
 
+    suspend fun getEntryByMonthYearOnce(month: Int, year: Int): SalaryEntry? =
+        salaryDao.getEntryByMonthYearOnce(month, year)
+
     suspend fun insert(entry: SalaryEntry) =
         salaryDao.insert(entry)
 
