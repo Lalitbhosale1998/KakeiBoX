@@ -172,14 +172,14 @@ fun SalaryScreen(
                             ) {
                                 Surface(
                                     shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
                                     modifier = Modifier.size(40.dp)
                                 ) {
                                     Icon(
                                         Icons.Default.Upload,
                                         contentDescription = "Add Dummy Data",
                                         modifier = Modifier.padding(8.dp),
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
