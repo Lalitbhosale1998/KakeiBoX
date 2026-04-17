@@ -1,0 +1,73 @@
+<resources>
+    <string name="app_name">KakeiboX</string>
+
+    <!-- Tab Labels -->
+    <string name="tab_salary">給与</string>
+    <string name="tab_spend">支出</string>
+    <string name="tab_commute">通勤</string>
+    <string name="tab_settings">設定</string>
+
+    <!-- Salary Screen -->
+    <string name="salary_title">月次給与</string>
+    <string name="salary_amount">給与額</string>
+    <string name="remittance_amount">仕送り</string>
+    <string name="savings_amount">貯金</string>
+    <string name="remaining">残高</string>
+    <string name="add_entry">追加</string>
+    <string name="edit_entry">項目を編集</string>
+    <string name="delete_entry">削除</string>
+    <string name="save">保存</string>
+    <string name="cancel">キャンセル</string>
+    <string name="month">月</string>
+    <string name="history">履歴</string>
+    <string name="current_month">今月</string>
+
+    <!-- Spend Screen -->
+    <string name="spend_title">ニーズとウォンツ</string>
+    <string name="need">ニーズ</string>
+    <string name="want">ウォンツ</string>
+    <string name="description">内容</string>
+    <string name="amount">金額</string>
+    <string name="category">カテゴリ</string>
+    <string name="balance_tip">50/30/20のヒント</string>
+
+    <!-- Commute Screen -->
+    <string name="commute_title">通勤費計算</string>
+    <string name="one_way_fare">片道運賃 (¥)</string>
+    <string name="holidays">休日</string>
+    <string name="wfh_days">在宅勤務日</string>
+    <string name="calculate">計算</string>
+    <string name="total_cost">概算往復コスト</string>
+    <string name="working_days">稼働日</string>
+    <string name="commute_days">出勤日</string>
+    <string name="period">期間</string>
+    <string name="to_25th">25日まで</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">設定</string>
+    <string name="language">言語</string>
+    <string name="language_english">English</string>
+    <string name="language_japanese">日本語</string>
+    <string name="currency_symbol">通貨記号</string>
+    <string name="cycle_start_day">支払いサイクルの開始日</string>
+    <string name="savings_target">月間貯金目標</string>
+    <string name="theme">テーマ</string>
+    <string name="theme_system">システム設定に従う</string>
+    <string name="theme_segment_system">システム</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
+    <string name="settings_section_appearance">外観</string>
+    <string name="dynamic_color">ダイナミックカラー</string>
+    <string name="dynamic_color_summary">壁紙の色を使用する (Material You)。</string>
+    <string name="dynamic_color_unsupported">Android 12以降で利用可能です。</string>
+
+    <!-- About Section -->
+    <string name="settings_section_about">KakeiboXについて</string>
+    <string name="about_version">バージョン</string>
+    <string name="about_version_desc">v1.0.0 安定版</string>
+    <string name="about_developer">開発者</string>
+    <string name="about_developer_desc">Lalit</string>
+    <string name="about_description">家計簿メソッドに基づいたモダンな予算管理ツール。</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_github_desc">ソースコード</string>
+</resources>
