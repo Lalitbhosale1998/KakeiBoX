@@ -2,6 +2,7 @@ package com.personal.kakeibox.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -373,6 +374,16 @@ fun ExpressiveTab(
         label = "scale"
     )
 
+    // Morphing Shape logic: Squircle (16dp) to Pill (28dp)
+    val cornerRadius by animateIntAsState(
+        targetValue = if (isSelected) 28 else 16,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "corner_morph"
+    )
+
     Surface(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -381,7 +392,7 @@ fun ExpressiveTab(
         modifier = modifier
             .height(56.dp)
             .graphicsLayer(scaleX = scale, scaleY = scale),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(cornerRadius.dp),
         color = bgColor,
         contentColor = txtColor
     ) {
