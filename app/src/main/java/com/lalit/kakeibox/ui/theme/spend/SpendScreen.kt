@@ -1,5 +1,6 @@
 package com.personal.kakeibox.ui.spend
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.animation.AnimatedContent
@@ -91,7 +92,7 @@ import androidx.compose.ui.focus.onFocusChanged
 @Composable
 fun SpendScreen(
     viewModel: SpendViewModel = hiltViewModel(),
-    themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+    themeViewModel: ThemeViewModel = hiltViewModel(LocalActivity.current as ComponentActivity)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
@@ -114,6 +115,11 @@ fun SpendScreen(
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val historyBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val primaryTextAccent = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
+    val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
@@ -154,13 +160,13 @@ fun SpendScreen(
                             text = "Monthly",
                             style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = onContainerColor
                         )
                         Text(
                             text = "Spending",
                             style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.primary
+                            color = primaryTextAccent
                         )
                     }
                 },
@@ -171,14 +177,14 @@ fun SpendScreen(
                     }) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                            color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
                             modifier = Modifier.size(40.dp)
                         ) {
                             Icon(
                                 Icons.Outlined.History, 
                                 contentDescription = "History", 
                                 modifier = Modifier.padding(8.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -187,8 +193,8 @@ fun SpendScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = topAppBarContainerColor,
                     scrolledContainerColor = topAppBarContainerColor,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    titleContentColor = onContainerColor,
+                    actionIconContentColor = onContainerColor
                 )
             )
         },
@@ -200,8 +206,8 @@ fun SpendScreen(
                 },
                 modifier = Modifier.padding(bottom = fabPadding),
                 shape = RoundedCornerShape(28.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                containerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer,
+                contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
             }
@@ -229,7 +235,9 @@ fun SpendScreen(
                     currentMonth = uiState.currentMonth,
                     currentYear = uiState.currentYear,
                     isPrivacyMode = themeSettings.privacyModeEnabled,
-                    onPeriodClick = { /* Scroll to top or show picker if needed */ }
+                    onPeriodClick = { /* Scroll to top or show picker if needed */ },
+                    isPrimaryContainer = isPrimaryContainer,
+                    bentoIdleColor = bentoIdleColor
                 )
             }
 
@@ -239,7 +247,8 @@ fun SpendScreen(
                     currentMonth = uiState.currentMonth,
                     currentYear = uiState.currentYear,
                     onMonthChange = viewModel::updateViewedMonth,
-                    onYearChange = viewModel::updateViewedYear
+                    onYearChange = viewModel::updateViewedYear,
+                    bentoIdleColor = bentoIdleColor
                 )
             }
 
@@ -254,7 +263,8 @@ fun SpendScreen(
                         totalNeed = totalNeed,
                         totalWant = totalWant,
                         totalSpend = totalSpend,
-                        salaryAmount = salary?.salaryAmount ?: 0L
+                        salaryAmount = salary?.salaryAmount ?: 0L,
+                        bentoIdleColor = bentoIdleColor
                     )
                 }
             }
@@ -283,7 +293,8 @@ fun SpendScreen(
                 item {
                     ExpressiveEmptyState(
                         message = if (uiState.selectedCategory != null) "No ${uiState.selectedCategory} logs" else "No spending yet",
-                        icon = if (uiState.selectedCategory == SpendCategory.NEED) "🛡️" else "✨"
+                        icon = if (uiState.selectedCategory == SpendCategory.NEED) "🛡️" else "✨",
+                        color = onContainerColor
                     )
                 }
             } else {
@@ -306,7 +317,8 @@ fun SpendScreen(
                             entry = entry,
                             isPrivacyMode = themeSettings.privacyModeEnabled,
                             onEdit = { viewModel.openEditSheet(entry) },
-                            onDelete = { viewModel.openDeleteDialog(entry) }
+                            onDelete = { viewModel.openDeleteDialog(entry) },
+                            containerColor = bentoIdleColor
                         )
                     }
                 }
@@ -319,7 +331,7 @@ fun SpendScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeSheet() },
             sheetState = bottomSheetState,
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = bentoIdleColor,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
@@ -345,7 +357,7 @@ fun SpendScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = historyBottomSheetState,
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = bentoIdleColor,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
             SpendHistoryBottomSheet(
@@ -369,7 +381,9 @@ fun BentoHeroSection(
     currentMonth: Int,
     currentYear: Int,
     isPrivacyMode: Boolean = false,
-    onPeriodClick: () -> Unit
+    onPeriodClick: () -> Unit,
+    isPrimaryContainer: Boolean = false,
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainer
 ) {
     val salaryAmount = salary?.salaryAmount ?: 0L
     val remaining = salaryAmount - totalSpend
@@ -384,8 +398,8 @@ fun BentoHeroSection(
             title = "TOTAL SPENT",
             icon = Icons.Outlined.AccountBalanceWallet,
             isActive = true,
-            activeContainerColor = MaterialTheme.colorScheme.primary,
-            activeContentColor = MaterialTheme.colorScheme.onPrimary,
+            activeContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary,
+            activeContentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onPrimary,
             onClick = onPeriodClick
         ) {
             Column {
@@ -542,7 +556,13 @@ fun ExpressiveSmallStatTicker(
 }
 
 @Composable
-fun BudgetHealthBeam(totalNeed: Long, totalWant: Long, totalSpend: Long, salaryAmount: Long) {
+fun BudgetHealthBeam(
+    totalNeed: Long, 
+    totalWant: Long, 
+    totalSpend: Long, 
+    salaryAmount: Long,
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+) {
     val needRatio = if (totalSpend > 0) totalNeed.toFloat() / totalSpend else 0f
     val wantRatio = if (totalSpend > 0) totalWant.toFloat() / totalSpend else 0f
     
@@ -552,7 +572,7 @@ fun BudgetHealthBeam(totalNeed: Long, totalWant: Long, totalSpend: Long, salaryA
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+        color = bentoIdleColor
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -585,12 +605,18 @@ fun LegendItem(label: String, color: Color) {
 }
 
 @Composable
-fun ExpressivePeriodIsland(currentMonth: Int, currentYear: Int, onMonthChange: (Int) -> Unit, onYearChange: (Int) -> Unit) {
+fun ExpressivePeriodIsland(
+    currentMonth: Int, 
+    currentYear: Int, 
+    onMonthChange: (Int) -> Unit, 
+    onYearChange: (Int) -> Unit,
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+) {
     val haptic = LocalHapticFeedback.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+        color = bentoIdleColor,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -700,14 +726,15 @@ fun ExpressiveListItem(
     entry: SpendEntry,
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     val haptic = LocalHapticFeedback.current
     val isNeed = entry.category == SpendCategory.NEED
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = containerColor,
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onEdit()
@@ -1053,6 +1080,7 @@ fun SpendHistoryBottomSheet(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp)
             .navigationBarsPadding()
     ) {
         Row(
@@ -1089,7 +1117,8 @@ fun SpendHistoryBottomSheet(
                     entry = entry,
                     isPrivacyMode = isPrivacyMode,
                     onEdit = { onEdit(entry) },
-                    onDelete = { onDelete(entry) }
+                    onDelete = { onDelete(entry) },
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 )
             }
         }

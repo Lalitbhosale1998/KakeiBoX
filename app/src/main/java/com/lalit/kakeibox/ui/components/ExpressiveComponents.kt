@@ -410,7 +410,8 @@ fun ExpressiveTab(
 fun ExpressiveEmptyState(
     message: String,
     modifier: Modifier = Modifier,
-    icon: String = "✨"
+    icon: String = "✨",
+    color: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column(
         modifier = modifier
@@ -432,12 +433,12 @@ fun ExpressiveEmptyState(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
+            color = color
         )
         Text(
             text = "Time to add something new!",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            color = color.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
     }

@@ -1,5 +1,6 @@
 package com.personal.kakeibox.ui.commute
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -60,7 +61,7 @@ import java.util.*
 @Composable
 fun CommuteScreen(
     viewModel: CommuteViewModel = hiltViewModel(),
-    themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+    themeViewModel: ThemeViewModel = hiltViewModel(LocalActivity.current as ComponentActivity)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
@@ -76,6 +77,10 @@ fun CommuteScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val primaryTextAccent = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
+
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
@@ -83,6 +88,8 @@ fun CommuteScreen(
         },
         label = "top_app_bar_container_color"
     )
+
+    val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -105,13 +112,14 @@ fun CommuteScreen(
                         Text(
                             text = "Work",
                             style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.ExtraBold
+                            fontWeight = FontWeight.ExtraBold,
+                            color = onContainerColor
                         )
                         Text(
                             text = "Commute",
                             style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.tertiary
+                            color = primaryTextAccent
                         )
                     }
                 },
@@ -123,21 +131,23 @@ fun CommuteScreen(
                     }) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                            color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
                             modifier = Modifier.size(40.dp)
                         ) {
                             Icon(
                                 Icons.Outlined.History, 
                                 contentDescription = "History", 
                                 modifier = Modifier.padding(8.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = topAppBarContainerColor,
-                    scrolledContainerColor = topAppBarContainerColor
+                    scrolledContainerColor = topAppBarContainerColor,
+                    titleContentColor = onContainerColor,
+                    actionIconContentColor = onContainerColor
                 )
             )
         },
@@ -149,8 +159,8 @@ fun CommuteScreen(
                 },
                 modifier = Modifier.padding(bottom = fabPadding),
                 shape = RoundedCornerShape(28.dp),
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                containerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onTertiaryContainer
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
             }
@@ -167,19 +177,27 @@ fun CommuteScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                CommuteHeroSection(uiState.totalCostAllTime, isPrivacyMode = themeSettings.privacyModeEnabled)
+                CommuteHeroSection(
+                    totalCost = uiState.totalCostAllTime, 
+                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                    isPrimaryContainer = isPrimaryContainer
+                )
             }
 
             if (uiState.latestEntry == null) {
                 item {
                     ExpressiveEmptyState(
                         message = "No commute logs yet",
-                        icon = "🚌"
+                        icon = "🚌",
+                        color = onContainerColor
                     )
                 }
             } else {
                 item {
-                    CommuteDetailsBento(uiState.latestEntry!!)
+                    CommuteDetailsBento(
+                        entry = uiState.latestEntry!!,
+                        bentoIdleColor = bentoIdleColor
+                    )
                 }
 
                 item {
@@ -213,7 +231,8 @@ fun CommuteScreen(
                             CommuteHistoryItem(
                                 entry = entry,
                                 isPrivacyMode = themeSettings.privacyModeEnabled,
-                                onDelete = { viewModel.openDeleteDialog(entry) }
+                                onDelete = { viewModel.openDeleteDialog(entry) },
+                                containerColor = bentoIdleColor
                             )
                         }
                     )
@@ -225,7 +244,7 @@ fun CommuteScreen(
     if (uiState.showAddSheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeAddSheet() },
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = bentoIdleColor,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
@@ -250,7 +269,7 @@ fun CommuteScreen(
     if (uiState.showHistorySheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistory() },
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = bentoIdleColor,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
@@ -264,14 +283,18 @@ fun CommuteScreen(
 }
 
 @Composable
-fun CommuteHeroSection(totalCost: Long, isPrivacyMode: Boolean = false) {
+fun CommuteHeroSection(
+    totalCost: Long, 
+    isPrivacyMode: Boolean = false,
+    isPrimaryContainer: Boolean = false
+) {
     BentoCard(
         modifier = Modifier.fillMaxWidth().height(200.dp),
         title = "TOTAL COMMUTE COST",
         icon = Icons.Outlined.Train,
         isActive = true,
-        activeContainerColor = MaterialTheme.colorScheme.tertiary,
-        activeContentColor = MaterialTheme.colorScheme.onTertiary
+        activeContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.tertiary,
+        activeContentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onTertiary
     ) {
         Column {
             Text(
@@ -291,7 +314,10 @@ fun CommuteHeroSection(totalCost: Long, isPrivacyMode: Boolean = false) {
 }
 
 @Composable
-fun CommuteDetailsBento(entry: CommuteEntry) {
+fun CommuteDetailsBento(
+    entry: CommuteEntry,
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+) {
     Row(
         modifier = Modifier.fillMaxWidth().height(160.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -299,8 +325,8 @@ fun CommuteDetailsBento(entry: CommuteEntry) {
         BentoCard(
             title = "Office Days",
             icon = Icons.Outlined.Business,
-            idleContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            idleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            idleContainerColor = bentoIdleColor,
+            idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         ) {
             Text(
@@ -312,8 +338,8 @@ fun CommuteDetailsBento(entry: CommuteEntry) {
         BentoCard(
             title = "WFH Days",
             icon = Icons.Outlined.Home,
-            idleContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            idleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            idleContainerColor = bentoIdleColor,
+            idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         ) {
             Text(
@@ -373,7 +399,8 @@ fun CommuteDeleteDialog(
 fun CommuteHistoryItem(
     entry: CommuteEntry,
     isPrivacyMode: Boolean = false,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     val haptic = LocalHapticFeedback.current
     val date = remember(entry.createdAt) {
@@ -383,7 +410,7 @@ fun CommuteHistoryItem(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = containerColor,
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             // If there's an edit function, call it here. Currently only delete is shown.
@@ -464,6 +491,7 @@ fun CommuteHistoryBottomSheet(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp)
             .navigationBarsPadding()
     ) {
         Row(
@@ -519,7 +547,8 @@ fun CommuteHistoryBottomSheet(
                         CommuteHistoryItem(
                             entry = entry,
                             isPrivacyMode = isPrivacyMode,
-                            onDelete = { onDelete(entry) }
+                            onDelete = { onDelete(entry) },
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                     }
                 )

@@ -100,6 +100,10 @@ fun SalaryScreen(
         rememberTopAppBarState()
     )
 
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val primaryTextAccent = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
+
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
@@ -107,6 +111,8 @@ fun SalaryScreen(
         },
         label = "top_app_bar_container_color"
     )
+
+    val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -133,13 +139,13 @@ fun SalaryScreen(
                                 text = "Monthly",
                                 style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = onContainerColor
                             )
                             Text(
                                 text = "Salary",
                                 style = MaterialTheme.typography.displayMedium,
                                 fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryTextAccent
                             )
                         }
                     },
@@ -153,14 +159,14 @@ fun SalaryScreen(
                         ) {
                             Surface(
                                 shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
                                 modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(
                                     Icons.Outlined.History,
                                     contentDescription = "History",
                                     modifier = Modifier.padding(8.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
@@ -173,14 +179,14 @@ fun SalaryScreen(
                         ) {
                             Surface(
                                 shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
                                 modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Upload,
                                     contentDescription = "Add Dummy Data",
                                     modifier = Modifier.padding(8.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
@@ -188,8 +194,8 @@ fun SalaryScreen(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = topAppBarContainerColor,
                         scrolledContainerColor = topAppBarContainerColor,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                        titleContentColor = onContainerColor,
+                        actionIconContentColor = onContainerColor
                     ),
                     scrollBehavior = scrollBehavior
                 )
@@ -205,8 +211,8 @@ fun SalaryScreen(
                     },
                     modifier = Modifier.padding(bottom = fabPadding),
                     shape = RoundedCornerShape(28.dp),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                     elevation = FloatingActionButtonDefaults.elevation(8.dp)
                 ) {
                     Icon(
@@ -236,7 +242,8 @@ fun SalaryScreen(
                         currentMonth = uiState.currentMonth,
                         currentYear = uiState.currentYear,
                         isPrivacyMode = themeSettings.privacyModeEnabled,
-                        onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } }
+                        onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } },
+                        isPrimaryContainer = isPrimaryContainer
                     )
                 }
 
@@ -246,7 +253,8 @@ fun SalaryScreen(
                         totalSavings = totalSavings ?: 0L,
                         totalRemittance = totalRemittance ?: 0L,
                         isPrivacyMode = themeSettings.privacyModeEnabled,
-                        onRemittanceClick = { viewModel.openAddDialog() }
+                        onRemittanceClick = { viewModel.openAddDialog() },
+                        bentoIdleColor = bentoIdleColor
                     )
                 }
 
@@ -273,7 +281,8 @@ fun SalaryScreen(
                     item {
                         ExpressiveEmptyState(
                             message = "No income logged yet",
-                            icon = "💰"
+                            icon = "💰",
+                            color = onContainerColor
                         )
                     }
                 } else {
@@ -314,7 +323,7 @@ fun SalaryScreen(
     if (uiState.showAddEditDialog) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeDialog() },
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = bentoIdleColor,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
@@ -342,7 +351,7 @@ fun SalaryScreen(
     if (uiState.showHistorySheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = bentoIdleColor,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
@@ -364,15 +373,16 @@ fun ExpressiveHeroCard(
     currentMonth: Int,
     currentYear: Int,
     isPrivacyMode: Boolean = false,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    isPrimaryContainer: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
     
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
+        color = if (isPrimaryContainer) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary,
+        contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onPrimary,
         tonalElevation = 8.dp
     ) {
         Row(
@@ -487,7 +497,8 @@ fun ExpressiveStatsGrid(
     totalSavings: Long, 
     totalRemittance: Long, 
     isPrivacyMode: Boolean = false,
-    onRemittanceClick: () -> Unit = {}
+    onRemittanceClick: () -> Unit = {},
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().height(160.dp),
@@ -496,7 +507,7 @@ fun ExpressiveStatsGrid(
         BentoCard(
             title = "Total Savings",
             icon = Icons.Outlined.Savings,
-            idleContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            idleContainerColor = bentoIdleColor,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         ) {
@@ -510,7 +521,7 @@ fun ExpressiveStatsGrid(
         BentoCard(
             title = "Total Remittance",
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
-            idleContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            idleContainerColor = bentoIdleColor,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
             onClick = onRemittanceClick
@@ -607,13 +618,14 @@ fun ExpressiveSalaryCard(
     entry: SalaryEntry,
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     val haptic = LocalHapticFeedback.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = containerColor,
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onEdit()
@@ -1193,6 +1205,7 @@ fun HistoryBottomSheet(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp)
             .navigationBarsPadding()
     ) {
         Row(
@@ -1251,7 +1264,8 @@ fun HistoryBottomSheet(
                             entry = entry,
                             isPrivacyMode = isPrivacyMode,
                             onEdit = { onEdit(entry) },
-                            onDelete = { onDelete(entry) }
+                            onDelete = { onDelete(entry) },
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                     }
                 )
