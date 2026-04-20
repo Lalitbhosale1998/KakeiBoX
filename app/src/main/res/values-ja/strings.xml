@@ -33,7 +33,7 @@
 
     <!-- Commute Screen -->
     <string name="commute_title">通勤費計算</string>
-    <string name="one_way_fare">片道運賃 (¥)</string>
+    <string name="one_way_fare">片道運賃</string>
     <string name="holidays">休日</string>
     <string name="wfh_days">在宅勤務日</string>
     <string name="calculate">計算</string>

@@ -12,7 +12,7 @@ data class SalaryEntry(
     val month: Int,
     val year: Int,
 
-    // All amounts in whole numbers (¥ has no decimals)
+    // All amounts in whole numbers
     val salaryAmount: Long,
     val remittanceAmount: Long,
     val savingsAmount: Long,

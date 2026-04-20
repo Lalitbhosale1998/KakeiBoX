@@ -48,6 +48,7 @@ import com.personal.kakeibox.R
 import com.personal.kakeibox.data.entity.CommuteEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
+import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.util.CurrencyUtils
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Business
@@ -176,13 +177,14 @@ fun CommuteScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            item {
-                CommuteHeroSection(
-                    totalCost = uiState.totalCostAllTime, 
-                    isPrivacyMode = themeSettings.privacyModeEnabled,
-                    isPrimaryContainer = isPrimaryContainer
-                )
-            }
+                item {
+                    CommuteHeroSection(
+                        totalCost = uiState.totalCostAllTime, 
+                        isPrivacyMode = themeSettings.privacyModeEnabled,
+                        isPrimaryContainer = isPrimaryContainer,
+                        themeSettings = themeSettings
+                    )
+                }
 
             if (uiState.latestEntry == null) {
                 item {
@@ -232,7 +234,8 @@ fun CommuteScreen(
                                 entry = entry,
                                 isPrivacyMode = themeSettings.privacyModeEnabled,
                                 onDelete = { viewModel.openDeleteDialog(entry) },
-                                containerColor = bentoIdleColor
+                                containerColor = bentoIdleColor,
+                                themeSettings = themeSettings
                             )
                         }
                     )
@@ -250,6 +253,7 @@ fun CommuteScreen(
         ) {
             CommuteAddEditSheet(
                 uiState = uiState,
+                themeSettings = themeSettings,
                 onFareChange = viewModel::updateFare,
                 onHolidaysChange = viewModel::updateHolidays,
                 onWfhChange = viewModel::updateWfhDays,
@@ -276,7 +280,8 @@ fun CommuteScreen(
             CommuteHistoryBottomSheet(
                 entries = uiState.history,
                 isPrivacyMode = themeSettings.privacyModeEnabled,
-                onDelete = { viewModel.openDeleteDialog(it) }
+                onDelete = { viewModel.openDeleteDialog(it) },
+                themeSettings = themeSettings
             )
         }
     }
@@ -286,7 +291,8 @@ fun CommuteScreen(
 fun CommuteHeroSection(
     totalCost: Long, 
     isPrivacyMode: Boolean = false,
-    isPrimaryContainer: Boolean = false
+    isPrimaryContainer: Boolean = false,
+    themeSettings: ThemeSettings
 ) {
     BentoCard(
         modifier = Modifier.fillMaxWidth().height(200.dp),
@@ -305,7 +311,7 @@ fun CommuteHeroSection(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = CurrencyUtils.formatYen(totalCost, isPrivacyMode),
+                text = CurrencyUtils.formatAmount(totalCost, themeSettings.currencySymbol, isPrivacyMode),
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Black
             )
@@ -400,7 +406,8 @@ fun CommuteHistoryItem(
     entry: CommuteEntry,
     isPrivacyMode: Boolean = false,
     onDelete: () -> Unit,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
     val date = remember(entry.createdAt) {
@@ -438,7 +445,7 @@ fun CommuteHistoryItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = CurrencyUtils.formatYen(entry.totalCost, isPrivacyMode),
+                    text = CurrencyUtils.formatAmount(entry.totalCost, themeSettings.currencySymbol, isPrivacyMode),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
                     maxLines = 1,
@@ -454,7 +461,7 @@ fun CommuteHistoryItem(
                 if (entry.oneWayFare > 0) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Fare: ${CurrencyUtils.formatYen(entry.oneWayFare, isPrivacyMode)} (One-way)",
+                        text = "Fare: ${CurrencyUtils.formatAmount(entry.oneWayFare, themeSettings.currencySymbol, isPrivacyMode)} (One-way)",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         maxLines = 1,
@@ -484,7 +491,8 @@ fun CommuteHistoryItem(
 fun CommuteHistoryBottomSheet(
     entries: List<CommuteEntry>,
     isPrivacyMode: Boolean = false,
-    onDelete: (CommuteEntry) -> Unit
+    onDelete: (CommuteEntry) -> Unit,
+    themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
     Column(
@@ -548,7 +556,8 @@ fun CommuteHistoryBottomSheet(
                             entry = entry,
                             isPrivacyMode = isPrivacyMode,
                             onDelete = { onDelete(entry) },
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            themeSettings = themeSettings
                         )
                     }
                 )
@@ -560,6 +569,7 @@ fun CommuteHistoryBottomSheet(
 @Composable
 fun CommuteAddEditSheet(
     uiState: CommuteUiState,
+    themeSettings: ThemeSettings,
     onFareChange: (String) -> Unit,
     onHolidaysChange: (String) -> Unit,
     onWfhChange: (String) -> Unit,
@@ -644,7 +654,7 @@ fun CommuteAddEditSheet(
                     decorationBox = { innerTextField ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "¥",
+                                text = themeSettings.currencySymbol,
                                 style = MaterialTheme.typography.displayMedium,
                                 fontWeight = FontWeight.Black,
                                 color = if (isFareFocused) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline

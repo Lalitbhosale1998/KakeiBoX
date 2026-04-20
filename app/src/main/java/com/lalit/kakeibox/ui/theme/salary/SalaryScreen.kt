@@ -70,6 +70,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
 import com.personal.kakeibox.data.entity.SalaryEntry
+import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.util.CurrencyUtils
 import com.personal.kakeibox.util.DateUtils
 
@@ -243,7 +244,8 @@ fun SalaryScreen(
                         currentYear = uiState.currentYear,
                         isPrivacyMode = themeSettings.privacyModeEnabled,
                         onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } },
-                        isPrimaryContainer = isPrimaryContainer
+                        isPrimaryContainer = isPrimaryContainer,
+                        themeSettings = themeSettings
                     )
                 }
 
@@ -254,7 +256,8 @@ fun SalaryScreen(
                         totalRemittance = totalRemittance ?: 0L,
                         isPrivacyMode = themeSettings.privacyModeEnabled,
                         onRemittanceClick = { viewModel.openAddDialog() },
-                        bentoIdleColor = bentoIdleColor
+                        bentoIdleColor = bentoIdleColor,
+                        themeSettings = themeSettings
                     )
                 }
 
@@ -302,7 +305,8 @@ fun SalaryScreen(
                                             entry = entry,
                                             isPrivacyMode = themeSettings.privacyModeEnabled,
                                             onEdit = { viewModel.openEditDialog(entry) },
-                                            modifier = Modifier.weight(1f)
+                                            modifier = Modifier.weight(1f),
+                                            themeSettings = themeSettings
                                         )
                                     }
                                     if (rowEntries.size == 1) {
@@ -329,6 +333,7 @@ fun SalaryScreen(
         ) {
             ExpressiveAddEditSheet(
                 uiState = uiState,
+                themeSettings = themeSettings,
                 onSalaryChange = viewModel::updateSalary,
                 onRemittanceChange = viewModel::updateRemittance,
                 onSavingsChange = viewModel::updateSavings,
@@ -359,7 +364,8 @@ fun SalaryScreen(
                 entries = allEntries,
                 isPrivacyMode = themeSettings.privacyModeEnabled,
                 onEdit = { entry -> viewModel.toggleHistorySheet(); viewModel.openEditDialog(entry) },
-                onDelete = { entry -> viewModel.toggleHistorySheet(); viewModel.openDeleteDialog(entry) }
+                onDelete = { entry -> viewModel.toggleHistorySheet(); viewModel.openDeleteDialog(entry) },
+                themeSettings = themeSettings
             )
         }
     }
@@ -374,7 +380,8 @@ fun ExpressiveHeroCard(
     currentYear: Int,
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
-    isPrimaryContainer: Boolean = false
+    isPrimaryContainer: Boolean = false,
+    themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
     
@@ -405,7 +412,8 @@ fun ExpressiveHeroCard(
                 
                 ExpressiveTotalEarningsTicker(
                     totalSalary = totalSalary,
-                    isPrivacyMode = isPrivacyMode
+                    isPrivacyMode = isPrivacyMode,
+                    themeSettings = themeSettings
                 )
 
                 Text(
@@ -498,7 +506,8 @@ fun ExpressiveStatsGrid(
     totalRemittance: Long, 
     isPrivacyMode: Boolean = false,
     onRemittanceClick: () -> Unit = {},
-    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    themeSettings: ThemeSettings
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().height(160.dp),
@@ -512,7 +521,7 @@ fun ExpressiveStatsGrid(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = CurrencyUtils.formatYen(totalSavings, isPrivacyMode),
+                text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface
@@ -527,7 +536,7 @@ fun ExpressiveStatsGrid(
             onClick = onRemittanceClick
         ) {
             Text(
-                text = CurrencyUtils.formatYen(totalRemittance, isPrivacyMode),
+                text = CurrencyUtils.formatAmount(totalRemittance, themeSettings.currencySymbol, isPrivacyMode),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface
@@ -541,7 +550,8 @@ fun ExpressiveHistoryBentoBox(
     entry: SalaryEntry,
     isPrivacyMode: Boolean,
     onEdit: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
     Surface(
@@ -574,7 +584,7 @@ fun ExpressiveHistoryBentoBox(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = CurrencyUtils.formatYen(entry.salaryAmount, isPrivacyMode),
+                text = CurrencyUtils.formatAmount(entry.salaryAmount, themeSettings.currencySymbol, isPrivacyMode),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
                 maxLines = 1,
@@ -619,7 +629,8 @@ fun ExpressiveSalaryCard(
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
     Surface(
@@ -662,7 +673,7 @@ fun ExpressiveSalaryCard(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = CurrencyUtils.formatYen(entry.salaryAmount, isPrivacyMode),
+                    text = CurrencyUtils.formatAmount(entry.salaryAmount, themeSettings.currencySymbol, isPrivacyMode),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
                     maxLines = 1,
@@ -677,7 +688,7 @@ fun ExpressiveSalaryCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Saved: ${CurrencyUtils.formatYen(entry.savingsAmount, isPrivacyMode)}",
+                        text = "Saved: ${CurrencyUtils.formatAmount(entry.savingsAmount, themeSettings.currencySymbol, isPrivacyMode)}",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
@@ -764,9 +775,10 @@ fun ExpressiveEmptyHero(onAdd: () -> Unit) {
 @Composable
 fun ExpressiveTotalEarningsTicker(
     totalSalary: Long,
-    isPrivacyMode: Boolean
+    isPrivacyMode: Boolean,
+    themeSettings: ThemeSettings
 ) {
-    val formattedTotal = CurrencyUtils.formatYen(totalSalary, isPrivacyMode)
+    val formattedTotal = CurrencyUtils.formatAmount(totalSalary, themeSettings.currencySymbol, isPrivacyMode)
     
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (isPrivacyMode) {
@@ -777,7 +789,6 @@ fun ExpressiveTotalEarningsTicker(
             )
         } else {
             // Split the formatted string into characters to animate each digit separately
-            // e.g. "¥1,234,567" -> ["¥", "1", ",", "2", "3", "4", ",", "5", "6", "7"]
             formattedTotal.forEachIndexed { index, char ->
                 val isDigit = char.isDigit()
                 
@@ -789,7 +800,7 @@ fun ExpressiveTotalEarningsTicker(
                             (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
                         } else {
-                            // Standard fade for symbols like ¥ and ,
+                            // Standard fade for symbols and separators
                             fadeIn(animationSpec = tween(150))
                                 .togetherWith(fadeOut(animationSpec = tween(150)))
                         }
@@ -811,6 +822,7 @@ fun ExpressiveTotalEarningsTicker(
 @Composable
 fun ExpressiveAddEditSheet(
     uiState: SalaryUiState,
+    themeSettings: ThemeSettings,
     onSalaryChange: (String) -> Unit,
     onRemittanceChange: (String) -> Unit,
     onSavingsChange: (String) -> Unit,
@@ -934,7 +946,7 @@ fun ExpressiveAddEditSheet(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "¥",
+                                text = themeSettings.currencySymbol,
                                 style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Black,
                                 color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -996,7 +1008,7 @@ fun ExpressiveAddEditSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Net Remaining: ¥$remainingText",
+                        text = "Net Remaining: ${themeSettings.currencySymbol}$remainingText",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = if (remaining >= 0) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer
@@ -1198,7 +1210,8 @@ fun HistoryBottomSheet(
     entries: List<SalaryEntry>,
     isPrivacyMode: Boolean = false,
     onEdit: (SalaryEntry) -> Unit,
-    onDelete: (SalaryEntry) -> Unit
+    onDelete: (SalaryEntry) -> Unit,
+    themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
     Column(
@@ -1265,7 +1278,8 @@ fun HistoryBottomSheet(
                             isPrivacyMode = isPrivacyMode,
                             onEdit = { onEdit(entry) },
                             onDelete = { onDelete(entry) },
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            themeSettings = themeSettings
                         )
                     }
                 )

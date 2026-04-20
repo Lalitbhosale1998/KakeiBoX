@@ -82,6 +82,7 @@ import com.personal.kakeibox.R
 import com.personal.kakeibox.data.entity.SalaryEntry
 import com.personal.kakeibox.data.entity.SpendCategory
 import com.personal.kakeibox.data.entity.SpendEntry
+import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.util.CurrencyUtils
 import com.personal.kakeibox.util.DateUtils
 import androidx.compose.material.icons.filled.*
@@ -237,7 +238,8 @@ fun SpendScreen(
                     isPrivacyMode = themeSettings.privacyModeEnabled,
                     onPeriodClick = { /* Scroll to top or show picker if needed */ },
                     isPrimaryContainer = isPrimaryContainer,
-                    bentoIdleColor = bentoIdleColor
+                    bentoIdleColor = bentoIdleColor,
+                    themeSettings = themeSettings
                 )
             }
 
@@ -318,7 +320,8 @@ fun SpendScreen(
                             isPrivacyMode = themeSettings.privacyModeEnabled,
                             onEdit = { viewModel.openEditSheet(entry) },
                             onDelete = { viewModel.openDeleteDialog(entry) },
-                            containerColor = bentoIdleColor
+                            containerColor = bentoIdleColor,
+                            themeSettings = themeSettings
                         )
                     }
                 }
@@ -337,6 +340,7 @@ fun SpendScreen(
         ) {
             SpendAddEditSheet(
                 uiState = uiState,
+                themeSettings = themeSettings,
                 onDescriptionChange = viewModel::updateDescription,
                 onAmountChange = viewModel::updateAmount,
                 onCategoryChange = viewModel::updateCategory,
@@ -364,7 +368,8 @@ fun SpendScreen(
                 entries = allEntries,
                 isPrivacyMode = themeSettings.privacyModeEnabled,
                 onEdit = viewModel::openEditSheet,
-                onDelete = viewModel::openDeleteDialog
+                onDelete = viewModel::openDeleteDialog,
+                themeSettings = themeSettings
             )
         }
     }
@@ -383,7 +388,8 @@ fun BentoHeroSection(
     isPrivacyMode: Boolean = false,
     onPeriodClick: () -> Unit,
     isPrimaryContainer: Boolean = false,
-    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainer
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    themeSettings: ThemeSettings
 ) {
     val salaryAmount = salary?.salaryAmount ?: 0L
     val remaining = salaryAmount - totalSpend
@@ -413,7 +419,8 @@ fun BentoHeroSection(
                 Spacer(modifier = Modifier.height(4.dp))
                 ExpressiveTotalSpentTicker(
                     totalSpend = totalSpend,
-                    isPrivacyMode = isPrivacyMode
+                    isPrivacyMode = isPrivacyMode,
+                    themeSettings = themeSettings
                 )
             }
         }
@@ -427,7 +434,8 @@ fun BentoHeroSection(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 isPrivacyMode = isPrivacyMode,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                themeSettings = themeSettings
             )
             BentoStatSmall(
                 title = "Wants",
@@ -436,7 +444,8 @@ fun BentoHeroSection(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 isPrivacyMode = isPrivacyMode,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                themeSettings = themeSettings
             )
         }
     }
@@ -445,9 +454,10 @@ fun BentoHeroSection(
 @Composable
 fun ExpressiveTotalSpentTicker(
     totalSpend: Long,
-    isPrivacyMode: Boolean
+    isPrivacyMode: Boolean,
+    themeSettings: ThemeSettings
 ) {
-    val formattedTotal = CurrencyUtils.formatYen(totalSpend, isPrivacyMode)
+    val formattedTotal = CurrencyUtils.formatAmount(totalSpend, themeSettings.currencySymbol, isPrivacyMode)
     
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (isPrivacyMode) {
@@ -468,6 +478,7 @@ fun ExpressiveTotalSpentTicker(
                             (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
                         } else {
+                            // Standard fade for symbols and separators
                             fadeIn(animationSpec = tween(150))
                                 .togetherWith(fadeOut(animationSpec = tween(150)))
                         }
@@ -495,7 +506,8 @@ fun BentoStatSmall(
     containerColor: Color, 
     contentColor: Color,
     isPrivacyMode: Boolean = false,
-    modifier: Modifier
+    modifier: Modifier,
+    themeSettings: ThemeSettings
 ) {
     BentoCard(
         modifier = modifier,
@@ -507,7 +519,8 @@ fun BentoStatSmall(
     ) {
         ExpressiveSmallStatTicker(
             amount = amount,
-            isPrivacyMode = isPrivacyMode
+            isPrivacyMode = isPrivacyMode,
+            themeSettings = themeSettings
         )
     }
 }
@@ -515,9 +528,10 @@ fun BentoStatSmall(
 @Composable
 fun ExpressiveSmallStatTicker(
     amount: Long,
-    isPrivacyMode: Boolean
+    isPrivacyMode: Boolean,
+    themeSettings: ThemeSettings
 ) {
-    val formattedTotal = CurrencyUtils.formatYen(amount, isPrivacyMode)
+    val formattedTotal = CurrencyUtils.formatAmount(amount, themeSettings.currencySymbol, isPrivacyMode)
     
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (isPrivacyMode) {
@@ -537,6 +551,7 @@ fun ExpressiveSmallStatTicker(
                             (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
                         } else {
+                            // Standard fade for symbols and separators
                             fadeIn(animationSpec = tween(150))
                                 .togetherWith(fadeOut(animationSpec = tween(150)))
                         }
@@ -727,7 +742,8 @@ fun ExpressiveListItem(
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
     val isNeed = entry.category == SpendCategory.NEED
@@ -759,7 +775,7 @@ fun ExpressiveListItem(
                 Text(text = entry.description, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(text = entry.note.ifBlank { "No note" }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Text(text = CurrencyUtils.formatYen(entry.amount, isPrivacyMode), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            Text(text = CurrencyUtils.formatAmount(entry.amount, themeSettings.currencySymbol, isPrivacyMode), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -789,6 +805,7 @@ fun SpendDeleteDialog(entry: SpendEntry?, onConfirm: () -> Unit, onDismiss: () -
 @Composable
 fun SpendAddEditSheet(
     uiState: SpendUiState,
+    themeSettings: ThemeSettings,
     onDescriptionChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
     onCategoryChange: (SpendCategory) -> Unit,
@@ -889,7 +906,7 @@ fun SpendAddEditSheet(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                "¥", 
+                                themeSettings.currencySymbol,
                                 style = MaterialTheme.typography.displaySmall, 
                                 fontWeight = FontWeight.Black,
                                 color = if (isAmountFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -1074,7 +1091,8 @@ fun SpendHistoryBottomSheet(
     entries: List<SpendEntry>,
     isPrivacyMode: Boolean = false,
     onEdit: (SpendEntry) -> Unit,
-    onDelete: (SpendEntry) -> Unit
+    onDelete: (SpendEntry) -> Unit,
+    themeSettings: ThemeSettings
 ) {
     Column(
         modifier = Modifier
@@ -1118,7 +1136,8 @@ fun SpendHistoryBottomSheet(
                     isPrivacyMode = isPrivacyMode,
                     onEdit = { onEdit(entry) },
                     onDelete = { onDelete(entry) },
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    themeSettings = themeSettings
                 )
             }
         }

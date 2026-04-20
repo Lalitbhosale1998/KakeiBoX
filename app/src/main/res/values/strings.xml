@@ -33,7 +33,7 @@
 
     <!-- Commute Screen -->
     <string name="commute_title">Commute Calculator</string>
-    <string name="one_way_fare">One-Way Fare (¥)</string>
+    <string name="one_way_fare">One-Way Fare</string>
     <string name="holidays">Holidays</string>
     <string name="wfh_days">WFH Days</string>
     <string name="calculate">Calculate</string>
