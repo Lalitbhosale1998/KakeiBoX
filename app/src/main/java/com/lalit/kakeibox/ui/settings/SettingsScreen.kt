@@ -359,6 +359,7 @@ fun SettingsScreen(
                                     selectedColor = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.weight(weight),
                                     selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    shapeType = if (option == TopAppBarBackground.SURFACE) "clamshell" else "pill",
                                     onClick = { viewModel.setTopAppBarBackground(option) }
                                 )
                             }
@@ -394,6 +395,7 @@ fun SettingsScreen(
                                 selectedColor = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.weight(fullWidthWeight),
                                 selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                shapeType = "clamshell",
                                 onClick = { viewModel.setNavBarStyle(NavBarStyle.FULL_WIDTH) }
                             )
                             ExpressiveTab(
@@ -402,6 +404,7 @@ fun SettingsScreen(
                                 selectedColor = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.weight(floatingWeight),
                                 selectedTextColor = MaterialTheme.colorScheme.onSecondary,
+                                shapeType = "pill",
                                 onClick = { viewModel.setNavBarStyle(NavBarStyle.FLOATING) }
                             )
                         }
@@ -789,6 +792,12 @@ fun SettingsScreen(
                                     selectedColor = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.weight(segmentWeight),
                                     selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    shapeType = when (symbol) {
+                                        "₹" -> "slanted"
+                                        "¥" -> "clamshell"
+                                        "$" -> "arch"
+                                        else -> "pill"
+                                    },
                                     onClick = { 
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.setCurrencySymbol(symbol) 

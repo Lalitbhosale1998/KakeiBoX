@@ -357,6 +357,7 @@ fun ExpressiveTab(
     modifier: Modifier = Modifier,
     selectedTextColor: Color = Color.Unspecified,
     icon: ImageVector? = null,
+    shapeType: String = "pill",
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -374,7 +375,7 @@ fun ExpressiveTab(
         label = "scale"
     )
 
-    // Morphing Shape logic: Squircle (16dp) to Pill (28dp)
+    // Morphing Shape logic: Squircle (16dp) to Custom Expressive Shapes
     val cornerRadius by animateIntAsState(
         targetValue = if (isSelected) 28 else 16,
         animationSpec = spring(
@@ -384,6 +385,28 @@ fun ExpressiveTab(
         label = "corner_morph"
     )
 
+    val shape = when (shapeType.lowercase()) {
+        "slanted" -> RoundedCornerShape(
+            topStart = cornerRadius.dp,
+            bottomEnd = cornerRadius.dp,
+            topEnd = if (isSelected) 4.dp else cornerRadius.dp,
+            bottomStart = if (isSelected) 4.dp else cornerRadius.dp
+        )
+        "arch" -> RoundedCornerShape(
+            topStart = cornerRadius.dp,
+            topEnd = cornerRadius.dp,
+            bottomStart = if (isSelected) 4.dp else cornerRadius.dp,
+            bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
+        )
+        "clamshell" -> RoundedCornerShape(
+            topStart = cornerRadius.dp,
+            bottomStart = cornerRadius.dp,
+            topEnd = if (isSelected) 4.dp else cornerRadius.dp,
+            bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
+        )
+        else -> RoundedCornerShape(cornerRadius.dp) // Pill
+    }
+
     Surface(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -392,7 +415,7 @@ fun ExpressiveTab(
         modifier = modifier
             .height(56.dp)
             .graphicsLayer(scaleX = scale, scaleY = scale),
-        shape = RoundedCornerShape(cornerRadius.dp),
+        shape = shape,
         color = bgColor,
         contentColor = txtColor
     ) {
