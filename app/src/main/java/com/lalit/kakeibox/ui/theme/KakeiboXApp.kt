@@ -146,6 +146,14 @@ fun KakeiboXApp(
                             label = "icon_scale_${item.route}"
                         )
 
+                        val selectedColor = when (item.route) {
+                            NavRoutes.Salary.route -> Color(0xFFFFD700)
+                            NavRoutes.Spend.route -> Color(0xFFF43F5E)
+                            NavRoutes.Commute.route -> Color(0xFF6EE7B7)
+                            NavRoutes.Settings.route -> Color(0xFF8B5CF6)
+                            else -> MaterialTheme.colorScheme.primary
+                        }
+
                         NavigationBarItem(
                             selected = isSelected,
                             onClick = {
@@ -177,9 +185,9 @@ fun KakeiboXApp(
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                                selectedIconColor = selectedColor,
+                                selectedTextColor = selectedColor,
+                                indicatorColor = selectedColor.copy(alpha = 0.15f),
                                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
