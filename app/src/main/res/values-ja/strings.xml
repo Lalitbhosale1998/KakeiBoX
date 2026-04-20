@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KakeiboX</string>
+    <string name="app_name">Vitta</string>
 
     <!-- Tab Labels -->
     <string name="tab_salary">給与</string>
@@ -62,7 +62,7 @@
     <string name="dynamic_color_unsupported">Android 12以降で利用可能です。</string>
 
     <!-- About Section -->
-    <string name="settings_section_about">KakeiboXについて</string>
+    <string name="settings_section_about">Vittaについて</string>
     <string name="about_version">バージョン</string>
     <string name="about_version_desc">v1.0.0 安定版</string>
     <string name="about_developer">開発者</string>
