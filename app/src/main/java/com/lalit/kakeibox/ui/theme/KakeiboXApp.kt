@@ -232,16 +232,14 @@ fun KakeiboXApp(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 24.dp)
             ) {
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .height(82.dp),
                     shape = RoundedCornerShape(41.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f),
                     tonalElevation = 0.dp,
                     shadowElevation = 10.dp,
                     border = BorderStroke(
@@ -285,15 +283,29 @@ fun KakeiboXApp(
                             )
 
                             val containerColor by animateColorAsState(
-                                targetValue = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
-                                             else Color.Transparent,
+                                targetValue = if (isSelected) {
+                                    when (item.route) {
+                                        NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f) // Soft Gold Glow
+                                        NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)  // Soft Rose Glow
+                                        NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f) // Soft Mint Glow
+                                        NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f) // Soft Violet Glow
+                                        else -> Color.Transparent
+                                    }
+                                } else Color.Transparent,
                                 animationSpec = tween(300),
                                 label = "tab_bg_anim"
                             )
 
                             val contentColor by animateColorAsState(
-                                targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer 
-                                             else MaterialTheme.colorScheme.onSurfaceVariant,
+                                targetValue = if (isSelected) {
+                                    when (item.route) {
+                                        NavRoutes.Salary.route -> Color(0xFFFFD700) // Vibrant Gold
+                                        NavRoutes.Spend.route -> Color(0xFFF43F5E)  // Vibrant Rose
+                                        NavRoutes.Commute.route -> Color(0xFF6EE7B7) // Fresh Mint
+                                        NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Vibrant Violet
+                                        else -> MaterialTheme.colorScheme.onSurface
+                                    }
+                                } else MaterialTheme.colorScheme.onSurfaceVariant,
                                 label = "content_color_anim"
                             )
 
