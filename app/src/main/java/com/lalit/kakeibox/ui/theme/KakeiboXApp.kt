@@ -1,16 +1,8 @@
 package com.personal.kakeibox.ui
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -154,8 +146,16 @@ fun KakeiboXApp(
                             else -> MaterialTheme.colorScheme.primary
                         }
 
+                        // ── Adaptive Bento Item ──
+                        val itemWeight by animateFloatAsState(
+                            targetValue = if (isSelected) 2.0f else 0.8f,
+                            animationSpec = spring(stiffness = Spring.StiffnessLow),
+                            label = "weight_anim"
+                        )
+
                         NavigationBarItem(
                             selected = isSelected,
+                            modifier = Modifier.weight(itemWeight),
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 navController.navigate(item.route) {
@@ -167,29 +167,51 @@ fun KakeiboXApp(
                                 }
                             },
                             icon = {
-                                Icon(
-                                    imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                    contentDescription = stringResource(item.labelRes),
-                                    modifier = Modifier.graphicsLayer {
-                                        scaleX = iconScale
-                                        scaleY = iconScale
+                                val bgAlpha by animateFloatAsState(if (isSelected) 0.15f else 0f)
+                                
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth() // Take full weight of the parent
+                                        .padding(horizontal = 12.dp) // Gap between pills
+                                        .clip(RoundedCornerShape(28.dp))
+                                        .background(selectedColor.copy(alpha = bgAlpha))
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                            contentDescription = stringResource(item.labelRes),
+                                            tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(24.dp).graphicsLayer {
+                                                scaleX = iconScale
+                                                scaleY = iconScale
+                                            }
+                                        )
+                                        
+                                        AnimatedVisibility(
+                                            visible = isSelected,
+                                            enter = fadeIn() + expandVertically(),
+                                            exit = fadeOut() + shrinkVertically()
+                                        ) {
+                                            Text(
+                                                text = stringResource(item.labelRes),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = selectedColor,
+                                                maxLines = 1,
+                                                modifier = Modifier.padding(top = 2.dp)
+                                            )
+                                        }
                                     }
-                                )
+                                }
                             },
-                            label = {
-                                Text(
-                                    text = stringResource(item.labelRes),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = if (isSelected) FontWeight.SemiBold
-                                    else FontWeight.Normal
-                                )
-                            },
+                            label = null,
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = selectedColor,
-                                selectedTextColor = selectedColor,
-                                indicatorColor = selectedColor.copy(alpha = 0.15f),
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                indicatorColor = Color.Transparent
                             )
                         )
                     }
