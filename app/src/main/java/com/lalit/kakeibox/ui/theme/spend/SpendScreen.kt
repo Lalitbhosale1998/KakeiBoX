@@ -243,16 +243,8 @@ fun SpendScreen(
                 )
             }
 
-            // ── Period Navigation Island ──────────────────
-            item {
-                ExpressivePeriodIsland(
-                    currentMonth = uiState.currentMonth,
-                    currentYear = uiState.currentYear,
-                    onMonthChange = viewModel::updateViewedMonth,
-                    onYearChange = viewModel::updateViewedYear,
-                    bentoIdleColor = bentoIdleColor
-                )
-            }
+            // Period Navigation Island removed
+
 
             // ── Budget Health Bar ────────────────────────
             item {
