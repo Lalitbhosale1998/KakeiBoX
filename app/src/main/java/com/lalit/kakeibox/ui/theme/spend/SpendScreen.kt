@@ -22,6 +22,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
@@ -303,9 +305,39 @@ fun SpendScreen(
                             } else false
                         }
                     )
+                    val haptic = LocalHapticFeedback.current
+                    var isPressed by remember { mutableStateOf(false) }
+                    val liftScale by animateFloatAsState(
+                        targetValue = if (isPressed) 1.05f else 1f,
+                        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
+                        label = "lift_scale"
+                    )
+                    val liftElevation by animateDpAsState(
+                        targetValue = if (isPressed) 12.dp else 0.dp,
+                        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
+                        label = "lift_elevation"
+                    )
+
                     SwipeToDismissBox(
                         state = dismissState,
-                        modifier = Modifier.animateItem(),
+                        modifier = Modifier
+                            .animateItem()
+                            .graphicsLayer {
+                                scaleX = liftScale
+                                scaleY = liftScale
+                                shadowElevation = liftElevation.toPx()
+                                clip = false
+                                shape = RoundedCornerShape(28.dp)
+                            }
+                            .pointerInput(Unit) {
+                                awaitPointerEventScope {
+                                    while (true) {
+                                        val event = awaitPointerEvent()
+                                        if (event.type == PointerEventType.Press) isPressed = true
+                                        if (event.type == PointerEventType.Release || event.type == PointerEventType.Exit) isPressed = false
+                                    }
+                                }
+                            },
                         enableDismissFromStartToEnd = false,
                         backgroundContent = { SpendSwipeDeleteBackground() }
                     ) {
