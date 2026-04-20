@@ -22,6 +22,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -470,9 +472,9 @@ fun ExpressiveTotalSpentTicker(
                             (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
                         } else {
-                            // Standard fade for symbols and separators
-                            fadeIn(animationSpec = tween(150))
-                                .togetherWith(fadeOut(animationSpec = tween(150)))
+                            // M3 Expressive: Morphing Currency Symbol
+                            (fadeIn(animationSpec = tween(400)) + scaleIn(initialScale = 0.8f))
+                                .togetherWith(fadeOut(animationSpec = tween(400)) + scaleOut(targetScale = 1.2f))
                         }
                     },
                     label = "spend_digit_ticker_$index"
@@ -543,9 +545,9 @@ fun ExpressiveSmallStatTicker(
                             (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
                         } else {
-                            // Standard fade for symbols and separators
-                            fadeIn(animationSpec = tween(150))
-                                .togetherWith(fadeOut(animationSpec = tween(150)))
+                            // M3 Expressive: Morphing Currency Symbol
+                            (fadeIn(animationSpec = tween(400)) + scaleIn(initialScale = 0.8f))
+                                .togetherWith(fadeOut(animationSpec = tween(400)) + scaleOut(targetScale = 1.2f))
                         }
                     },
                     label = "small_digit_ticker_$index"
