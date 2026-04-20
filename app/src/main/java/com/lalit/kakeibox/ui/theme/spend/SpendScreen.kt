@@ -685,44 +685,59 @@ fun ExpressiveCategoryTabs(
     onSelectWant: () -> Unit
 ) {
     val allWeight by animateFloatAsState(
-        targetValue = if (selectedCategory == null) 1.5f else 1f,
-        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        targetValue = if (selectedCategory == null) 2.0f else 0.8f,
+        animationSpec = spring(
+            dampingRatio = 0.6f,
+            stiffness = Spring.StiffnessLow
+        ),
         label = "all_weight"
     )
     val needWeight by animateFloatAsState(
-        targetValue = if (selectedCategory == SpendCategory.NEED) 1.5f else 1f,
-        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        targetValue = if (selectedCategory == SpendCategory.NEED) 2.0f else 0.8f,
+        animationSpec = spring(
+            dampingRatio = 0.6f,
+            stiffness = Spring.StiffnessLow
+        ),
         label = "need_weight"
     )
     val wantWeight by animateFloatAsState(
-        targetValue = if (selectedCategory == SpendCategory.WANT) 1.5f else 1f,
-        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        targetValue = if (selectedCategory == SpendCategory.WANT) 2.0f else 0.8f,
+        animationSpec = spring(
+            dampingRatio = 0.6f,
+            stiffness = Spring.StiffnessLow
+        ),
         label = "want_weight"
     )
 
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         ExpressiveTab(
             text = "All",
             isSelected = selectedCategory == null,
-            selectedColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedColor = Color(0xFF94A3B8).copy(alpha = 0.15f), // Slate
+            selectedTextColor = Color(0xFF94A3B8),
+            shapeType = "arch",
             modifier = Modifier.weight(allWeight),
-            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
             onClick = onSelectAll
         )
         ExpressiveTab(
             text = "Needs",
             isSelected = selectedCategory == SpendCategory.NEED,
-            selectedColor = MaterialTheme.colorScheme.errorContainer,
+            selectedColor = Color(0xFF6EE7B7).copy(alpha = 0.15f), // Mint
+            selectedTextColor = Color(0xFF6EE7B7),
+            shapeType = "slanted",
             modifier = Modifier.weight(needWeight),
-            selectedTextColor = MaterialTheme.colorScheme.onErrorContainer,
             onClick = onSelectNeed
         )
         ExpressiveTab(
             text = "Wants",
             isSelected = selectedCategory == SpendCategory.WANT,
-            selectedColor = MaterialTheme.colorScheme.tertiaryContainer,
+            selectedColor = Color(0xFFF43F5E).copy(alpha = 0.15f), // Rose
+            selectedTextColor = Color(0xFFF43F5E),
+            shapeType = "clamshell",
             modifier = Modifier.weight(wantWeight),
-            selectedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
             onClick = onSelectWant
         )
     }
