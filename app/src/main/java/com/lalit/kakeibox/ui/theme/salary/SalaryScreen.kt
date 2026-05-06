@@ -736,33 +736,61 @@ fun ExpressiveHistoryBentoBox(
                     overflow = TextOverflow.Ellipsis
                 )
                 
-                val savingsPercent = if (entry.salaryAmount > 0) 
-                    ((entry.savingsAmount.toFloat() / entry.salaryAmount.toFloat()) * 100).toInt()
-                else 0
+                val savingsRatio = if (entry.salaryAmount > 0) 
+                    (entry.savingsAmount.toFloat() / entry.salaryAmount.toFloat())
+                else 0f
+                val savingsPercent = (savingsRatio * 100).toInt()
                 
-                Text(
-                    text = "Saved $savingsPercent%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    fontWeight = FontWeight.Bold
+                val animatedSavingsProgress by animateFloatAsState(
+                    targetValue = savingsRatio,
+                    animationSpec = spring(stiffness = Spring.StiffnessLow),
+                    label = "bento_progress"
                 )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Tiny progress bar
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(if (isLarge) 0.8f else 0.6f)
-                        .height(6.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                Column(
+                    modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
+                    horizontalAlignment = if (isLarge) Alignment.Start else Alignment.CenterHorizontally
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(if (isLarge) 0.85f else 0.9f),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Savings",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "$savingsPercent%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                    
+                    // Premium Bento Progress Bar
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(savingsPercent.toFloat() / 100f)
-                            .fillMaxHeight()
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
-                    )
+                            .padding(top = 6.dp)
+                            .fillMaxWidth(if (isLarge) 0.85f else 0.9f)
+                            .height(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(animatedSavingsProgress.coerceAtLeast(0.01f))
+                                .fillMaxHeight()
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+                                    ),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
                 }
             }
             
