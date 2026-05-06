@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.SolidColor
 import com.personal.kakeibox.ui.salary.SalaryUiState
 import com.personal.kakeibox.ui.salary.SalaryViewModel
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -55,6 +56,8 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import java.util.Locale
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import androidx.compose.ui.focus.onFocusChanged
 import kotlinx.coroutines.withTimeoutOrNull
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
@@ -114,6 +117,12 @@ fun SalaryScreen(
     )
 
     val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
+
+    // Staggered Entrance State
+    var showContent by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        showContent = true
+    }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -236,69 +245,144 @@ fun SalaryScreen(
             ) {
                 // ── Hero Section ──────────────
                 item {
-                    ExpressiveHeroCard(
-                        totalSalary = totalSalary ?: 0L,
-                        totalSavings = totalSavings ?: 0L,
-                        currentEntry = currentEntry,
-                        currentMonth = uiState.currentMonth,
-                        currentYear = uiState.currentYear,
-                        isPrivacyMode = themeSettings.privacyModeEnabled,
-                        onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } },
-                        isPrimaryContainer = isPrimaryContainer,
-                        themeSettings = themeSettings
-                    )
+                    AnimatedVisibility(
+                        visible = showContent,
+                        enter = fadeIn(tween(600)) + slideInVertically(tween(600)) { it / 4 }
+                    ) {
+                        ExpressiveHeroCard(
+                            totalSalary = totalSalary ?: 0L,
+                            totalSavings = totalSavings ?: 0L,
+                            currentEntry = currentEntry,
+                            currentMonth = uiState.currentMonth,
+                            currentYear = uiState.currentYear,
+                            isPrivacyMode = themeSettings.privacyModeEnabled,
+                            onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } },
+                            isPrimaryContainer = isPrimaryContainer,
+                            themeSettings = themeSettings,
+                            donutMode = uiState.donutMode,
+                            onDonutClick = viewModel::toggleDonutMode
+                        )
+                    }
                 }
 
                 // ── Detailed Stats ───────────
                 item {
-                    ExpressiveStatsGrid(
-                        totalSavings = totalSavings ?: 0L,
-                        totalRemittance = totalRemittance ?: 0L,
-                        isPrivacyMode = themeSettings.privacyModeEnabled,
-                        onRemittanceClick = { viewModel.openAddDialog() },
-                        bentoIdleColor = bentoIdleColor,
-                        themeSettings = themeSettings
-                    )
+                    AnimatedVisibility(
+                        visible = showContent,
+                        enter = fadeIn(tween(600, 150)) + slideInVertically(tween(600, 150)) { it / 4 }
+                    ) {
+                        ExpressiveStatsGrid(
+                            totalSavings = totalSavings ?: 0L,
+                            totalRemittance = totalRemittance ?: 0L,
+                            isPrivacyMode = themeSettings.privacyModeEnabled,
+                            onRemittanceClick = { viewModel.openAddDialog() },
+                            bentoIdleColor = bentoIdleColor,
+                            themeSettings = themeSettings
+                        )
+                    }
                 }
 
-                // ── History Header ───────────
+                // ── History Header & Filters ──
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    AnimatedVisibility(
+                        visible = showContent,
+                        enter = fadeIn(tween(600, 300)) + slideInVertically(tween(600, 300)) { it / 4 }
                     ) {
-                        Text(
-                            text = "Recent History",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black
-                        )
-                        TextButton(onClick = { viewModel.toggleHistorySheet() }) {
-                            Text("See All")
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "History",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Black
+                                )
+                                TextButton(onClick = { viewModel.toggleHistorySheet() }) {
+                                    Text("See All")
+                                }
+                            }
+                            
+                            // Contextual Chip Filtering
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            ) {
+                                item {
+                                    FilterChip(
+                                        selected = uiState.currentFilter == SalaryFilter.ALL,
+                                        onClick = { viewModel.setFilter(SalaryFilter.ALL) },
+                                        label = { Text("All Time") },
+                                        shape = CircleShape
+                                    )
+                                }
+                                item {
+                                    FilterChip(
+                                        selected = uiState.currentFilter == SalaryFilter.THIS_YEAR,
+                                        onClick = { viewModel.setFilter(SalaryFilter.THIS_YEAR) },
+                                        label = { Text("This Year") },
+                                        shape = CircleShape
+                                    )
+                                }
+                                item {
+                                    FilterChip(
+                                        selected = uiState.currentFilter == SalaryFilter.HIGH_SAVINGS,
+                                        onClick = { viewModel.setFilter(SalaryFilter.HIGH_SAVINGS) },
+                                        label = { Text("High Savings") },
+                                        shape = CircleShape
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
-                // ── History List ─────────────
-                if (allEntries.isEmpty()) {
+                // ── History List (Organic Bento Flow) ──
+                val filteredEntries = when (uiState.currentFilter) {
+                    SalaryFilter.ALL -> allEntries
+                    SalaryFilter.THIS_YEAR -> allEntries.filter { it.year == DateUtils.getCurrentYear() }
+                    SalaryFilter.HIGH_SAVINGS -> allEntries.filter { 
+                        it.salaryAmount > 0 && (it.savingsAmount.toFloat() / it.salaryAmount) >= 0.25f 
+                    }
+                }
+
+                if (filteredEntries.isEmpty()) {
                     item {
                         ExpressiveEmptyState(
-                            message = "No income logged yet",
-                            icon = "💰",
+                            message = "No records found",
+                            icon = "🔍",
                             color = onContainerColor
                         )
                     }
                 } else {
+                    val historyEntries = filteredEntries.take(6)
+                    
                     item {
-                        val historyEntries = allEntries.take(4)
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            historyEntries.chunked(2).forEach { rowEntries ->
+                            // Organic Bento Flow Logic
+                            // 1. First item is prominent
+                            historyEntries.firstOrNull()?.let { first ->
+                                ExpressiveHistoryBentoBox(
+                                    entry = first,
+                                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                                    onEdit = { viewModel.openEditDialog(first) },
+                                    modifier = Modifier.fillMaxWidth().height(140.dp),
+                                    themeSettings = themeSettings,
+                                    isLarge = true
+                                )
+                            }
+                            
+                            // 2. Remaining items in pairs
+                            val remaining = historyEntries.drop(1)
+                            remaining.chunked(2).forEach { rowEntries ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
                                     rowEntries.forEach { entry ->
                                         ExpressiveHistoryBentoBox(
@@ -381,7 +465,9 @@ fun ExpressiveHeroCard(
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
     isPrimaryContainer: Boolean = false,
-    themeSettings: ThemeSettings
+    themeSettings: ThemeSettings,
+    donutMode: DonutDisplayMode = DonutDisplayMode.PERCENTAGE,
+    onDonutClick: () -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
     
@@ -444,7 +530,7 @@ fun ExpressiveHeroCard(
                 }
             }
 
-            // ── Animated donut arc ─────────────────────────────
+            // ── Interactive Donut Engagement ─────────────────────
             val savingsRatio = if (totalSalary > 0) 
                 (totalSavings.toFloat() / totalSalary).coerceIn(0f, 1f)
             else 0f
@@ -458,42 +544,95 @@ fun ExpressiveHeroCard(
                 label = "savings_progress"
             )
 
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(90.dp)
+            Surface(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onDonutClick()
+                },
+                color = Color.Transparent,
+                shape = CircleShape
             ) {
-                val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
-                val progressColor = MaterialTheme.colorScheme.onPrimary
-                
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val stroke = 10.dp.toPx()
-                    drawArc(
-                        color = trackColor,
-                        startAngle = 0f,
-                        sweepAngle = 360f,
-                        useCenter = false,
-                        style = Stroke(width = stroke, cap = StrokeCap.Round)
-                    )
-                    drawArc(
-                        color = progressColor,
-                        startAngle = -90f,
-                        sweepAngle = 360f * animatedProgress,
-                        useCenter = false,
-                        style = Stroke(width = stroke, cap = StrokeCap.Round)
-                    )
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "${(savingsRatio * 100).toInt()}%",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black
-                    )
-                    Text(
-                        text = "SAVED",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 8.sp
-                    )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(100.dp).padding(4.dp)
+                ) {
+                    val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
+                    val progressColor = MaterialTheme.colorScheme.onPrimary
+                    
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val stroke = 10.dp.toPx()
+                        drawArc(
+                            color = trackColor,
+                            startAngle = 0f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                        )
+                        drawArc(
+                            color = progressColor,
+                            startAngle = -90f,
+                            sweepAngle = 360f * animatedProgress,
+                            useCenter = false,
+                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                        )
+                    }
+                    
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AnimatedContent(
+                            targetState = donutMode,
+                            transitionSpec = {
+                                (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut() + slideOutVertically { -it / 2 })
+                            },
+                            label = "donut_mode_ticker"
+                        ) { mode ->
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                when (mode) {
+                                    DonutDisplayMode.PERCENTAGE -> {
+                                        Text(
+                                            text = "${(savingsRatio * 100).toInt()}%",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.Black
+                                        )
+                                        Text(
+                                            text = "SAVED",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 8.sp
+                                        )
+                                    }
+                                    DonutDisplayMode.ABSOLUTE -> {
+                                        Text(
+                                            text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode, compact = true),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Black
+                                        )
+                                        Text(
+                                            text = "TOTAL",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 8.sp
+                                        )
+                                    }
+                                    DonutDisplayMode.REMAINING_DAYS -> {
+                                        val today = LocalDate.now()
+                                        val nextMonth = today.withDayOfMonth(1).plusMonths(1)
+                                        val days = ChronoUnit.DAYS.between(today, nextMonth)
+                                        Text(
+                                            text = days.toString(),
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.Black
+                                        )
+                                        Text(
+                                            text = "DAYS LEFT",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 8.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -551,73 +690,95 @@ fun ExpressiveHistoryBentoBox(
     isPrivacyMode: Boolean,
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
-    themeSettings: ThemeSettings
+    themeSettings: ThemeSettings,
+    isLarge: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
     Surface(
-        modifier = modifier.aspectRatio(1.1f),
+        modifier = modifier,
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = if (isLarge) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainerHigh,
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onEdit()
         }
     ) {
-        Column(
+        Row(
             modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = if (isLarge) Arrangement.SpaceBetween else Arrangement.Center
         ) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            Column(
+                horizontalAlignment = if (isLarge) Alignment.Start else Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = if (isLarge) Modifier.weight(1f) else Modifier
             ) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = DateUtils.getShortMonthName(entry.month).uppercase(),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
                 Text(
-                    text = DateUtils.getShortMonthName(entry.month).uppercase(),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelMedium,
+                    text = CurrencyUtils.formatAmount(entry.salaryAmount, themeSettings.currencySymbol, isPrivacyMode),
+                    style = if (isLarge) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.primary
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = CurrencyUtils.formatAmount(entry.salaryAmount, themeSettings.currencySymbol, isPrivacyMode),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            
-            val savingsPercent = if (entry.salaryAmount > 0) 
-                ((entry.savingsAmount.toFloat() / entry.salaryAmount.toFloat()) * 100).toInt()
-            else 0
-            
-            Text(
-                text = "Saved $savingsPercent%",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                fontWeight = FontWeight.Bold
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            // Tiny progress bar at the bottom of the card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(4.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-            ) {
+                
+                val savingsPercent = if (entry.salaryAmount > 0) 
+                    ((entry.savingsAmount.toFloat() / entry.salaryAmount.toFloat()) * 100).toInt()
+                else 0
+                
+                Text(
+                    text = "Saved $savingsPercent%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Tiny progress bar
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(savingsPercent.toFloat() / 100f)
-                        .fillMaxHeight()
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                )
+                        .fillMaxWidth(if (isLarge) 0.8f else 0.6f)
+                        .height(6.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(savingsPercent.toFloat() / 100f)
+                            .fillMaxHeight()
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                    )
+                }
+            }
+            
+            if (isLarge) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.padding(12.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
@@ -778,6 +939,7 @@ fun ExpressiveTotalEarningsTicker(
     isPrivacyMode: Boolean,
     themeSettings: ThemeSettings
 ) {
+    val haptic = LocalHapticFeedback.current
     val formattedTotal = CurrencyUtils.formatAmount(totalSalary, themeSettings.currencySymbol, isPrivacyMode)
     
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -796,6 +958,9 @@ fun ExpressiveTotalEarningsTicker(
                     targetState = char,
                     transitionSpec = {
                         if (isDigit) {
+                            // Micro-Haptic "Ticker" Feedback
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+
                             // The "Physical Drum" Roll effect for digits
                             (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())

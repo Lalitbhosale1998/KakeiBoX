@@ -15,6 +15,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import java.util.Calendar
+
+enum class SalaryFilter {
+    ALL, THIS_YEAR, HIGH_SAVINGS
+}
+
+enum class DonutDisplayMode {
+    PERCENTAGE, ABSOLUTE, REMAINING_DAYS
+}
+
 // UI state for the salary screen
 data class SalaryUiState(
     val currentMonth: Int = DateUtils.getCurrentMonth(),
@@ -36,7 +46,11 @@ data class SalaryUiState(
 
     // Validation
     val salaryError: String? = null,
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
+
+    // Expressive Refinements
+    val currentFilter: SalaryFilter = SalaryFilter.ALL,
+    val donutMode: DonutDisplayMode = DonutDisplayMode.PERCENTAGE
 )
 
 @HiltViewModel
@@ -88,6 +102,23 @@ class SalaryViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = 0L
         )
+
+    // ── Expressive Refinements ───────────────────────
+
+    fun setFilter(filter: SalaryFilter) {
+        _uiState.update { it.copy(currentFilter = filter) }
+    }
+
+    fun toggleDonutMode() {
+        _uiState.update {
+            val nextMode = when (it.donutMode) {
+                DonutDisplayMode.PERCENTAGE -> DonutDisplayMode.ABSOLUTE
+                DonutDisplayMode.ABSOLUTE -> DonutDisplayMode.REMAINING_DAYS
+                DonutDisplayMode.REMAINING_DAYS -> DonutDisplayMode.PERCENTAGE
+            }
+            it.copy(donutMode = nextMode)
+        }
+    }
 
     // ── Dialog Controls ──────────────────────────────
 
