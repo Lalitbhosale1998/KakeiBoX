@@ -75,6 +75,7 @@ fun CommuteScreen(
 
     val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
+    val statusBarPadding = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
     val maxOffsetPx = with(density) { 70.dp.toPx() }
     val scrollOffset by remember {
         derivedStateOf {
@@ -149,7 +150,7 @@ fun CommuteScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(150.dp))
+                    Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
                 }
                 item {
                     CommuteHeroSection(

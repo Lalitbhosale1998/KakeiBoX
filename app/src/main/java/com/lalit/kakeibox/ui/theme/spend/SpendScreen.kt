@@ -126,6 +126,7 @@ fun SpendScreen(
     val historyBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
+    val statusBarPadding = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
     val maxOffsetPx = with(density) { 70.dp.toPx() }
     val scrollOffset by remember {
         derivedStateOf {
@@ -201,7 +202,7 @@ fun SpendScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(150.dp))
+                    Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
                 }
             // ── Bento Box Hero Grid ──────────────────────
             item {
