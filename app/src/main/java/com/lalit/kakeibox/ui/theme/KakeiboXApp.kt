@@ -261,15 +261,13 @@ fun KakeiboXApp(
                                 }
                             },
                             icon = {
-                                val bgAlpha by animateFloatAsState(if (isSelected) 0.15f else 0f)
+                                val bgAlpha by animateFloatAsState(if (isSelected) 0.15f else 0f, label = "bg_alpha_${item.route}")
                                 
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxWidth() // Take full weight of the parent
-                                        .padding(horizontal = 12.dp) // Gap between pills
+                                        .size(width = 88.dp, height = 62.dp) // Sleek fixed size for the indicator pill
                                         .clip(itemShape)
-                                        .background(selectedColor.copy(alpha = bgAlpha))
-                                        .padding(vertical = 10.dp),
+                                        .background(selectedColor.copy(alpha = bgAlpha)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Column(
@@ -278,13 +276,13 @@ fun KakeiboXApp(
                                     ) {
                                         Box(
                                             contentAlignment = Alignment.Center,
-                                            modifier = Modifier.size(36.dp)
+                                            modifier = Modifier.size(32.dp)
                                         ) {
                                             // Pulsing Halo Ring
                                             if (isSelected) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .size(36.dp)
+                                                        .size(32.dp)
                                                         .graphicsLayer {
                                                             scaleX = 1f + (haloProgress.value * 0.8f)
                                                             scaleY = 1f + (haloProgress.value * 0.8f)
@@ -301,7 +299,7 @@ fun KakeiboXApp(
                                                 imageVector = if (isSelected) item.selectedIcon else item.icon,
                                                 contentDescription = stringResource(item.labelRes),
                                                 tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(24.dp).graphicsLayer {
+                                                modifier = Modifier.size(22.dp).graphicsLayer {
                                                     scaleX = iconScale
                                                     scaleY = iconScale
                                                     translationY = iconTranslationY.dp.toPx()
