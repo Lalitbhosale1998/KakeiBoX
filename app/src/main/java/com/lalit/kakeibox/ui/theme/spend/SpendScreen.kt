@@ -115,7 +115,7 @@ fun SpendScreen(
     val totalSpendAllTime by viewModel.totalSpendAllTime.collectAsStateWithLifecycle()
     val salary by viewModel.currentSalary.collectAsStateWithLifecycle()
 
-    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
+    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING || themeSettings.navBarStyle == NavBarStyle.SPLIT
     val fabPadding by animateDpAsState(
         targetValue = if (isFloatingNav) 100.dp else 0.dp,
         animationSpec = spring(stiffness = Spring.StiffnessLow),

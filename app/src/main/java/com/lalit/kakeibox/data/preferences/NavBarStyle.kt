@@ -2,7 +2,8 @@ package com.personal.kakeibox.data.preferences
 
 enum class NavBarStyle {
     FULL_WIDTH,
-    FLOATING;
+    FLOATING,
+    SPLIT;
 
     companion object {
         fun fromStorage(value: String?): NavBarStyle {

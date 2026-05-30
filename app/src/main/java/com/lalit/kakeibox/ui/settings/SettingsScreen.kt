@@ -374,12 +374,19 @@ fun SettingsScreen(
                     ) {
                         val currentNavStyle = themeSettings.navBarStyle
                         val fullWidthWeight by animateFloatAsState(
-                            targetValue = if (currentNavStyle == NavBarStyle.FULL_WIDTH) 1.5f else 1f,
-                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+                            targetValue = if (currentNavStyle == NavBarStyle.FULL_WIDTH) 1.5f else 0.8f,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                            label = "nav_full_weight"
                         )
                         val floatingWeight by animateFloatAsState(
-                            targetValue = if (currentNavStyle == NavBarStyle.FLOATING) 1.5f else 1f,
-                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+                            targetValue = if (currentNavStyle == NavBarStyle.FLOATING) 1.5f else 0.8f,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                            label = "nav_floating_weight"
+                        )
+                        val splitWeight by animateFloatAsState(
+                            targetValue = if (currentNavStyle == NavBarStyle.SPLIT) 1.5f else 0.8f,
+                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                            label = "nav_split_weight"
                         )
 
                         Row(
@@ -392,7 +399,7 @@ fun SettingsScreen(
                                 selectedColor = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.weight(fullWidthWeight),
                                 selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                shapeType = "clamshell",
+                                shapeType = "arch",
                                 onClick = { viewModel.setNavBarStyle(NavBarStyle.FULL_WIDTH) }
                             )
                             ExpressiveTab(
@@ -403,6 +410,15 @@ fun SettingsScreen(
                                 selectedTextColor = MaterialTheme.colorScheme.onSecondary,
                                 shapeType = "pill",
                                 onClick = { viewModel.setNavBarStyle(NavBarStyle.FLOATING) }
+                            )
+                            ExpressiveTab(
+                                text = "Split-Dock",
+                                isSelected = currentNavStyle == NavBarStyle.SPLIT,
+                                selectedColor = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.weight(splitWeight),
+                                selectedTextColor = MaterialTheme.colorScheme.onTertiary,
+                                shapeType = "clamshell",
+                                onClick = { viewModel.setNavBarStyle(NavBarStyle.SPLIT) }
                             )
                         }
                     }

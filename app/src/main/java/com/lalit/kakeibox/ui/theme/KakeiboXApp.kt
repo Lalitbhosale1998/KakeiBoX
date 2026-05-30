@@ -652,6 +652,429 @@ fun KakeiboXApp(
                 }
             }
         }
+
+        if (themeSettings.navBarStyle == NavBarStyle.SPLIT) {
+            val leftItems = bottomNavItems.filter { it.route != NavRoutes.Settings.route }
+            val rightItems = bottomNavItems.filter { it.route == NavRoutes.Settings.route }
+            val leftTabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
+            val leftSelectedIndex = remember(currentDestination, leftItems) {
+                leftItems.indexOfFirst { item ->
+                    currentDestination?.hierarchy?.any { it.route == item.route } == true
+                }
+            }
+
+            val leftOuterCornerTopStart by animateIntAsState(
+                targetValue = if (leftSelectedIndex == 0) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "left_outer_corner_ts"
+            )
+            val leftOuterCornerBottomStart by animateIntAsState(
+                targetValue = if (leftSelectedIndex == 0) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "left_outer_corner_bs"
+            )
+            val leftOuterCornerTopEnd by animateIntAsState(
+                targetValue = if (leftSelectedIndex == leftItems.lastIndex) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "left_outer_corner_te"
+            )
+            val leftOuterCornerBottomEnd by animateIntAsState(
+                targetValue = if (leftSelectedIndex == leftItems.lastIndex) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "left_outer_corner_be"
+            )
+
+            val leftOuterShape = RoundedCornerShape(
+                topStart = leftOuterCornerTopStart.dp,
+                bottomStart = leftOuterCornerBottomStart.dp,
+                topEnd = leftOuterCornerTopEnd.dp,
+                bottomEnd = leftOuterCornerBottomEnd.dp
+            )
+
+            val isRightSelected = currentDestination?.hierarchy?.any {
+                it.route == NavRoutes.Settings.route
+            } == true
+
+            val rightOuterCornerTopStart by animateIntAsState(
+                targetValue = if (isRightSelected) 12 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "right_outer_corner_ts"
+            )
+            val rightOuterCornerTopEnd by animateIntAsState(
+                targetValue = if (isRightSelected) 32 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "right_outer_corner_te"
+            )
+            val rightOuterCornerBottomStart by animateIntAsState(
+                targetValue = if (isRightSelected) 32 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "right_outer_corner_bs"
+            )
+            val rightOuterCornerBottomEnd by animateIntAsState(
+                targetValue = if (isRightSelected) 12 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "right_outer_corner_be"
+            )
+
+            val rightOuterShape = RoundedCornerShape(
+                topStart = rightOuterCornerTopStart.dp,
+                topEnd = rightOuterCornerTopEnd.dp,
+                bottomStart = rightOuterCornerBottomStart.dp,
+                bottomEnd = rightOuterCornerBottomEnd.dp
+            )
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // ── Left Dock Pill ──
+                Surface(
+                    modifier = Modifier
+                        .height(82.dp)
+                        .weight(1f)
+                        .padding(end = 12.dp),
+                    shape = leftOuterShape,
+                    color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f),
+                    tonalElevation = 0.dp,
+                    shadowElevation = 10.dp,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                    )
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // Morphing Jelly Sliding Indicator for Left Dock
+                        if (leftSelectedIndex != -1 && leftTabBounds.size == leftItems.size) {
+                            val targetBounds = leftTabBounds.getOrNull(leftSelectedIndex) ?: Pair(0f, 0f)
+                            val animatedX by animateFloatAsState(
+                                targetValue = targetBounds.first,
+                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                label = "left_pill_x"
+                            )
+                            val animatedWidth by animateFloatAsState(
+                                targetValue = targetBounds.second,
+                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                label = "left_pill_width"
+                            )
+                            val targetColor = when (leftItems.getOrNull(leftSelectedIndex)?.route) {
+                                NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
+                                NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
+                                NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f)
+                                else -> Color.Transparent
+                            }
+                            val animatedColor by animateColorAsState(targetColor, label = "left_pill_color")
+
+                            val distance = targetBounds.first - animatedX
+                            val absDistance = java.lang.Math.abs(distance)
+                            val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
+                            val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .offset { IntOffset(animatedX.roundToInt(), 0) }
+                                    .width(with(LocalDensity.current) { animatedWidth.toDp() })
+                                    .fillMaxHeight()
+                                    .graphicsLayer {
+                                        scaleX = stretchX
+                                        scaleY = squashY
+                                        transformOrigin = TransformOrigin(0.5f, 0.5f)
+                                    }
+                                    .background(animatedColor, RoundedCornerShape(32.dp))
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .selectableGroup()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            leftItems.forEachIndexed { index, item ->
+                                val isSelected = currentDestination?.hierarchy?.any {
+                                    it.route == item.route
+                                } == true
+
+                                val segmentWeight by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.4f else 1f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "left_weight_anim"
+                                )
+
+                                val iconScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.2f else 1f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium
+                                    ),
+                                    label = "left_icon_scale"
+                                )
+
+                                val iconTranslationY by animateFloatAsState(
+                                    targetValue = if (isSelected && item.route == NavRoutes.Salary.route) -5f else 0f,
+                                    animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                                    label = "left_icon_y_${item.route}"
+                                )
+                                val iconTranslationX by animateFloatAsState(
+                                    targetValue = if (isSelected && item.route == NavRoutes.Commute.route) 5f else 0f,
+                                    animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                                    label = "left_icon_x_${item.route}"
+                                )
+                                val iconRotation by animateFloatAsState(
+                                    targetValue = if (isSelected && item.route == NavRoutes.Spend.route) 15f else 0f,
+                                    animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                                    label = "left_icon_rot_${item.route}"
+                                )
+
+                                val labelScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.05f else 0.95f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "left_label_scale_${item.route}"
+                                )
+
+                                val contentColor by animateColorAsState(
+                                    targetValue = if (isSelected) {
+                                        when (item.route) {
+                                            NavRoutes.Salary.route -> Color(0xFFFFD700)
+                                            NavRoutes.Spend.route -> Color(0xFFF43F5E)
+                                            NavRoutes.Commute.route -> Color(0xFF6EE7B7)
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        }
+                                    } else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    label = "left_content_color"
+                                )
+
+                                Column(
+                                    modifier = Modifier
+                                        .weight(segmentWeight)
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(32.dp))
+                                        .onGloballyPositioned { coordinates ->
+                                            val parent = coordinates.parentLayoutCoordinates
+                                            if (parent != null) {
+                                                val localPos = parent.localPositionOf(coordinates, Offset.Zero)
+                                                val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
+                                                if (index >= leftTabBounds.size) {
+                                                    leftTabBounds.add(newBounds)
+                                                } else if (leftTabBounds[index] != newBounds) {
+                                                    leftTabBounds[index] = newBounds
+                                                }
+                                            }
+                                        }
+                                        .selectable(
+                                            selected = isSelected,
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                navController.navigate(item.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            },
+                                            role = Role.Tab
+                                        ),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        if (isSelected) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .graphicsLayer {
+                                                        scaleX = 1f + (haloProgress.value * 0.8f)
+                                                        scaleY = 1f + (haloProgress.value * 0.8f)
+                                                        alpha = 1f - haloProgress.value
+                                                    }
+                                                    .background(
+                                                        color = contentColor.copy(alpha = 0.35f),
+                                                        shape = CircleShape
+                                                    )
+                                            )
+                                        }
+
+                                        Icon(
+                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                            contentDescription = stringResource(item.labelRes),
+                                            tint = contentColor,
+                                            modifier = Modifier.size(24.dp).graphicsLayer {
+                                                scaleX = iconScale
+                                                scaleY = iconScale
+                                                translationY = iconTranslationY.dp.toPx()
+                                                translationX = iconTranslationX.dp.toPx()
+                                                rotationZ = iconRotation
+                                            }
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(2.dp))
+
+                                    Text(
+                                        text = stringResource(item.labelRes),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            letterSpacing = 0.1.sp
+                                        ),
+                                        color = contentColor,
+                                        maxLines = 1,
+                                        modifier = Modifier.graphicsLayer {
+                                            scaleX = labelScale
+                                            scaleY = labelScale
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── Right Dock Pill (Settings Capsule) ──
+                rightItems.firstOrNull()?.let { item ->
+                    val isSelected = currentDestination?.hierarchy?.any {
+                        it.route == item.route
+                    } == true
+
+                    val contentColor by animateColorAsState(
+                        targetValue = if (isSelected) Color(0xFF8B5CF6) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "right_content_color"
+                    )
+
+                    val bgAlpha by animateFloatAsState(
+                        targetValue = if (isSelected) 0.15f else 0f,
+                        label = "right_bg_alpha"
+                    )
+
+                    val rightIconScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.25f else 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        ),
+                        label = "right_icon_scale"
+                    )
+
+                    val rightIconRotation by animateFloatAsState(
+                        targetValue = if (isSelected) 360f else 0f,
+                        animationSpec = spring(
+                            dampingRatio = 0.6f,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "right_icon_rot"
+                    )
+
+                    Surface(
+                        modifier = Modifier
+                            .height(82.dp)
+                            .width(82.dp)
+                            .selectable(
+                                selected = isSelected,
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    navController.navigate(item.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                role = Role.Tab
+                            ),
+                        shape = rightOuterShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f),
+                        tonalElevation = 0.dp,
+                        shadowElevation = 10.dp,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(32.dp))
+                                .background(contentColor.copy(alpha = bgAlpha)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .graphicsLayer {
+                                                    scaleX = 1f + (haloProgress.value * 0.8f)
+                                                    scaleY = 1f + (haloProgress.value * 0.8f)
+                                                    alpha = 1f - haloProgress.value
+                                                }
+                                                .background(
+                                                    color = contentColor.copy(alpha = 0.35f),
+                                                    shape = CircleShape
+                                                )
+                                        )
+                                    }
+
+                                    Icon(
+                                        imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                        contentDescription = stringResource(item.labelRes),
+                                        tint = contentColor,
+                                        modifier = Modifier.size(24.dp).graphicsLayer {
+                                            scaleX = rightIconScale
+                                            scaleY = rightIconScale
+                                            rotationZ = rightIconRotation
+                                        }
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(2.dp))
+
+                                Text(
+                                    text = stringResource(item.labelRes),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        letterSpacing = 0.1.sp
+                                    ),
+                                    color = contentColor,
+                                    maxLines = 1,
+                                    modifier = Modifier.graphicsLayer {
+                                        scaleX = if (isSelected) 1.05f else 0.95f
+                                        scaleY = if (isSelected) 1.05f else 0.95f
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 }

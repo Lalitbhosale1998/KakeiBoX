@@ -99,7 +99,7 @@ fun SalaryScreen(
     val totalSalary by viewModel.totalSalary.collectAsStateWithLifecycle()
     val totalRemittance by viewModel.totalRemittance.collectAsStateWithLifecycle()
     
-    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
+    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING || themeSettings.navBarStyle == NavBarStyle.SPLIT
     val fabPadding by animateDpAsState(
         targetValue = if (isFloatingNav) 100.dp else 0.dp,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
