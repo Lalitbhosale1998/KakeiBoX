@@ -72,6 +72,15 @@ import com.personal.kakeibox.ui.settings.SettingsScreen
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.spend.SpendScreen
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateListOf
+import kotlin.math.roundToInt
 
 
 @Composable
@@ -258,6 +267,13 @@ fun KakeiboXApp(
 
         // ── Floating "Bento" Navigation Bar Overlay ──
         if (themeSettings.navBarStyle == NavBarStyle.FLOATING) {
+            val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
+            val selectedIndex = remember(currentDestination, bottomNavItems) {
+                bottomNavItems.indexOfFirst { item ->
+                    currentDestination?.hierarchy?.any { it.route == item.route } == true
+                }.coerceAtLeast(0)
+            }
+
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -277,113 +293,144 @@ fun KakeiboXApp(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
                     )
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .selectableGroup()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        bottomNavItems.forEach { item ->
-                            val isSelected = currentDestination?.hierarchy?.any {
-                                it.route == item.route
-                            } == true
-
-                            // ── Expressive Animations ──
-                            
-                            // 1. Adaptive Weight: Active tab expands
-                            val segmentWeight by animateFloatAsState(
-                                targetValue = if (isSelected) 1.4f else 1f,
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessLow
-                                ),
-                                label = "weight_anim"
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // ── Morphing Sliding Background Pill ──
+                        if (tabBounds.size == bottomNavItems.size) {
+                            val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
+                            val animatedX by animateFloatAsState(
+                                targetValue = targetBounds.first,
+                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                label = "pill_x"
                             )
-
-                            // 2. Icon Bounce
-                            val iconScale by animateFloatAsState(
-                                targetValue = if (isSelected) 1.2f else 1f,
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessMedium
-                                ),
-                                label = "floating_icon_scale"
+                            val animatedWidth by animateFloatAsState(
+                                targetValue = targetBounds.second,
+                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                label = "pill_width"
                             )
+                            val targetColor = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
+                                NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
+                                NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
+                                NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f)
+                                NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f)
+                                else -> Color.Transparent
+                            }
+                            val animatedColor by animateColorAsState(targetColor, label = "pill_color")
 
-                            val containerColor by animateColorAsState(
-                                targetValue = if (isSelected) {
-                                    when (item.route) {
-                                        NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f) // Soft Gold Glow
-                                        NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)  // Soft Rose Glow
-                                        NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f) // Soft Mint Glow
-                                        NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f) // Soft Violet Glow
-                                        else -> Color.Transparent
-                                    }
-                                } else Color.Transparent,
-                                animationSpec = tween(300),
-                                label = "tab_bg_anim"
-                            )
-
-                            val contentColor by animateColorAsState(
-                                targetValue = if (isSelected) {
-                                    when (item.route) {
-                                        NavRoutes.Salary.route -> Color(0xFFFFD700) // Vibrant Gold
-                                        NavRoutes.Spend.route -> Color(0xFFF43F5E)  // Vibrant Rose
-                                        NavRoutes.Commute.route -> Color(0xFF6EE7B7) // Fresh Mint
-                                        NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Vibrant Violet
-                                        else -> MaterialTheme.colorScheme.onSurface
-                                    }
-                                } else MaterialTheme.colorScheme.onSurfaceVariant,
-                                label = "content_color_anim"
-                            )
-
-                            Column(
+                            Box(
                                 modifier = Modifier
-                                    .weight(segmentWeight) // Apply adaptive weight
+                                    .padding(8.dp) // Match Row padding
+                                    .offset { IntOffset(animatedX.roundToInt(), 0) }
+                                    .width(with(LocalDensity.current) { animatedWidth.toDp() })
                                     .fillMaxHeight()
-                                    .clip(RoundedCornerShape(32.dp))
-                                    .background(containerColor)
-                                    .selectable(
-                                        selected = isSelected,
-                                        onClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            navController.navigate(item.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
+                                    .background(animatedColor, RoundedCornerShape(32.dp))
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .selectableGroup()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            bottomNavItems.forEachIndexed { index, item ->
+                                val isSelected = currentDestination?.hierarchy?.any {
+                                    it.route == item.route
+                                } == true
+
+                                // ── Expressive Animations ──
+                                
+                                // 1. Adaptive Weight: Active tab expands
+                                val segmentWeight by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.4f else 1f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "weight_anim"
+                                )
+
+                                // 2. Icon Bounce
+                                val iconScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.2f else 1f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium
+                                    ),
+                                    label = "floating_icon_scale"
+                                )
+
+                                val contentColor by animateColorAsState(
+                                    targetValue = if (isSelected) {
+                                        when (item.route) {
+                                            NavRoutes.Salary.route -> Color(0xFFFFD700) // Vibrant Gold
+                                            NavRoutes.Spend.route -> Color(0xFFF43F5E)  // Vibrant Rose
+                                            NavRoutes.Commute.route -> Color(0xFF6EE7B7) // Fresh Mint
+                                            NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Vibrant Violet
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        }
+                                    } else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    label = "content_color_anim"
+                                )
+
+                                Column(
+                                    modifier = Modifier
+                                        .weight(segmentWeight) // Apply adaptive weight
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(32.dp))
+                                        .onGloballyPositioned { coordinates ->
+                                            val parent = coordinates.parentLayoutCoordinates
+                                            if (parent != null) {
+                                                val localPos = parent.localPositionOf(coordinates, Offset.Zero)
+                                                val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
+                                                if (index >= tabBounds.size) {
+                                                    tabBounds.add(newBounds)
+                                                } else if (tabBounds[index] != newBounds) {
+                                                    tabBounds[index] = newBounds
                                                 }
-                                                launchSingleTop = true
-                                                restoreState = true
                                             }
-                                        },
-                                        role = Role.Tab
-                                    ),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                    contentDescription = stringResource(item.labelRes),
-                                    tint = contentColor,
-                                    modifier = Modifier.size(24.dp).graphicsLayer {
-                                        scaleX = iconScale
-                                        scaleY = iconScale
-                                    }
-                                )
+                                        }
+                                        .selectable(
+                                            selected = isSelected,
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                navController.navigate(item.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            },
+                                            role = Role.Tab
+                                        ),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                        contentDescription = stringResource(item.labelRes),
+                                        tint = contentColor,
+                                        modifier = Modifier.size(24.dp).graphicsLayer {
+                                            scaleX = iconScale
+                                            scaleY = iconScale
+                                        }
+                                    )
 
-                                Spacer(modifier = Modifier.height(2.dp))
+                                    Spacer(modifier = Modifier.height(2.dp))
 
-                                Text(
-                                    text = stringResource(item.labelRes),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
-                                        fontSize = 11.sp,
-                                        letterSpacing = 0.1.sp
-                                    ),
-                                    color = contentColor,
-                                    maxLines = 1
-                                )
+                                    Text(
+                                        text = stringResource(item.labelRes),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            letterSpacing = 0.1.sp
+                                        ),
+                                        color = contentColor,
+                                        maxLines = 1
+                                    )
+                                }
                             }
                         }
                     }

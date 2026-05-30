@@ -59,6 +59,7 @@ import java.util.Locale
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import androidx.compose.ui.focus.onFocusChanged
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.settings.ThemeViewModel
@@ -74,6 +75,7 @@ import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressivePeriodSelector
 import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
+import com.personal.kakeibox.ui.components.ExpressiveChip
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -131,9 +133,15 @@ fun SalaryScreen(
     val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
 
     // Staggered Entrance State
-    var showContent by remember { mutableStateOf(false) }
+    var showHero by remember { mutableStateOf(false) }
+    var showStats by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        showContent = true
+        showHero = true
+        delay(100)
+        showStats = true
+        delay(100)
+        showHistory = true
     }
 
     LaunchedEffect(uiState.snackbarMessage) {
@@ -193,8 +201,9 @@ fun SalaryScreen(
                 // ── Hero Section ──────────────
                 item {
                     AnimatedVisibility(
-                        visible = showContent,
-                        enter = fadeIn(tween(600)) + slideInVertically(tween(600)) { it / 4 }
+                        visible = showHero,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
                         ExpressiveHeroCard(
                             totalSalary = totalSalary ?: 0L,
@@ -215,8 +224,9 @@ fun SalaryScreen(
                 // ── Detailed Stats ───────────
                 item {
                     AnimatedVisibility(
-                        visible = showContent,
-                        enter = fadeIn(tween(600, 150)) + slideInVertically(tween(600, 150)) { it / 4 }
+                        visible = showStats,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
                         ExpressiveStatsGrid(
                             totalSavings = totalSavings ?: 0L,
@@ -232,8 +242,9 @@ fun SalaryScreen(
                 // ── History Header & Filters ──
                 item {
                     AnimatedVisibility(
-                        visible = showContent,
-                        enter = fadeIn(tween(600, 300)) + slideInVertically(tween(600, 300)) { it / 4 }
+                        visible = showHistory,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
                         Column {
                             Row(
@@ -251,36 +262,59 @@ fun SalaryScreen(
                                 }
                             }
                             
-                            // Contextual Chip Filtering
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            // Contextual Chip Filtering (Material 3 Expressive Animated Weights)
+                            val allWeight by animateFloatAsState(
+                                targetValue = if (uiState.currentFilter == SalaryFilter.ALL) 1.6f else 0.8f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.6f,
+                                    stiffness = Spring.StiffnessLow
+                                ),
+                                label = "all_weight"
+                            )
+                            val yearWeight by animateFloatAsState(
+                                targetValue = if (uiState.currentFilter == SalaryFilter.THIS_YEAR) 1.6f else 0.8f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.6f,
+                                    stiffness = Spring.StiffnessLow
+                                ),
+                                label = "year_weight"
+                            )
+                            val savingsWeight by animateFloatAsState(
+                                targetValue = if (uiState.currentFilter == SalaryFilter.HIGH_SAVINGS) 1.6f else 0.8f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.6f,
+                                    stiffness = Spring.StiffnessLow
+                                ),
+                                label = "savings_weight"
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp, horizontal = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                item {
-                                    FilterChip(
-                                        selected = uiState.currentFilter == SalaryFilter.ALL,
-                                        onClick = { viewModel.setFilter(SalaryFilter.ALL) },
-                                        label = { Text("All Time") },
-                                        shape = CircleShape
-                                    )
-                                }
-                                item {
-                                    FilterChip(
-                                        selected = uiState.currentFilter == SalaryFilter.THIS_YEAR,
-                                        onClick = { viewModel.setFilter(SalaryFilter.THIS_YEAR) },
-                                        label = { Text("This Year") },
-                                        shape = CircleShape
-                                    )
-                                }
-                                item {
-                                    FilterChip(
-                                        selected = uiState.currentFilter == SalaryFilter.HIGH_SAVINGS,
-                                        onClick = { viewModel.setFilter(SalaryFilter.HIGH_SAVINGS) },
-                                        label = { Text("High Savings") },
-                                        shape = CircleShape
-                                    )
-                                }
+                                ExpressiveChip(
+                                    text = "All Time",
+                                    isSelected = uiState.currentFilter == SalaryFilter.ALL,
+                                    onClick = { viewModel.setFilter(SalaryFilter.ALL) },
+                                    shapeType = "arch",
+                                    modifier = Modifier.weight(allWeight)
+                                )
+                                ExpressiveChip(
+                                    text = "This Year",
+                                    isSelected = uiState.currentFilter == SalaryFilter.THIS_YEAR,
+                                    onClick = { viewModel.setFilter(SalaryFilter.THIS_YEAR) },
+                                    shapeType = "slanted",
+                                    modifier = Modifier.weight(yearWeight)
+                                )
+                                ExpressiveChip(
+                                    text = "High Savings",
+                                    isSelected = uiState.currentFilter == SalaryFilter.HIGH_SAVINGS,
+                                    onClick = { viewModel.setFilter(SalaryFilter.HIGH_SAVINGS) },
+                                    shapeType = "clamshell",
+                                    modifier = Modifier.weight(savingsWeight)
+                                )
                             }
                         }
                     }
@@ -297,51 +331,63 @@ fun SalaryScreen(
 
                 if (filteredEntries.isEmpty()) {
                     item {
-                        ExpressiveEmptyState(
-                            message = "No records found",
-                            icon = "🔍",
-                            color = onContainerColor
-                        )
+                        AnimatedVisibility(
+                            visible = showHistory,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            ExpressiveEmptyState(
+                                message = "No records found",
+                                icon = "🔍",
+                                color = onContainerColor
+                            )
+                        }
                     }
                 } else {
                     val historyEntries = filteredEntries.take(6)
                     
                     item {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        AnimatedVisibility(
+                            visible = showHistory,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                         ) {
-                            // Organic Bento Flow Logic
-                            // 1. First item is prominent
-                            historyEntries.firstOrNull()?.let { first ->
-                                ExpressiveHistoryBentoBox(
-                                    entry = first,
-                                    isPrivacyMode = themeSettings.privacyModeEnabled,
-                                    onEdit = { viewModel.openEditDialog(first) },
-                                    modifier = Modifier.fillMaxWidth().height(140.dp),
-                                    themeSettings = themeSettings,
-                                    isLarge = true
-                                )
-                            }
-                            
-                            // 2. Remaining items in pairs
-                            val remaining = historyEntries.drop(1)
-                            remaining.chunked(2).forEach { rowEntries ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    rowEntries.forEach { entry ->
-                                        ExpressiveHistoryBentoBox(
-                                            entry = entry,
-                                            isPrivacyMode = themeSettings.privacyModeEnabled,
-                                            onEdit = { viewModel.openEditDialog(entry) },
-                                            modifier = Modifier.weight(1f),
-                                            themeSettings = themeSettings
-                                        )
-                                    }
-                                    if (rowEntries.size == 1) {
-                                        Spacer(modifier = Modifier.weight(1f))
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                // Organic Bento Flow Logic
+                                // 1. First item is prominent
+                                historyEntries.firstOrNull()?.let { first ->
+                                    ExpressiveHistoryBentoBox(
+                                        entry = first,
+                                        isPrivacyMode = themeSettings.privacyModeEnabled,
+                                        onEdit = { viewModel.openEditDialog(first) },
+                                        modifier = Modifier.fillMaxWidth().height(140.dp),
+                                        themeSettings = themeSettings,
+                                        isLarge = true
+                                    )
+                                }
+                                
+                                // 2. Remaining items in pairs
+                                val remaining = historyEntries.drop(1)
+                                remaining.chunked(2).forEach { rowEntries ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        rowEntries.forEach { entry ->
+                                            ExpressiveHistoryBentoBox(
+                                                entry = entry,
+                                                isPrivacyMode = themeSettings.privacyModeEnabled,
+                                                onEdit = { viewModel.openEditDialog(entry) },
+                                                modifier = Modifier.weight(1f),
+                                                themeSettings = themeSettings
+                                            )
+                                        }
+                                        if (rowEntries.size == 1) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
                                     }
                                 }
                             }

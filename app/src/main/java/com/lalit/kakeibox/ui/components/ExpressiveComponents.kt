@@ -23,6 +23,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -87,124 +88,43 @@ fun ExpressivePeriodSelector(
     onYearChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val haptic = LocalHapticFeedback.current
-    val monthListState = rememberLazyListState()
-    val yearListState = rememberLazyListState()
-    val years = DateUtils.getYearRange()
-
-    // Auto-scroll to selected month
-    LaunchedEffect(selectedMonth) {
-        val index = (selectedMonth - 1).coerceAtLeast(0)
-        // Use a small delay to ensure the list is ready
-        monthListState.animateScrollToItem(index, scrollOffset = -150) // -150 offset to center it more
+    val months = remember {
+        (1..12).map { DateUtils.getShortMonthName(it) }
+    }
+    val years = remember {
+        DateUtils.getYearRange().map { it.toString() }
     }
 
-    // Auto-scroll to selected year
-    LaunchedEffect(selectedYear) {
-        val index = years.indexOf(selectedYear).coerceAtLeast(0)
-        yearListState.animateScrollToItem(index, scrollOffset = -150)
-    }
-    
-    Column(modifier = modifier) {
-        // Month Selection
-        LazyRow(
-            state = monthListState,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items((1..12).toList()) { month ->
-                val isSelected = selectedMonth == month
-                
-                val backgroundColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                    label = "month_bg"
-                )
-                val contentColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                    label = "month_content"
-                )
-                val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.1f else 1f,
-                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                    label = "month_scale"
-                )
+    val selectedMonthIndex = (selectedMonth - 1).coerceIn(0, 11)
+    val selectedYearIndex = years.indexOf(selectedYear.toString()).coerceAtLeast(0)
 
-                Surface(
-                    onClick = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onMonthChange(month) 
-                    },
-                    color = backgroundColor,
-                    contentColor = contentColor,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .size(width = 80.dp, height = 44.dp)
-                        .graphicsLayer(scaleX = scale, scaleY = scale)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = DateUtils.getShortMonthName(month),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Month Wheel Picker
+        ExpressiveWheelPicker(
+            items = months,
+            selectedIndex = selectedMonthIndex,
+            onItemSelected = { index ->
+                onMonthChange(index + 1)
+            },
+            modifier = Modifier.weight(1.2f)
+        )
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Year Selection
-        LazyRow(
-            state = yearListState,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(DateUtils.getYearRange()) { year ->
-                val isSelected = selectedYear == year
-                
-                val backgroundColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent,
-                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                    label = "year_bg"
-                )
-                val contentColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                    label = "year_content"
-                )
-                val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.15f else 1f,
-                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                    label = "year_scale"
-                )
-
-                Surface(
-                    onClick = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onYearChange(year) 
-                    },
-                    color = backgroundColor,
-                    contentColor = contentColor,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .size(if (isSelected) 64.dp else 56.dp)
-                        .graphicsLayer(scaleX = scale, scaleY = scale)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = year.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
-                        )
-                    }
-                }
-            }
-        }
+        // Year Wheel Picker
+        ExpressiveWheelPicker(
+            items = years,
+            selectedIndex = selectedYearIndex,
+            onItemSelected = { index ->
+                onYearChange(years[index].toInt())
+            },
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -714,3 +634,90 @@ fun ExpressiveOutlinedTextField(
         )
     }
 }
+
+@Composable
+fun ExpressiveChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    selectedTextColor: Color = MaterialTheme.colorScheme.onPrimary,
+    unselectedColor: Color = Color.Transparent,
+    unselectedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    shapeType: String = "pill"
+) {
+    val haptic = LocalHapticFeedback.current
+    
+    val bgColor by animateColorAsState(
+        targetValue = if (isSelected) selectedColor else unselectedColor,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "chip_bg_color"
+    )
+    val txtColor by animateColorAsState(
+        targetValue = if (isSelected) selectedTextColor else unselectedTextColor,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "chip_txt_color"
+    )
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.05f else 1.0f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "chip_scale"
+    )
+    val cornerRadius by animateIntAsState(
+        targetValue = if (isSelected) 24 else 12,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "chip_corner_morph"
+    )
+
+    val shape = when (shapeType.lowercase()) {
+        "slanted" -> RoundedCornerShape(
+            topStart = cornerRadius.dp,
+            bottomEnd = cornerRadius.dp,
+            topEnd = if (isSelected) 4.dp else cornerRadius.dp,
+            bottomStart = if (isSelected) 4.dp else cornerRadius.dp
+        )
+        "arch" -> RoundedCornerShape(
+            topStart = cornerRadius.dp,
+            topEnd = cornerRadius.dp,
+            bottomStart = if (isSelected) 4.dp else cornerRadius.dp,
+            bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
+        )
+        "clamshell" -> RoundedCornerShape(
+            topStart = cornerRadius.dp,
+            bottomStart = cornerRadius.dp,
+            topEnd = if (isSelected) 4.dp else cornerRadius.dp,
+            bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
+        )
+        else -> RoundedCornerShape(cornerRadius.dp) // Pill
+    }
+
+    Surface(
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onClick()
+        },
+        modifier = modifier
+            .height(38.dp)
+            .graphicsLayer(scaleX = scale, scaleY = scale),
+        shape = shape,
+        color = bgColor,
+        contentColor = txtColor,
+        border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)) else null
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+

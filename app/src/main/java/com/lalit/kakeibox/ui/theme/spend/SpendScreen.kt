@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import com.personal.kakeibox.ui.components.ExpressiveCategoryToggle
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
@@ -167,6 +168,18 @@ fun SpendScreen(
         }
     }
 
+    // Staggered Entrance State
+    var showHero by remember { mutableStateOf(false) }
+    var showStats by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        showHero = true
+        delay(100)
+        showStats = true
+        delay(100)
+        showHistory = true
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -206,19 +219,25 @@ fun SpendScreen(
                 }
             // ── Bento Box Hero Grid ──────────────────────
             item {
-                BentoHeroSection(
-                    totalSpend = totalSpendAllTime ?: 0L,
-                    totalNeed = totalNeed,
-                    totalWant = totalWant,
-                    salary = salary,
-                    currentMonth = uiState.currentMonth,
-                    currentYear = uiState.currentYear,
-                    isPrivacyMode = themeSettings.privacyModeEnabled,
-                    onPeriodClick = { /* Scroll to top or show picker if needed */ },
-                    isPrimaryContainer = isPrimaryContainer,
-                    bentoIdleColor = bentoIdleColor,
-                    themeSettings = themeSettings
-                )
+                AnimatedVisibility(
+                    visible = showHero,
+                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                            slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                ) {
+                    BentoHeroSection(
+                        totalSpend = totalSpendAllTime ?: 0L,
+                        totalNeed = totalNeed,
+                        totalWant = totalWant,
+                        salary = salary,
+                        currentMonth = uiState.currentMonth,
+                        currentYear = uiState.currentYear,
+                        isPrivacyMode = themeSettings.privacyModeEnabled,
+                        onPeriodClick = { /* Scroll to top or show picker if needed */ },
+                        isPrimaryContainer = isPrimaryContainer,
+                        bentoIdleColor = bentoIdleColor,
+                        themeSettings = themeSettings
+                    )
+                }
             }
 
             // Period Navigation Island removed
@@ -227,8 +246,9 @@ fun SpendScreen(
             // ── Budget Health Bar ────────────────────────
             item {
                 AnimatedVisibility(
-                    visible = (salary?.salaryAmount ?: 0L) > 0,
-                    enter = expandVertically() + fadeIn(),
+                    visible = (salary?.salaryAmount ?: 0L) > 0 && showStats,
+                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                            slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 },
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     BudgetHealthBeam(
@@ -243,31 +263,43 @@ fun SpendScreen(
 
             // ── Category Tabs ─────────────────────────────
             item {
-                ExpressiveCategoryTabs(
-                    selectedCategory = uiState.selectedCategory,
-                    onSelectAll = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        viewModel.setFilter(null) 
-                    },
-                    onSelectNeed = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        viewModel.setFilter(SpendCategory.NEED) 
-                    },
-                    onSelectWant = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        viewModel.setFilter(SpendCategory.WANT) 
-                    }
-                )
+                AnimatedVisibility(
+                    visible = showHistory,
+                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                            slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                ) {
+                    ExpressiveCategoryTabs(
+                        selectedCategory = uiState.selectedCategory,
+                        onSelectAll = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            viewModel.setFilter(null) 
+                        },
+                        onSelectNeed = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            viewModel.setFilter(SpendCategory.NEED) 
+                        },
+                        onSelectWant = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            viewModel.setFilter(SpendCategory.WANT) 
+                        }
+                    )
+                }
             }
 
             // ── List Items ───────────────────────────────
             if (filteredEntries.isEmpty()) {
                 item {
-                    ExpressiveEmptyState(
-                        message = if (uiState.selectedCategory != null) "No ${uiState.selectedCategory} logs" else "No spending yet",
-                        icon = if (uiState.selectedCategory == SpendCategory.NEED) "🛡️" else "✨",
-                        color = onContainerColor
-                    )
+                    AnimatedVisibility(
+                        visible = showHistory,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                    ) {
+                        ExpressiveEmptyState(
+                            message = if (uiState.selectedCategory != null) "No ${uiState.selectedCategory} logs" else "No spending yet",
+                            icon = if (uiState.selectedCategory == SpendCategory.NEED) "🛡️" else "✨",
+                            color = onContainerColor
+                        )
+                    }
                 }
             } else {
                 items(items = filteredEntries, key = { it.id }) { entry ->
@@ -292,37 +324,43 @@ fun SpendScreen(
                         label = "lift_elevation"
                     )
 
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        modifier = Modifier
-                            .animateItem()
-                            .graphicsLayer {
-                                scaleX = liftScale
-                                scaleY = liftScale
-                                shadowElevation = liftElevation.toPx()
-                                clip = false
-                                shape = RoundedCornerShape(28.dp)
-                            }
-                            .pointerInput(Unit) {
-                                awaitPointerEventScope {
-                                    while (true) {
-                                        val event = awaitPointerEvent()
-                                        if (event.type == PointerEventType.Press) isPressed = true
-                                        if (event.type == PointerEventType.Release || event.type == PointerEventType.Exit) isPressed = false
-                                    }
-                                }
-                            },
-                        enableDismissFromStartToEnd = false,
-                        backgroundContent = { SpendSwipeDeleteBackground() }
+                    AnimatedVisibility(
+                        visible = showHistory,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
-                        ExpressiveListItem(
-                            entry = entry,
-                            isPrivacyMode = themeSettings.privacyModeEnabled,
-                            onEdit = { viewModel.openEditSheet(entry) },
-                            onDelete = { viewModel.openDeleteDialog(entry) },
-                            containerColor = bentoIdleColor,
-                            themeSettings = themeSettings
-                        )
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            modifier = Modifier
+                                .animateItem()
+                                .graphicsLayer {
+                                    scaleX = liftScale
+                                    scaleY = liftScale
+                                    shadowElevation = liftElevation.toPx()
+                                    clip = false
+                                    shape = RoundedCornerShape(28.dp)
+                                }
+                                .pointerInput(Unit) {
+                                    awaitPointerEventScope {
+                                        while (true) {
+                                            val event = awaitPointerEvent()
+                                            if (event.type == PointerEventType.Press) isPressed = true
+                                            if (event.type == PointerEventType.Release || event.type == PointerEventType.Exit) isPressed = false
+                                        }
+                                    }
+                                },
+                            enableDismissFromStartToEnd = false,
+                            backgroundContent = { SpendSwipeDeleteBackground() }
+                        ) {
+                            ExpressiveListItem(
+                                entry = entry,
+                                isPrivacyMode = themeSettings.privacyModeEnabled,
+                                onEdit = { viewModel.openEditSheet(entry) },
+                                onDelete = { viewModel.openDeleteDialog(entry) },
+                                containerColor = bentoIdleColor,
+                                themeSettings = themeSettings
+                            )
+                        }
                     }
                 }
             }

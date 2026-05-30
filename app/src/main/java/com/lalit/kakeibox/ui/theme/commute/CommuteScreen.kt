@@ -42,6 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.delay
 import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -117,6 +118,18 @@ fun CommuteScreen(
         }
     }
 
+    // Staggered Entrance State
+    var showHero by remember { mutableStateOf(false) }
+    var showStats by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        showHero = true
+        delay(100)
+        showStats = true
+        delay(100)
+        showHistory = true
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -153,37 +166,61 @@ fun CommuteScreen(
                     Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
                 }
                 item {
-                    CommuteHeroSection(
-                        totalCost = uiState.totalCostAllTime, 
-                        isPrivacyMode = themeSettings.privacyModeEnabled,
-                        isPrimaryContainer = isPrimaryContainer,
-                        themeSettings = themeSettings
-                    )
+                    AnimatedVisibility(
+                        visible = showHero,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                    ) {
+                        CommuteHeroSection(
+                            totalCost = uiState.totalCostAllTime, 
+                            isPrivacyMode = themeSettings.privacyModeEnabled,
+                            isPrimaryContainer = isPrimaryContainer,
+                            themeSettings = themeSettings
+                        )
+                    }
                 }
 
                 if (uiState.latestEntry == null) {
                     item {
-                        ExpressiveEmptyState(
-                            message = "No commute logs yet",
-                            icon = "🚌",
-                            color = onContainerColor
-                        )
+                        AnimatedVisibility(
+                            visible = showHistory,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            ExpressiveEmptyState(
+                                message = "No commute logs yet",
+                                icon = "🚌",
+                                color = onContainerColor
+                            )
+                        }
                     }
                 } else {
                     item {
-                        CommuteDetailsBento(
-                            entry = uiState.latestEntry!!,
-                            bentoIdleColor = bentoIdleColor
-                        )
+                        AnimatedVisibility(
+                            visible = showStats,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            CommuteDetailsBento(
+                                entry = uiState.latestEntry!!,
+                                bentoIdleColor = bentoIdleColor
+                            )
+                        }
                     }
 
                     item {
-                        Text(
-                            text = "History",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                            modifier = Modifier.padding(horizontal = 4.dp)
-                        )
+                        AnimatedVisibility(
+                            visible = showHistory,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            Text(
+                                text = "History",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Black,
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            )
+                        }
                     }
 
                     items(
@@ -200,20 +237,26 @@ fun CommuteScreen(
                             }
                         }
 
-                        SwipeToDismissBox(
-                            state = swipeState,
-                            enableDismissFromStartToEnd = false,
-                            backgroundContent = { CommuteSwipeDeleteBackground() },
-                            content = {
-                                CommuteHistoryItem(
-                                    entry = entry,
-                                    isPrivacyMode = themeSettings.privacyModeEnabled,
-                                    onDelete = { viewModel.openDeleteDialog(entry) },
-                                    containerColor = bentoIdleColor,
-                                    themeSettings = themeSettings
-                                )
-                            }
-                        )
+                        AnimatedVisibility(
+                            visible = showHistory,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            SwipeToDismissBox(
+                                state = swipeState,
+                                enableDismissFromStartToEnd = false,
+                                backgroundContent = { CommuteSwipeDeleteBackground() },
+                                content = {
+                                    CommuteHistoryItem(
+                                        entry = entry,
+                                        isPrivacyMode = themeSettings.privacyModeEnabled,
+                                        onDelete = { viewModel.openDeleteDialog(entry) },
+                                        containerColor = bentoIdleColor,
+                                        themeSettings = themeSettings
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
