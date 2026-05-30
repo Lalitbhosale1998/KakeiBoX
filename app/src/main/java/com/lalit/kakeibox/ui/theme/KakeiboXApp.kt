@@ -41,11 +41,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -91,6 +95,25 @@ fun KakeiboXApp(
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route
+
+    // Halo ripple animation state
+    var lastSelectedDestination by remember { mutableStateOf<String?>(null) }
+    val haloProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != null && currentRoute != lastSelectedDestination) {
+            lastSelectedDestination = currentRoute
+            haloProgress.snapTo(0f)
+            haloProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
+            )
+        }
+    }
+
     val bottomNavItems = themeSettings.tabOrder.mapNotNull { route ->
         when (route) {
             NavRoutes.Salary.route -> BottomNavItem(
@@ -121,8 +144,7 @@ fun KakeiboXApp(
         }
     }
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
+    // navBackStackEntry and currentDestination defined above
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -145,6 +167,69 @@ fun KakeiboXApp(
                                 stiffness = Spring.StiffnessMedium
                             ),
                             label = "icon_scale_${item.route}"
+                        )
+
+                        val cornerRadius by animateIntAsState(
+                            targetValue = if (isSelected) 28 else 16,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            label = "corner_morph_${item.route}"
+                        )
+
+                        val itemShape = when (item.route) {
+                            NavRoutes.Salary.route -> RoundedCornerShape(
+                                topStart = cornerRadius.dp,
+                                topEnd = cornerRadius.dp,
+                                bottomStart = if (isSelected) 4.dp else cornerRadius.dp,
+                                bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
+                            )
+                            NavRoutes.Spend.route -> RoundedCornerShape(
+                                topStart = cornerRadius.dp,
+                                bottomEnd = cornerRadius.dp,
+                                topEnd = if (isSelected) 4.dp else cornerRadius.dp,
+                                bottomStart = if (isSelected) 4.dp else cornerRadius.dp
+                            )
+                            NavRoutes.Commute.route -> RoundedCornerShape(
+                                topStart = cornerRadius.dp,
+                                bottomStart = cornerRadius.dp,
+                                topEnd = if (isSelected) 4.dp else cornerRadius.dp,
+                                bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
+                            )
+                            else -> RoundedCornerShape(cornerRadius.dp) // pill
+                        }
+
+                        val labelScale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.05f else 0.95f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            label = "label_scale_${item.route}"
+                        )
+
+                        val iconTranslationY by animateFloatAsState(
+                            targetValue = if (isSelected && item.route == NavRoutes.Salary.route) -5f else 0f,
+                            animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                            label = "icon_y_${item.route}"
+                        )
+                        val iconTranslationX by animateFloatAsState(
+                            targetValue = if (isSelected && item.route == NavRoutes.Commute.route) 5f else 0f,
+                            animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                            label = "icon_x_${item.route}"
+                        )
+                        val iconRotation by animateFloatAsState(
+                            targetValue = when {
+                                isSelected && item.route == NavRoutes.Spend.route -> 15f
+                                isSelected && item.route == NavRoutes.Settings.route -> 360f
+                                else -> 0f
+                            },
+                            animationSpec = spring(
+                                dampingRatio = if (item.route == NavRoutes.Settings.route) 0.6f else 0.4f,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            label = "icon_rot_${item.route}"
                         )
 
                         val selectedColor = when (item.route) {
@@ -182,7 +267,7 @@ fun KakeiboXApp(
                                     modifier = Modifier
                                         .fillMaxWidth() // Take full weight of the parent
                                         .padding(horizontal = 12.dp) // Gap between pills
-                                        .clip(RoundedCornerShape(28.dp))
+                                        .clip(itemShape)
                                         .background(selectedColor.copy(alpha = bgAlpha))
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
@@ -191,15 +276,40 @@ fun KakeiboXApp(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        Icon(
-                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                            contentDescription = stringResource(item.labelRes),
-                                            tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(24.dp).graphicsLayer {
-                                                scaleX = iconScale
-                                                scaleY = iconScale
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.size(36.dp)
+                                        ) {
+                                            // Pulsing Halo Ring
+                                            if (isSelected) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(36.dp)
+                                                        .graphicsLayer {
+                                                            scaleX = 1f + (haloProgress.value * 0.8f)
+                                                            scaleY = 1f + (haloProgress.value * 0.8f)
+                                                            alpha = 1f - haloProgress.value
+                                                        }
+                                                        .background(
+                                                            color = selectedColor.copy(alpha = 0.35f),
+                                                            shape = CircleShape
+                                                        )
+                                                )
                                             }
-                                        )
+
+                                            Icon(
+                                                imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                                contentDescription = stringResource(item.labelRes),
+                                                tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(24.dp).graphicsLayer {
+                                                    scaleX = iconScale
+                                                    scaleY = iconScale
+                                                    translationY = iconTranslationY.dp.toPx()
+                                                    translationX = iconTranslationX.dp.toPx()
+                                                    rotationZ = iconRotation
+                                                }
+                                            )
+                                        }
                                         
                                         AnimatedVisibility(
                                             visible = isSelected,
@@ -209,10 +319,15 @@ fun KakeiboXApp(
                                             Text(
                                                 text = stringResource(item.labelRes),
                                                 style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.ExtraBold,
+                                                fontWeight = FontWeight.Black,
                                                 color = selectedColor,
                                                 maxLines = 1,
-                                                modifier = Modifier.padding(top = 2.dp)
+                                                modifier = Modifier
+                                                    .padding(top = 2.dp)
+                                                    .graphicsLayer {
+                                                        scaleX = labelScale
+                                                        scaleY = labelScale
+                                                    }
                                             )
                                         }
                                     }
@@ -274,6 +389,34 @@ fun KakeiboXApp(
                 }.coerceAtLeast(0)
             }
 
+            val outerCornerTopStart by animateIntAsState(
+                targetValue = if (selectedIndex == 0) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "outer_corner_ts"
+            )
+            val outerCornerBottomStart by animateIntAsState(
+                targetValue = if (selectedIndex == 0) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "outer_corner_bs"
+            )
+            val outerCornerTopEnd by animateIntAsState(
+                targetValue = if (selectedIndex == bottomNavItems.lastIndex) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "outer_corner_te"
+            )
+            val outerCornerBottomEnd by animateIntAsState(
+                targetValue = if (selectedIndex == bottomNavItems.lastIndex) 41 else 32,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "outer_corner_be"
+            )
+
+            val outerShape = RoundedCornerShape(
+                topStart = outerCornerTopStart.dp,
+                bottomStart = outerCornerBottomStart.dp,
+                topEnd = outerCornerTopEnd.dp,
+                bottomEnd = outerCornerBottomEnd.dp
+            )
+
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -284,7 +427,7 @@ fun KakeiboXApp(
                 Surface(
                     modifier = Modifier
                         .height(82.dp),
-                    shape = RoundedCornerShape(41.dp),
+                    shape = outerShape,
                     color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f),
                     tonalElevation = 0.dp,
                     shadowElevation = 10.dp,
@@ -316,12 +459,22 @@ fun KakeiboXApp(
                             }
                             val animatedColor by animateColorAsState(targetColor, label = "pill_color")
 
+                            val distance = targetBounds.first - animatedX
+                            val absDistance = java.lang.Math.abs(distance)
+                            val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
+                            val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+
                             Box(
                                 modifier = Modifier
                                     .padding(8.dp) // Match Row padding
                                     .offset { IntOffset(animatedX.roundToInt(), 0) }
                                     .width(with(LocalDensity.current) { animatedWidth.toDp() })
                                     .fillMaxHeight()
+                                    .graphicsLayer {
+                                        scaleX = stretchX
+                                        scaleY = squashY
+                                        transformOrigin = TransformOrigin(0.5f, 0.5f)
+                                    }
                                     .background(animatedColor, RoundedCornerShape(32.dp))
                             )
                         }
@@ -359,6 +512,39 @@ fun KakeiboXApp(
                                         stiffness = Spring.StiffnessMedium
                                     ),
                                     label = "floating_icon_scale"
+                                )
+
+                                // 3. Custom Icon Micro-interactions
+                                val iconTranslationY by animateFloatAsState(
+                                    targetValue = if (isSelected && item.route == NavRoutes.Salary.route) -5f else 0f,
+                                    animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                                    label = "floating_icon_y_${item.route}"
+                                )
+                                val iconTranslationX by animateFloatAsState(
+                                    targetValue = if (isSelected && item.route == NavRoutes.Commute.route) 5f else 0f,
+                                    animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                                    label = "floating_icon_x_${item.route}"
+                                )
+                                val iconRotation by animateFloatAsState(
+                                    targetValue = when {
+                                        isSelected && item.route == NavRoutes.Spend.route -> 15f
+                                        isSelected && item.route == NavRoutes.Settings.route -> 360f
+                                        else -> 0f
+                                    },
+                                    animationSpec = spring(
+                                        dampingRatio = if (item.route == NavRoutes.Settings.route) 0.6f else 0.4f,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "floating_icon_rot_${item.route}"
+                                )
+
+                                val labelScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.05f else 0.95f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "floating_label_scale_${item.route}"
                                 )
 
                                 val contentColor by animateColorAsState(
@@ -408,27 +594,56 @@ fun KakeiboXApp(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    Icon(
-                                        imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                        contentDescription = stringResource(item.labelRes),
-                                        tint = contentColor,
-                                        modifier = Modifier.size(24.dp).graphicsLayer {
-                                            scaleX = iconScale
-                                            scaleY = iconScale
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        // Pulsing Halo Ring
+                                        if (isSelected) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .graphicsLayer {
+                                                        scaleX = 1f + (haloProgress.value * 0.8f)
+                                                        scaleY = 1f + (haloProgress.value * 0.8f)
+                                                        alpha = 1f - haloProgress.value
+                                                    }
+                                                    .background(
+                                                        color = contentColor.copy(alpha = 0.35f),
+                                                        shape = CircleShape
+                                                    )
+                                            )
                                         }
-                                    )
+
+                                        Icon(
+                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                            contentDescription = stringResource(item.labelRes),
+                                            tint = contentColor,
+                                            modifier = Modifier.size(24.dp).graphicsLayer {
+                                                scaleX = iconScale
+                                                scaleY = iconScale
+                                                translationY = iconTranslationY.dp.toPx()
+                                                translationX = iconTranslationX.dp.toPx()
+                                                rotationZ = iconRotation
+                                            }
+                                        )
+                                    }
 
                                     Spacer(modifier = Modifier.height(2.dp))
 
                                     Text(
                                         text = stringResource(item.labelRes),
                                         style = MaterialTheme.typography.labelSmall.copy(
-                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
                                             fontSize = 11.sp,
                                             letterSpacing = 0.1.sp
                                         ),
                                         color = contentColor,
-                                        maxLines = 1
+                                        maxLines = 1,
+                                        modifier = Modifier.graphicsLayer {
+                                            scaleX = labelScale
+                                            scaleY = labelScale
+                                        }
                                     )
                                 }
                             }
