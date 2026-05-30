@@ -31,6 +31,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
 import androidx.activity.ComponentActivity
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.settings.ThemeViewModel
@@ -48,6 +49,7 @@ import com.personal.kakeibox.R
 import com.personal.kakeibox.data.entity.CommuteEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
+import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.util.CurrencyUtils
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
@@ -57,6 +59,9 @@ import androidx.compose.material.icons.outlined.Train
 import androidx.compose.ui.text.style.TextOverflow
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,8 +71,17 @@ fun CommuteScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val haptic = LocalHapticFeedback.current
+
+    val lazyListState = rememberLazyListState()
+    val density = LocalDensity.current
+    val maxOffsetPx = with(density) { 70.dp.toPx() }
+    val scrollOffset by remember {
+        derivedStateOf {
+            if (lazyListState.firstVisibleItemIndex > 0) maxOffsetPx
+            else lazyListState.firstVisibleItemScrollOffset.toFloat().coerceAtMost(maxOffsetPx)
+        }
+    }
 
     val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING
     val fabPadding by animateDpAsState(
@@ -102,81 +116,41 @@ fun CommuteScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = topAppBarContainerColor,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column(modifier = Modifier.padding(start = 8.dp)) {
-                        Text(
-                            text = "Work",
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = onContainerColor
-                        )
-                        Text(
-                            text = "Commute",
-                            style = MaterialTheme.typography.displayMedium,
-                            fontWeight = FontWeight.Black,
-                            color = primaryTextAccent
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                actions = {
-                    IconButton(onClick = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.toggleHistory() 
-                    }) {
-                        Surface(
-                            shape = CircleShape,
-                            color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                Icons.Outlined.History, 
-                                contentDescription = "History", 
-                                modifier = Modifier.padding(8.dp),
-                                tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = topAppBarContainerColor,
-                    scrolledContainerColor = topAppBarContainerColor,
-                    titleContentColor = onContainerColor,
-                    actionIconContentColor = onContainerColor
-                )
-            )
-        },
-        floatingActionButton = {
-            LargeFloatingActionButton(
-                onClick = { 
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    viewModel.openAddSheet() 
-                },
-                modifier = Modifier.padding(bottom = fabPadding),
-                shape = RoundedCornerShape(28.dp),
-                containerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onTertiaryContainer
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
-            }
-        },
-        snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
-        LazyColumn(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp, end = 16.dp,
-                top = innerPadding.calculateTopPadding() + 8.dp,
-                bottom = innerPadding.calculateBottomPadding() + 80.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
+            containerColor = topAppBarContainerColor,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {},
+            floatingActionButton = {
+                LargeFloatingActionButton(
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.openAddSheet() 
+                    },
+                    modifier = Modifier.padding(bottom = fabPadding),
+                    shape = RoundedCornerShape(28.dp),
+                    containerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onTertiaryContainer
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
+                }
+            },
+            snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) }
+        ) { innerPadding ->
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp, end = 16.dp,
+                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 80.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(150.dp))
+                }
                 item {
                     CommuteHeroSection(
                         totalCost = uiState.totalCostAllTime, 
@@ -186,62 +160,92 @@ fun CommuteScreen(
                     )
                 }
 
-            if (uiState.latestEntry == null) {
-                item {
-                    ExpressiveEmptyState(
-                        message = "No commute logs yet",
-                        icon = "🚌",
-                        color = onContainerColor
-                    )
-                }
-            } else {
-                item {
-                    CommuteDetailsBento(
-                        entry = uiState.latestEntry!!,
-                        bentoIdleColor = bentoIdleColor
-                    )
-                }
-
-                item {
-                    Text(
-                        text = "History",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
-                }
-
-                items(
-                    items = uiState.history,
-                    key = { it.id }
-                ) { entry ->
-                    val swipeState = rememberSwipeToDismissBoxState()
-
-                    LaunchedEffect(swipeState.currentValue) {
-                        if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.openDeleteDialog(entry)
-                            swipeState.snapTo(SwipeToDismissBoxValue.Settled)
-                        }
+                if (uiState.latestEntry == null) {
+                    item {
+                        ExpressiveEmptyState(
+                            message = "No commute logs yet",
+                            icon = "🚌",
+                            color = onContainerColor
+                        )
+                    }
+                } else {
+                    item {
+                        CommuteDetailsBento(
+                            entry = uiState.latestEntry!!,
+                            bentoIdleColor = bentoIdleColor
+                        )
                     }
 
-                    SwipeToDismissBox(
-                        state = swipeState,
-                        enableDismissFromStartToEnd = false,
-                        backgroundContent = { CommuteSwipeDeleteBackground() },
-                        content = {
-                            CommuteHistoryItem(
-                                entry = entry,
-                                isPrivacyMode = themeSettings.privacyModeEnabled,
-                                onDelete = { viewModel.openDeleteDialog(entry) },
-                                containerColor = bentoIdleColor,
-                                themeSettings = themeSettings
-                            )
+                    item {
+                        Text(
+                            text = "History",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                    }
+
+                    items(
+                        items = uiState.history,
+                        key = { it.id }
+                    ) { entry ->
+                        val swipeState = rememberSwipeToDismissBoxState()
+
+                        LaunchedEffect(swipeState.currentValue) {
+                            if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.openDeleteDialog(entry)
+                                swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                            }
                         }
-                    )
+
+                        SwipeToDismissBox(
+                            state = swipeState,
+                            enableDismissFromStartToEnd = false,
+                            backgroundContent = { CommuteSwipeDeleteBackground() },
+                            content = {
+                                CommuteHistoryItem(
+                                    entry = entry,
+                                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                                    onDelete = { viewModel.openDeleteDialog(entry) },
+                                    containerColor = bentoIdleColor,
+                                    themeSettings = themeSettings
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }
+
+        ExpressiveCollapsingHeader(
+            title = "Work",
+            subtitle = "Commute",
+            scrollOffset = scrollOffset,
+            maxOffset = maxOffsetPx,
+            containerColor = topAppBarContainerColor,
+            onContainerColor = onContainerColor,
+            primaryTextAccent = primaryTextAccent,
+            actions = {
+                IconButton(onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.toggleHistory() 
+                }) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.History, 
+                            contentDescription = "History", 
+                            modifier = Modifier.padding(8.dp),
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+        )
     }
 
     if (uiState.showAddSheet) {
@@ -380,25 +384,66 @@ fun CommuteDeleteDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Delete Entry?", fontWeight = FontWeight.Bold) },
-        text = { Text("This action cannot be undone.") },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text("Delete")
+    Dialog(onDismissRequest = onDismiss) {
+        var animateTrigger by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { animateTrigger = true }
+
+        val scale by animateFloatAsState(
+            targetValue = if (animateTrigger) 1f else 0.8f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            ),
+            label = "dialog_scale"
+        )
+        val alpha by animateFloatAsState(
+            targetValue = if (animateTrigger) 1f else 0f,
+            animationSpec = tween(200),
+            label = "dialog_alpha"
+        )
+
+        Surface(
+            modifier = Modifier
+                .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(32.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp
+        ) {
+            Column(modifier = Modifier.padding(28.dp)) {
+                Text(
+                    text = "Delete Entry?",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "This action cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(28.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Button(
+                        onClick = onConfirm,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Delete", fontWeight = FontWeight.ExtraBold)
+                    }
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        shape = RoundedCornerShape(28.dp)
-    )
+        }
+    }
 }
 
 @Composable
@@ -495,9 +540,24 @@ fun CommuteHistoryBottomSheet(
     themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
+    var animateIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateIn = true }
+
+    val slideY by animateDpAsState(
+        targetValue = if (animateIn) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        label = "sheet_slide_in"
+    )
+    val sheetAlpha by animateFloatAsState(
+        targetValue = if (animateIn) 1f else 0f,
+        animationSpec = tween(300),
+        label = "sheet_alpha"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()
@@ -580,12 +640,25 @@ fun CommuteAddEditSheet(
     
     // Focus states for animations
     var isFareFocused by remember { mutableStateOf(false) }
-    var isHolidaysFocused by remember { mutableStateOf(false) }
-    var isWfhFocused by remember { mutableStateOf(false) }
+
+    var animateIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateIn = true }
+
+    val slideY by animateDpAsState(
+        targetValue = if (animateIn) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        label = "sheet_slide_in"
+    )
+    val sheetAlpha by animateFloatAsState(
+        targetValue = if (animateIn) 1f else 0f,
+        animationSpec = tween(300),
+        label = "sheet_alpha"
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()
@@ -681,17 +754,10 @@ fun CommuteAddEditSheet(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Bento Island for Days
-        val daysFocused = isHolidaysFocused || isWfhFocused
-        val daysElevation by animateDpAsState(if (daysFocused) 8.dp else 0.dp)
-        val daysScale by animateFloatAsState(if (daysFocused) 1.02f else 1f)
-
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            tonalElevation = daysElevation,
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(scaleX = daysScale, scaleY = daysScale)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -702,37 +768,21 @@ fun CommuteAddEditSheet(
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    OutlinedTextField(
+                    ExpressiveOutlinedTextField(
                         value = uiState.inputHolidays,
                         onValueChange = onHolidaysChange,
                         label = { Text("Holidays") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { isHolidaysFocused = it.isFocused },
+                        modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(16.dp),
-                        leadingIcon = { Icon(Icons.Outlined.EventBusy, contentDescription = null) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedBorderColor = Color.Transparent
-                        )
+                        leadingIcon = { Icon(Icons.Outlined.EventBusy, contentDescription = null) }
                     )
-                    OutlinedTextField(
+                    ExpressiveOutlinedTextField(
                         value = uiState.inputWfhDays,
                         onValueChange = onWfhChange,
                         label = { Text("WFH Days") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { isWfhFocused = it.isFocused },
+                        modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(16.dp),
-                        leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedBorderColor = Color.Transparent
-                        )
+                        leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) }
                     )
                 }
             }

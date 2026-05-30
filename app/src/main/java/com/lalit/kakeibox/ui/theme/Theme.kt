@@ -25,11 +25,21 @@ private val LightColors = lightColorScheme(
     tertiaryContainer = Color(0xFFFFDCC4),
     onTertiaryContainer = Color(0xFF321200),
     error = Color(0xFFBA1A1A),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF410002),
     surface = Color(0xFFF8F9FF),
     onSurface = Color(0xFF191C20),
     surfaceVariant = Color(0xFFE0E2EC),
     onSurfaceVariant = Color(0xFF43474E),
     outline = Color(0xFF73777F),
+    outlineVariant = Color(0xFFC4C6D0),
+    surfaceDim = Color(0xFFDAD9E0),
+    surfaceBright = Color(0xFFF8F9FF),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF2F3FA),
+    surfaceContainer = Color(0xFFECEEF4),
+    surfaceContainerHigh = Color(0xFFE7E8EE),
+    surfaceContainerHighest = Color(0xFFE1E2E8),
 )
 
 private val DarkColors = darkColorScheme(
@@ -46,11 +56,21 @@ private val DarkColors = darkColorScheme(
     tertiaryContainer = Color(0xFF6F3300),
     onTertiaryContainer = Color(0xFFFFDCC4),
     error = Color(0xFFFFB4AB),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
     surface = Color(0xFF111318),
     onSurface = Color(0xFFE2E2E9),
     surfaceVariant = Color(0xFF43474E),
     onSurfaceVariant = Color(0xFFC3C6CF),
     outline = Color(0xFF8D9199),
+    outlineVariant = Color(0xFF43474E),
+    surfaceDim = Color(0xFF111318),
+    surfaceBright = Color(0xFF37393E),
+    surfaceContainerLowest = Color(0xFF0C0E13),
+    surfaceContainerLow = Color(0xFF1A1C22),
+    surfaceContainer = Color(0xFF1E2026),
+    surfaceContainerHigh = Color(0xFF282A31),
+    surfaceContainerHighest = Color(0xFF33353C),
 )
 
 @Composable

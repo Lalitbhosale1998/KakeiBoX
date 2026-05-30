@@ -11,6 +11,7 @@ import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -80,6 +81,10 @@ import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
+import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -119,7 +124,15 @@ fun SpendScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val historyBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val lazyListState = rememberLazyListState()
+    val density = LocalDensity.current
+    val maxOffsetPx = with(density) { 70.dp.toPx() }
+    val scrollOffset by remember {
+        derivedStateOf {
+            if (lazyListState.firstVisibleItemIndex > 0) maxOffsetPx
+            else lazyListState.firstVisibleItemScrollOffset.toFloat().coerceAtMost(maxOffsetPx)
+        }
+    }
 
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
@@ -153,83 +166,43 @@ fun SpendScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = topAppBarContainerColor,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column(modifier = Modifier.padding(start = 8.dp)) {
-                        Text(
-                            text = "Monthly",
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = onContainerColor
-                        )
-                        Text(
-                            text = "Spending",
-                            style = MaterialTheme.typography.displayMedium,
-                            fontWeight = FontWeight.Black,
-                            color = primaryTextAccent
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.toggleHistorySheet() 
-                    }) {
-                        Surface(
-                            shape = CircleShape,
-                            color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                Icons.Outlined.History, 
-                                contentDescription = "History", 
-                                modifier = Modifier.padding(8.dp),
-                                tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = topAppBarContainerColor,
-                    scrolledContainerColor = topAppBarContainerColor,
-                    titleContentColor = onContainerColor,
-                    actionIconContentColor = onContainerColor
-                )
-            )
-        },
-        floatingActionButton = {
-            LargeFloatingActionButton(
-                onClick = { 
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    viewModel.openAddSheet() 
-                },
-                modifier = Modifier.padding(bottom = fabPadding),
-                shape = RoundedCornerShape(28.dp),
-                containerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer,
-                contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
-            }
-        },
-        snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
-
-        LazyColumn(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp, 
-                end = 16.dp, 
-                top = innerPadding.calculateTopPadding() + 8.dp,
-                bottom = innerPadding.calculateBottomPadding() + 80.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
+            containerColor = topAppBarContainerColor,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {},
+            floatingActionButton = {
+                LargeFloatingActionButton(
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.openAddSheet() 
+                    },
+                    modifier = Modifier.padding(bottom = fabPadding),
+                    shape = RoundedCornerShape(28.dp),
+                    containerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add", modifier = Modifier.size(36.dp))
+                }
+            },
+            snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) }
+        ) { innerPadding ->
+
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp, 
+                    end = 16.dp, 
+                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 80.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(150.dp))
+                }
             // ── Bento Box Hero Grid ──────────────────────
             item {
                 BentoHeroSection(
@@ -353,6 +326,36 @@ fun SpendScreen(
                 }
             }
         }
+    }
+
+    ExpressiveCollapsingHeader(
+            title = "Monthly",
+            subtitle = "Spending",
+            scrollOffset = scrollOffset,
+            maxOffset = maxOffsetPx,
+            containerColor = topAppBarContainerColor,
+            onContainerColor = onContainerColor,
+            primaryTextAccent = primaryTextAccent,
+            actions = {
+                IconButton(onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.toggleHistorySheet() 
+                }) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.History, 
+                            contentDescription = "History", 
+                            modifier = Modifier.padding(8.dp),
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+        )
     }
 
     // Sheets & Dialogs
@@ -832,14 +835,66 @@ fun SpendSwipeDeleteBackground() {
 
 @Composable
 fun SpendDeleteDialog(entry: SpendEntry?, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Delete?", fontWeight = FontWeight.Black) },
-        text = { Text("Remove \"${entry?.description}\"?") },
-        confirmButton = { Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Delete") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-        shape = RoundedCornerShape(28.dp)
-    )
+    Dialog(onDismissRequest = onDismiss) {
+        var animateTrigger by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { animateTrigger = true }
+
+        val scale by animateFloatAsState(
+            targetValue = if (animateTrigger) 1f else 0.8f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            ),
+            label = "dialog_scale"
+        )
+        val alpha by animateFloatAsState(
+            targetValue = if (animateTrigger) 1f else 0f,
+            animationSpec = tween(200),
+            label = "dialog_alpha"
+        )
+
+        Surface(
+            modifier = Modifier
+                .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(32.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp
+        ) {
+            Column(modifier = Modifier.padding(28.dp)) {
+                Text(
+                    text = "Delete?",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Remove \"${entry?.description}\"?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(28.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Button(
+                        onClick = onConfirm,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Delete", fontWeight = FontWeight.ExtraBold)
+                    }
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -860,12 +915,26 @@ fun SpendAddEditSheet(
     
     // Animation/Focus States
     var isAmountFocused by remember { mutableStateOf(false) }
-    var isDescFocused by remember { mutableStateOf(false) }
     var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
+
+    var animateIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateIn = true }
+
+    val slideY by animateDpAsState(
+        targetValue = if (animateIn) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        label = "sheet_slide_in"
+    )
+    val sheetAlpha by animateFloatAsState(
+        targetValue = if (animateIn) 1f else 0f,
+        animationSpec = tween(300),
+        label = "sheet_alpha"
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()
@@ -980,72 +1049,45 @@ fun SpendAddEditSheet(
             Box(modifier = Modifier.padding(16.dp)) {
                 ExpressiveCategoryBento(
                     selectedCategory = uiState.inputCategory,
-                    onCategoryChange = { 
+                    onCategoryChange = { category ->
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onCategoryChange(it) 
+                        onCategoryChange(category) 
                     }
                 )
             }
         }
 
         // 3. Description & Note Island
-        val descElevation by animateDpAsState(if (isDescFocused) 8.dp else 0.dp)
-        val descScale by animateFloatAsState(if (isDescFocused) 1.02f else 1f)
+        ExpressiveOutlinedTextField(
+            value = uiState.inputDescription,
+            onValueChange = onDescriptionChange,
+            label = { Text("What did you buy?") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(28.dp),
-            tonalElevation = descElevation,
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(scaleX = descScale, scaleY = descScale)
+        // Expanding Note Drawer
+        AnimatedVisibility(
+            visible = showNoteField,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = uiState.inputDescription,
-                    onValueChange = onDescriptionChange,
-                    label = { Text("What did you buy?") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { isDescFocused = it.isFocused },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedBorderColor = Color.Transparent
-                    )
-                )
+            ExpressiveOutlinedTextField(
+                value = uiState.inputNote,
+                onValueChange = onNoteChange,
+                label = { Text("Extra details...") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
-                // Expanding Note Drawer
-                AnimatedVisibility(
-                    visible = showNoteField,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    OutlinedTextField(
-                        value = uiState.inputNote,
-                        onValueChange = onNoteChange,
-                        label = { Text("Extra details...") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedBorderColor = Color.Transparent
-                        )
-                    )
-                }
-
-                if (!showNoteField) {
-                    TextButton(
-                        onClick = { showNoteField = true },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Add Note", style = MaterialTheme.typography.labelLarge)
-                    }
-                }
+        if (!showNoteField) {
+            TextButton(
+                onClick = { showNoteField = true },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Add Note", style = MaterialTheme.typography.labelLarge)
             }
         }
 
@@ -1135,9 +1177,24 @@ fun SpendHistoryBottomSheet(
     onDelete: (SpendEntry) -> Unit,
     themeSettings: ThemeSettings
 ) {
+    var animateIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateIn = true }
+
+    val slideY by animateDpAsState(
+        targetValue = if (animateIn) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        label = "sheet_slide_in"
+    )
+    val sheetAlpha by animateFloatAsState(
+        targetValue = if (animateIn) 1f else 0f,
+        animationSpec = tween(300),
+        label = "sheet_alpha"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()

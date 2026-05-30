@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
@@ -102,6 +103,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -126,6 +128,7 @@ import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
+import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import kotlinx.coroutines.delay
 import java.time.Instant
@@ -190,12 +193,10 @@ fun SettingsScreen(
             val context = LocalContext.current
 
             // ── Expressive Search Bar ──
-            OutlinedTextField(
+            // ── Expressive Search Bar ──
+            ExpressiveOutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
                 placeholder = { 
                     Text(
                         "Search settings...",
@@ -219,12 +220,8 @@ fun SettingsScreen(
                 } else null,
                 shape = RoundedCornerShape(24.dp),
                 singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color.Transparent,
-                )
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             )
 
             // Helper for filtering
@@ -913,9 +910,24 @@ fun BirthdayManagementContent(
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
 
+    var animateIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateIn = true }
+
+    val slideY by animateDpAsState(
+        targetValue = if (animateIn) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        label = "sheet_slide_in"
+    )
+    val sheetAlpha by animateFloatAsState(
+        targetValue = if (animateIn) 1f else 0f,
+        animationSpec = tween(300),
+        label = "sheet_alpha"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
             .padding(bottom = 48.dp)
     ) {
@@ -1025,9 +1037,24 @@ fun BirthdayManagementContent(
                 )
             }
         ) {
+            var animateInInner by remember { mutableStateOf(false) }
+            LaunchedEffect(Unit) { animateInInner = true }
+
+            val slideYInner by animateDpAsState(
+                targetValue = if (animateInInner) 0.dp else 100.dp,
+                animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+                label = "sheet_slide_in_inner"
+            )
+            val sheetAlphaInner by animateFloatAsState(
+                targetValue = if (animateInInner) 1f else 0f,
+                animationSpec = tween(300),
+                label = "sheet_alpha_inner"
+            )
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .graphicsLayer(translationY = slideYInner.value, alpha = sheetAlphaInner)
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 40.dp, top = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -1081,20 +1108,14 @@ fun BirthdayManagementContent(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    OutlinedTextField(
+                    ExpressiveOutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
                         placeholder = { Text("Who's birthday is it?") },
                         label = { Text("Person's Name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                        ),
-                        singleLine = true
+                        singleLine = true,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Surface(
@@ -1133,33 +1154,27 @@ fun BirthdayManagementContent(
                         }
                     }
 
-                    // Inline Date Picker (Animated Visibility)
+                    // Inline Date Picker (Animated Visibility with Expressive Wheel Selection)
                     AnimatedVisibility(
                         visible = showDatePicker,
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut()
                     ) {
-                        val datePickerState = rememberDatePickerState(
-                            initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                        )
-                        
-                        Column(horizontalAlignment = Alignment.End) {
-                            DatePicker(
-                                state = datePickerState,
-                                showModeToggle = false,
-                                title = null,
-                                headline = null
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            com.personal.kakeibox.ui.components.ExpressiveDatePicker(
+                                selectedDate = selectedDate,
+                                onDateChange = { selectedDate = it },
+                                modifier = Modifier.fillMaxWidth()
                             )
+                            Spacer(modifier = Modifier.height(12.dp))
                             TextButton(
-                                onClick = {
-                                    datePickerState.selectedDateMillis?.let {
-                                        selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                                    }
-                                    showDatePicker = false
-                                },
-                                modifier = Modifier.padding(end = 16.dp, bottom = 8.dp)
+                                onClick = { showDatePicker = false },
+                                modifier = Modifier.padding(bottom = 8.dp)
                             ) {
-                                Text("Apply Date", fontWeight = FontWeight.Bold)
+                                Text("Done", fontWeight = FontWeight.Black)
                             }
                         }
                     }

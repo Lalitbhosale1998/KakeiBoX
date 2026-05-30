@@ -65,6 +65,11 @@ import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
+import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressivePeriodSelector
@@ -100,9 +105,15 @@ fun SalaryScreen(
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState()
-    )
+    val lazyListState = rememberLazyListState()
+    val density = LocalDensity.current
+    val maxOffsetPx = with(density) { 70.dp.toPx() }
+    val scrollOffset by remember {
+        derivedStateOf {
+            if (lazyListState.firstVisibleItemIndex > 0) maxOffsetPx
+            else lazyListState.firstVisibleItemScrollOffset.toFloat().coerceAtMost(maxOffsetPx)
+        }
+    }
 
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
@@ -136,80 +147,10 @@ fun SalaryScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier.fillMaxSize(),
             containerColor = topAppBarContainerColor,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            topBar = {
-                LargeTopAppBar(
-                    title = {
-                        Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Text(
-                                text = "Monthly",
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = onContainerColor
-                            )
-                            Text(
-                                text = "Salary",
-                                style = MaterialTheme.typography.displayMedium,
-                                fontWeight = FontWeight.Black,
-                                color = primaryTextAccent
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.toggleHistorySheet() 
-                            },
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.History,
-                                    contentDescription = "History",
-                                    modifier = Modifier.padding(8.dp),
-                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                        IconButton(
-                            onClick = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.addDummyData() 
-                            },
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Upload,
-                                    contentDescription = "Add Dummy Data",
-                                    modifier = Modifier.padding(8.dp),
-                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = topAppBarContainerColor,
-                        scrolledContainerColor = topAppBarContainerColor,
-                        titleContentColor = onContainerColor,
-                        actionIconContentColor = onContainerColor
-                    ),
-                    scrollBehavior = scrollBehavior
-                )
-            },
+            topBar = {},
             snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) },
             floatingActionButton = {
                 // Large, Expressive FAB pushed up if Nav is floating
@@ -234,6 +175,7 @@ fun SalaryScreen(
             }
         ) { innerPadding ->
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
@@ -243,6 +185,10 @@ fun SalaryScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                // Header spacer to place list items under collapsible header
+                item {
+                    Spacer(modifier = Modifier.height(150.dp))
+                }
                 // ── Hero Section ──────────────
                 item {
                     AnimatedVisibility(
@@ -404,7 +350,55 @@ fun SalaryScreen(
             }
         }
 
-        // LargeFloatingActionButton was here, but now moved to Scaffold's fab slot
+        ExpressiveCollapsingHeader(
+            title = "Monthly",
+            subtitle = "Salary",
+            scrollOffset = scrollOffset,
+            maxOffset = maxOffsetPx,
+            containerColor = topAppBarContainerColor,
+            onContainerColor = onContainerColor,
+            primaryTextAccent = primaryTextAccent,
+            actions = {
+                IconButton(
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.toggleHistorySheet() 
+                    }
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.History,
+                            contentDescription = "History",
+                            modifier = Modifier.padding(8.dp),
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.addDummyData() 
+                    }
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Upload,
+                            contentDescription = "Add Dummy Data",
+                            modifier = Modifier.padding(8.dp),
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+        )
     }
 
     // Sheets & Dialogs (Update to Tonal Backgrounds)
@@ -1029,14 +1023,26 @@ fun ExpressiveAddEditSheet(
     
     // Focus states for animations
     var isSalaryFocused by remember { mutableStateOf(false) }
-    var isSavingsFocused by remember { mutableStateOf(false) }
-    var isRemittanceFocused by remember { mutableStateOf(false) }
-    var isNoteFocused by remember { mutableStateOf(false) }
     var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
+
+    var animateIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateIn = true }
+
+    val slideY by animateDpAsState(
+        targetValue = if (animateIn) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        label = "sheet_slide_in"
+    )
+    val sheetAlpha by animateFloatAsState(
+        targetValue = if (animateIn) 1f else 0f,
+        animationSpec = tween(300),
+        label = "sheet_alpha"
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()
@@ -1213,17 +1219,10 @@ fun ExpressiveAddEditSheet(
         Spacer(modifier = Modifier.height(16.dp))
         
         // Bento Island for Allocations (Savings & Remittance & Notes)
-        val allocationsFocused = isSavingsFocused || isRemittanceFocused || isNoteFocused
-        val allocationsElevation by animateDpAsState(if (allocationsFocused) 8.dp else 0.dp)
-        val allocationsScale by animateFloatAsState(if (allocationsFocused) 1.02f else 1f)
-
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            tonalElevation = allocationsElevation,
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(scaleX = allocationsScale, scaleY = allocationsScale)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -1234,39 +1233,23 @@ fun ExpressiveAddEditSheet(
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    ExpressiveOutlinedTextField(
                         value = uiState.inputSavings,
                         onValueChange = onSavingsChange,
                         label = { Text("Savings") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { isSavingsFocused = it.isFocused },
+                        modifier = Modifier.weight(1f),
                         leadingIcon = { Icon(Icons.Outlined.Savings, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(16.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedBorderColor = Color.Transparent
-                        )
+                        singleLine = true
                     )
-                    OutlinedTextField(
+                    ExpressiveOutlinedTextField(
                         value = uiState.inputRemittance,
                         onValueChange = onRemittanceChange,
                         label = { Text("Remittance") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { isRemittanceFocused = it.isFocused },
+                        modifier = Modifier.weight(1f),
                         leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ExitToApp, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(16.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedBorderColor = Color.Transparent
-                        )
+                        singleLine = true
                     )
                 }
 
@@ -1278,22 +1261,13 @@ fun ExpressiveAddEditSheet(
                 ) {
                     Column {
                         Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedTextField(
+                        ExpressiveOutlinedTextField(
                             value = uiState.inputNote,
                             onValueChange = onNoteChange,
                             label = { Text("Notes (Optional)") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .onFocusChanged { isNoteFocused = it.isFocused },
+                            modifier = Modifier.fillMaxWidth(),
                             leadingIcon = { Icon(Icons.Outlined.NoteAlt, contentDescription = null) },
-                            shape = RoundedCornerShape(16.dp),
-                            placeholder = { Text("Bonus, overtime, etc.") },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedBorderColor = Color.Transparent,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary
-                            )
+                            placeholder = { Text("Bonus, overtime, etc.") }
                         )
                     }
                 }
@@ -1360,25 +1334,66 @@ fun ExpressiveDeleteDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Delete Entry?", fontWeight = FontWeight.Bold) },
-        text = { Text("This action cannot be undone.") },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text("Delete")
+    Dialog(onDismissRequest = onDismiss) {
+        var animateTrigger by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { animateTrigger = true }
+
+        val scale by animateFloatAsState(
+            targetValue = if (animateTrigger) 1f else 0.8f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            ),
+            label = "dialog_scale"
+        )
+        val alpha by animateFloatAsState(
+            targetValue = if (animateTrigger) 1f else 0f,
+            animationSpec = tween(200),
+            label = "dialog_alpha"
+        )
+
+        Surface(
+            modifier = Modifier
+                .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(32.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp
+        ) {
+            Column(modifier = Modifier.padding(28.dp)) {
+                Text(
+                    text = "Delete Entry?",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "This action cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(28.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Button(
+                        onClick = onConfirm,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Delete", fontWeight = FontWeight.ExtraBold)
+                    }
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        shape = RoundedCornerShape(28.dp)
-    )
+        }
+    }
 }
 
 @Composable
@@ -1407,9 +1422,25 @@ fun HistoryBottomSheet(
     themeSettings: ThemeSettings
 ) {
     val haptic = LocalHapticFeedback.current
+
+    var animateIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateIn = true }
+
+    val slideY by animateDpAsState(
+        targetValue = if (animateIn) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        label = "sheet_slide_in"
+    )
+    val sheetAlpha by animateFloatAsState(
+        targetValue = if (animateIn) 1f else 0f,
+        animationSpec = tween(300),
+        label = "sheet_alpha"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()
