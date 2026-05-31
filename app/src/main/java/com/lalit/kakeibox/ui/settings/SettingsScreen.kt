@@ -66,6 +66,10 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -111,6 +115,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -883,188 +888,42 @@ fun SettingsScreen(
                 }
             }
 
-            // ── Unified Layout with Continuous Morph Animations ──
+            // ── Bento Grid to Stacked Column continuous morph transition ──
             val isSearchActive = searchQuery.isNotEmpty()
 
-            val showVisual = !isSearchActive && (activeSection == null || activeSection == "visual") || isSearchActive && showAppearance
-            val showPersonalizationCard = !isSearchActive && (activeSection == null || activeSection == "personalization") || isSearchActive && showPersonalization
-            val showSecurityCard = !isSearchActive && (activeSection == null || activeSection == "security") || isSearchActive && showSecurity
-            val showRegionalCard = !isSearchActive && (activeSection == null || activeSection == "regional") || isSearchActive && showRegional
-            val showAboutCard = !isSearchActive && (activeSection == null || activeSection == "about") || isSearchActive && showAbout
-
-            val visualAlpha by animateFloatAsState(
-                targetValue = if (showVisual) 1f else 0f,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "visual_alpha"
-            )
-            val personalizationAlpha by animateFloatAsState(
-                targetValue = if (showPersonalizationCard) 1f else 0f,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "personalization_alpha"
-            )
-            val securityAlpha by animateFloatAsState(
-                targetValue = if (showSecurityCard) 1f else 0f,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "security_alpha"
-            )
-            val regionalAlpha by animateFloatAsState(
-                targetValue = if (showRegionalCard) 1f else 0f,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "regional_alpha"
-            )
-            val aboutAlpha by animateFloatAsState(
-                targetValue = if (showAboutCard) 1f else 0f,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "about_alpha"
-            )
-
-            // Weights inside the rows
-            val visualTargetWeight = if (showVisual && showPersonalizationCard) 1f else if (showVisual) 1f else 0.001f
-            val personalizationTargetWeight = if (showVisual && showPersonalizationCard) 1f else if (showPersonalizationCard) 1f else 0.001f
-
-            val visualWeight by animateFloatAsState(
-                targetValue = visualTargetWeight,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "visual_weight"
-            )
-            val personalizationWeight by animateFloatAsState(
-                targetValue = personalizationTargetWeight,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "personalization_weight"
-            )
-
-            val regionalTargetWeight = if (showRegionalCard && showAboutCard) 1f else if (showRegionalCard) 1f else 0.001f
-            val aboutTargetWeight = if (showRegionalCard && showAboutCard) 1f else if (showAboutCard) 1f else 0.001f
-
-            val regionalWeight by animateFloatAsState(
-                targetValue = regionalTargetWeight,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "regional_weight"
-            )
-            val aboutWeight by animateFloatAsState(
-                targetValue = aboutTargetWeight,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "about_weight"
-            )
-
-            // Dynamic spacer heights
-            val hasRow1 = showVisual || showPersonalizationCard
-            val hasRow2 = showSecurityCard
-            val hasRow3 = showRegionalCard || showAboutCard
-
-            val spacer1TargetHeight = if (hasRow1 && (hasRow2 || hasRow3)) 16.dp else 0.dp
-            val spacer2TargetHeight = if (hasRow2 && hasRow3) 16.dp else 0.dp
-
-            val spacer1Height by animateDpAsState(
-                targetValue = spacer1TargetHeight,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "spacer1_height"
-            )
-            val spacer2Height by animateDpAsState(
-                targetValue = spacer2TargetHeight,
-                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
-                label = "spacer2_height"
-            )
-
-            // Row 1 Container (Appearance and Personalization)
-            if (hasRow1 || visualAlpha > 0.01f || personalizationAlpha > 0.01f) {
-                Row(
+            if (isSearchActive) {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateContentSize(spring(dampingRatio = 0.55f, stiffness = 300f)),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        if (showVisual && showPersonalizationCard) 16.dp else 0.dp
-                    )
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    if (showVisual || visualAlpha > 0.01f) {
-                        Box(
-                            modifier = Modifier
-                                .weight(visualWeight.coerceAtLeast(0.001f))
-                                .graphicsLayer {
-                                    alpha = visualAlpha
-                                    scaleX = visualAlpha.coerceAtLeast(0.001f)
-                                    scaleY = visualAlpha.coerceAtLeast(0.001f)
-                                }
-                        ) {
-                            VisualStyleCard(expanded = activeSection == "visual" || (isSearchActive && showAppearance))
-                        }
+                    if (showAppearance) {
+                        VisualStyleCard(expanded = true)
                     }
-                    if (showPersonalizationCard || personalizationAlpha > 0.01f) {
-                        Box(
-                            modifier = Modifier
-                                .weight(personalizationWeight.coerceAtLeast(0.001f))
-                                .graphicsLayer {
-                                    alpha = personalizationAlpha
-                                    scaleX = personalizationAlpha.coerceAtLeast(0.001f)
-                                    scaleY = personalizationAlpha.coerceAtLeast(0.001f)
-                                }
-                        ) {
-                            PersonalizationCard(expanded = activeSection == "personalization" || (isSearchActive && showPersonalization))
-                        }
+                    if (showPersonalization) {
+                        PersonalizationCard(expanded = true)
+                    }
+                    if (showSecurity) {
+                        SecurityCard(expanded = true)
+                    }
+                    if (showRegional) {
+                        RegionalCard(expanded = true)
+                    }
+                    if (showAbout) {
+                        AboutCard(expanded = true)
                     }
                 }
-            }
-
-            if (spacer1Height > 0.dp) {
-                Spacer(modifier = Modifier.height(spacer1Height))
-            }
-
-            // Row 2 Container (Security & Privacy)
-            if (showSecurityCard || securityAlpha > 0.01f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize(spring(dampingRatio = 0.55f, stiffness = 300f))
-                        .graphicsLayer {
-                            alpha = securityAlpha
-                            scaleX = securityAlpha.coerceAtLeast(0.001f)
-                            scaleY = securityAlpha.coerceAtLeast(0.001f)
-                        }
+            } else {
+                BentoGridToColumnLayout(
+                    isGridMode = activeSection == null,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    SecurityCard(expanded = activeSection == "security" || (isSearchActive && showSecurity))
-                }
-            }
-
-            if (spacer2Height > 0.dp) {
-                Spacer(modifier = Modifier.height(spacer2Height))
-            }
-
-            // Row 3 Container (Regional & About)
-            if (hasRow3 || regionalAlpha > 0.01f || aboutAlpha > 0.01f) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize(spring(dampingRatio = 0.55f, stiffness = 300f)),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        if (showRegionalCard && showAboutCard) 16.dp else 0.dp
-                    )
-                ) {
-                    if (showRegionalCard || regionalAlpha > 0.01f) {
-                        Box(
-                            modifier = Modifier
-                                .weight(regionalWeight.coerceAtLeast(0.001f))
-                                .graphicsLayer {
-                                    alpha = regionalAlpha
-                                    scaleX = regionalAlpha.coerceAtLeast(0.001f)
-                                    scaleY = regionalAlpha.coerceAtLeast(0.001f)
-                                }
-                        ) {
-                            RegionalCard(expanded = activeSection == "regional" || (isSearchActive && showRegional))
-                        }
-                    }
-                    if (showAboutCard || aboutAlpha > 0.01f) {
-                        Box(
-                            modifier = Modifier
-                                .weight(aboutWeight.coerceAtLeast(0.001f))
-                                .graphicsLayer {
-                                    alpha = aboutAlpha
-                                    scaleX = aboutAlpha.coerceAtLeast(0.001f)
-                                    scaleY = aboutAlpha.coerceAtLeast(0.001f)
-                                }
-                        ) {
-                            AboutCard(expanded = activeSection == "about" || (isSearchActive && showAbout))
-                        }
-                    }
+                    VisualStyleCard(expanded = activeSection == "visual")
+                    PersonalizationCard(expanded = activeSection == "personalization")
+                    SecurityCard(expanded = activeSection == "security")
+                    RegionalCard(expanded = activeSection == "regional")
+                    AboutCard(expanded = activeSection == "about")
                 }
             }
         }
@@ -1604,6 +1463,92 @@ fun BirthdayRow(
                     modifier = Modifier.size(22.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun BentoGridToColumnLayout(
+    isGridMode: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val transitionProgress by animateFloatAsState(
+        targetValue = if (isGridMode) 1f else 0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+        label = "grid_to_column_progress"
+    )
+
+    Layout(
+        content = content,
+        modifier = modifier
+    ) { measurables, constraints ->
+        val spacing = 16.dp.roundToPx()
+        val width = constraints.maxWidth
+        val gridWidth1 = (width - spacing) / 2
+
+        val placeables = measurables.mapIndexed { index, measurable ->
+            val targetWidth = when (index) {
+                2 -> width
+                else -> {
+                    val gridW = gridWidth1
+                    val colW = width
+                    (colW + (gridW - colW) * transitionProgress).toInt()
+                }
+            }
+            measurable.measure(constraints.copy(minWidth = targetWidth, maxWidth = targetWidth))
+        }
+
+        val h0 = placeables.getOrNull(0)?.height ?: 0
+        val h1 = placeables.getOrNull(1)?.height ?: 0
+        val h2 = placeables.getOrNull(2)?.height ?: 0
+        val h3 = placeables.getOrNull(3)?.height ?: 0
+        val h4 = placeables.getOrNull(4)?.height ?: 0
+
+        // Grid coordinates
+        val y0_grid = 0
+        val y1_grid = 0
+        val y2_grid = maxOf(h0, h1) + spacing
+        val y3_grid = y2_grid + h2 + spacing
+        val y4_grid = y2_grid + h2 + spacing
+
+        // Column coordinates
+        val y0_col = 0
+        val y1_col = h0 + spacing
+        val y2_col = y1_col + h1 + spacing
+        val y3_col = y2_col + h2 + spacing
+        val y4_col = y3_col + h3 + spacing
+
+        // Interpolated y coordinates
+        val y0 = (y0_col + (y0_grid - y0_col) * transitionProgress).toInt()
+        val y1 = (y1_col + (y1_grid - y1_col) * transitionProgress).toInt()
+        val y2 = (y2_col + (y2_grid - y2_col) * transitionProgress).toInt()
+        val y3 = (y3_col + (y3_grid - y3_col) * transitionProgress).toInt()
+        val y4 = (y4_col + (y4_grid - y4_col) * transitionProgress).toInt()
+
+        // Interpolated x coordinates
+        val x0_grid = 0
+        val x1_grid = gridWidth1 + spacing
+        val x2_grid = 0
+        val x3_grid = 0
+        val x4_grid = gridWidth1 + spacing
+
+        val x0 = (x0_grid * transitionProgress).toInt()
+        val x1 = (x1_grid * transitionProgress).toInt()
+        val x2 = 0
+        val x3 = 0
+        val x4 = (x4_grid * transitionProgress).toInt()
+
+        val heightGrid = maxOf(y3_grid + h3, y4_grid + h4)
+        val heightCol = y4_col + h4
+        val totalHeight = (heightCol + (heightGrid - heightCol) * transitionProgress).toInt()
+
+        layout(width, totalHeight) {
+            placeables.getOrNull(0)?.placeRelative(x0, y0)
+            placeables.getOrNull(1)?.placeRelative(x1, y1)
+            placeables.getOrNull(2)?.placeRelative(x2, y2)
+            placeables.getOrNull(3)?.placeRelative(x3, y3)
+            placeables.getOrNull(4)?.placeRelative(x4, y4)
         }
     }
 }
