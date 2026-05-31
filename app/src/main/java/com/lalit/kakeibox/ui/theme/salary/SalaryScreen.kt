@@ -86,6 +86,12 @@ import com.personal.kakeibox.data.entity.SalaryEntry
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.util.CurrencyUtils
 import com.personal.kakeibox.util.DateUtils
+import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.theme.LocalThemeStyle
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
+import kotlin.math.cos
+import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -750,11 +756,51 @@ fun ExpressiveHeroCard(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.size(donutSize).padding(4.dp)
                     ) {
-                        val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
-                        val progressColor = MaterialTheme.colorScheme.onPrimary
+                        val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+                        val trackColor = if (isSpaceTerminal) {
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
+                        } else {
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
+                        }
+                        val progressColor = if (isSpaceTerminal) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onPrimary
+                        }
+                        val spaceRadarColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+                        val spaceSatelliteGlow = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)
+                        val spaceSatelliteCore = MaterialTheme.colorScheme.tertiary
                         
                         Canvas(modifier = Modifier.fillMaxSize()) {
-                            val stroke = 10.dp.toPx()
+                            val stroke = if (isSpaceTerminal) 4.dp.toPx() else 10.dp.toPx()
+                            
+                            if (isSpaceTerminal) {
+                                // Draw concentric space radar orbit rings
+                                val center = Offset(size.width / 2, size.height / 2)
+                                val radiusFraction1 = (size.minDimension / 2) * 0.75f
+                                val radiusFraction2 = (size.minDimension / 2) * 0.5f
+                                
+                                drawCircle(
+                                    color = spaceRadarColor,
+                                    radius = radiusFraction1,
+                                    center = center,
+                                    style = Stroke(
+                                        width = 1.dp.toPx(),
+                                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 12f), 0f)
+                                    )
+                                )
+                                drawCircle(
+                                    color = spaceRadarColor,
+                                    radius = radiusFraction2,
+                                    center = center,
+                                    style = Stroke(
+                                        width = 1.dp.toPx(),
+                                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f), 0f)
+                                    )
+                                )
+                            }
+                            
+                            // Track
                             drawArc(
                                 color = trackColor,
                                 startAngle = 0f,
@@ -762,6 +808,8 @@ fun ExpressiveHeroCard(
                                 useCenter = false,
                                 style = Stroke(width = stroke, cap = StrokeCap.Round)
                             )
+                            
+                            // Progress
                             drawArc(
                                 color = progressColor,
                                 startAngle = -90f,
@@ -769,6 +817,28 @@ fun ExpressiveHeroCard(
                                 useCenter = false,
                                 style = Stroke(width = stroke, cap = StrokeCap.Round)
                             )
+                            
+                            if (isSpaceTerminal && animatedProgress > 0f) {
+                                // Calculate planet satellite dot coordinates at the progress head
+                                val angleRad = Math.toRadians((-90f + 360f * animatedProgress).toDouble())
+                                val cx = size.width / 2
+                                val cy = size.height / 2
+                                val orbitRadius = (size.minDimension - stroke) / 2
+                                val satX = cx + orbitRadius * cos(angleRad).toFloat()
+                                val satY = cy + orbitRadius * sin(angleRad).toFloat()
+                                
+                                // Glowing satellite
+                                drawCircle(
+                                    color = spaceSatelliteGlow,
+                                    radius = 8.dp.toPx(),
+                                    center = Offset(satX, satY)
+                                )
+                                drawCircle(
+                                    color = spaceSatelliteCore,
+                                    radius = 4.dp.toPx(),
+                                    center = Offset(satX, satY)
+                                )
+                            }
                         }
                         
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {

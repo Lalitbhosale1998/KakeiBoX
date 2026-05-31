@@ -81,6 +81,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.util.DateUtils
+import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.theme.LocalThemeStyle
+import com.personal.kakeibox.ui.theme.terminalScanlines
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import androidx.compose.ui.composed
@@ -356,9 +359,16 @@ fun ExpressiveTab(
         label = "scale"
     )
 
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val targetRadius = if (isSpaceTerminal) {
+        if (isSelected) 12 else 8
+    } else {
+        if (isSelected) 28 else 16
+    }
+
     // Morphing Shape logic: Squircle (16dp) to Custom Expressive Shapes
     val cornerRadius by animateIntAsState(
-        targetValue = if (isSelected) 28 else 16,
+        targetValue = targetRadius,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -388,6 +398,15 @@ fun ExpressiveTab(
         else -> RoundedCornerShape(cornerRadius.dp) // Pill
     }
 
+    val border = if (isSpaceTerminal) {
+        BorderStroke(
+            width = 1.5.dp,
+            color = if (isSelected) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.5f)
+        )
+    } else {
+        null
+    }
+
     Surface(
         modifier = modifier
             .height(56.dp)
@@ -398,7 +417,8 @@ fun ExpressiveTab(
             .graphicsLayer(scaleX = scale, scaleY = scale),
         shape = shape,
         color = bgColor,
-        contentColor = txtColor
+        contentColor = txtColor,
+        border = border
     ) {
         Row(
             modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
@@ -743,17 +763,28 @@ fun BentoCard(
         label = "icon_scale"
     )
 
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val cardShape = if (isSpaceTerminal) RoundedCornerShape(12.dp) else RoundedCornerShape(32.dp)
+    val cardBorder = if (isSpaceTerminal) {
+        BorderStroke(1.5.dp, if (isActive) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
+    } else {
+        null
+    }
+    val iconShape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp)
+
     Surface(
         modifier = modifier
-            .clip(RoundedCornerShape(32.dp))
+            .clip(cardShape)
             .then(if (onClick != null && enabled) Modifier.elasticClick(
                 enabled = enabled,
                 hapticType = HapticFeedbackType.LongPress,
                 onClick = onClick
-            ) else Modifier),
+            ) else Modifier)
+            .terminalScanlines(),
         color = backgroundColor,
         contentColor = contentColor,
-        shape = RoundedCornerShape(32.dp)
+        shape = cardShape,
+        border = cardBorder
     ) {
         Column(
             modifier = Modifier
@@ -767,7 +798,7 @@ fun BentoCard(
                 verticalAlignment = Alignment.Top
             ) {
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = iconShape,
                     color = (if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
                         .copy(alpha = if (enabled) 1f else 0.4f),
                     modifier = Modifier.size(40.dp)

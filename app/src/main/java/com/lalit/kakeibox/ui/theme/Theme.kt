@@ -3,6 +3,7 @@ package com.personal.kakeibox.ui.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -11,6 +12,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.material3.Shapes
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
+import com.personal.kakeibox.data.preferences.ThemeStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF1565C0),
@@ -74,13 +88,144 @@ private val DarkColors = darkColorScheme(
     surfaceContainerHighest = Color(0xFF33353C),
 )
 
+val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle.M3_EXPRESSIVE }
+
+private val RetroSpaceColors = darkColorScheme(
+    primary = Color(0xFFFF7E6B),       // Electric Coral
+    onPrimary = Color(0xFF0C1020),     // Deep navy text
+    primaryContainer = Color(0xFF1D264A),
+    onPrimaryContainer = Color(0xFFFF7E6B),
+    secondary = Color(0xFF46C2B4),     // Neon Cyan
+    onSecondary = Color(0xFF0C1020),
+    secondaryContainer = Color(0xFF142B34),
+    onSecondaryContainer = Color(0xFF46C2B4),
+    tertiary = Color(0xFFFFB359),      // Warm Amber
+    onTertiary = Color(0xFF0C1020),
+    tertiaryContainer = Color(0xFF2C2415),
+    onTertiaryContainer = Color(0xFFFFB359),
+    error = Color(0xFFFFB4AB),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color(0xFF0C1020),    // Dark Space Navy
+    surface = Color(0xFF0C1020),
+    onBackground = Color(0xFFE2E7FF),  // Cool Ice Blue
+    onSurface = Color(0xFFE2E7FF),
+    surfaceVariant = Color(0xFF13182E), // Deep Mecha Card Blue
+    onSurfaceVariant = Color(0xFF8898C8), // Muted Blue-Gray
+    outline = Color(0xFF46C2B4),       // Cyan outline
+    outlineVariant = Color(0xFFFF7E6B),
+    surfaceDim = Color(0xFF090C19),
+    surfaceBright = Color(0xFF1C223E),
+    surfaceContainerLowest = Color(0xFF060811),
+    surfaceContainerLow = Color(0xFF101427),
+    surfaceContainer = Color(0xFF13182E),
+    surfaceContainerHigh = Color(0xFF171D3A),
+    surfaceContainerHighest = Color(0xFF1B2246),
+)
+
+private val RetroSpaceShapes = Shapes(
+    extraSmall = RoundedCornerShape(2.dp),
+    small = RoundedCornerShape(4.dp),
+    medium = RoundedCornerShape(8.dp),
+    large = RoundedCornerShape(12.dp),
+    extraLarge = RoundedCornerShape(16.dp)
+)
+
+private val RetroSpaceTypography = androidx.compose.material3.Typography(
+    displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = FontFamily.Monospace),
+    displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = FontFamily.Monospace),
+    displaySmall = com.personal.kakeibox.ui.theme.Typography.displaySmall.copy(fontFamily = FontFamily.Monospace),
+    headlineLarge = com.personal.kakeibox.ui.theme.Typography.headlineLarge.copy(fontFamily = FontFamily.Monospace),
+    headlineMedium = com.personal.kakeibox.ui.theme.Typography.headlineMedium.copy(fontFamily = FontFamily.Monospace),
+    headlineSmall = com.personal.kakeibox.ui.theme.Typography.headlineSmall.copy(fontFamily = FontFamily.Monospace),
+    titleLarge = com.personal.kakeibox.ui.theme.Typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
+    titleMedium = com.personal.kakeibox.ui.theme.Typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
+    titleSmall = com.personal.kakeibox.ui.theme.Typography.titleSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
+    bodyLarge = com.personal.kakeibox.ui.theme.Typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
+    bodyMedium = com.personal.kakeibox.ui.theme.Typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+    bodySmall = com.personal.kakeibox.ui.theme.Typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+    labelLarge = com.personal.kakeibox.ui.theme.Typography.labelLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
+    labelMedium = com.personal.kakeibox.ui.theme.Typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+    labelSmall = com.personal.kakeibox.ui.theme.Typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+)
+
+fun Modifier.terminalScanlines(): Modifier = composed {
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    if (!isSpaceTerminal) return@composed this
+    
+    this.drawWithContent {
+        drawContent()
+        
+        // Draw horizontal CRT scanlines
+        val scanlineSpacing = 6.dp.toPx()
+        var y = 0f
+        while (y < size.height) {
+            drawLine(
+                color = Color(0xFF46C2B4).copy(alpha = 0.05f),
+                start = Offset(0f, y),
+                end = Offset(size.width, y),
+                strokeWidth = 1.dp.toPx()
+            )
+            y += scanlineSpacing
+        }
+        
+        // Draw tactical corner bracket outlines
+        val bracketSize = 8.dp.toPx()
+        val bracketColor = Color(0xFF46C2B4).copy(alpha = 0.4f)
+        val stroke = 1.dp.toPx()
+        
+        // Top-left
+        drawLine(bracketColor, Offset(0f, 0f), Offset(bracketSize, 0f), stroke)
+        drawLine(bracketColor, Offset(0f, 0f), Offset(0f, bracketSize), stroke)
+        
+        // Top-right
+        drawLine(bracketColor, Offset(size.width, 0f), Offset(size.width - bracketSize, 0f), stroke)
+        drawLine(bracketColor, Offset(size.width, 0f), Offset(size.width, bracketSize), stroke)
+        
+        // Bottom-left
+        drawLine(bracketColor, Offset(0f, size.height), Offset(bracketSize, size.height), stroke)
+        drawLine(bracketColor, Offset(0f, size.height), Offset(0f, size.height - bracketSize), stroke)
+        
+        // Bottom-right
+        drawLine(bracketColor, Offset(size.width, size.height), Offset(size.width - bracketSize, size.height), stroke)
+        drawLine(bracketColor, Offset(size.width, size.height), Offset(size.width, size.height - bracketSize), stroke)
+    }
+}
+
+fun Modifier.terminalGridBackground(): Modifier = composed {
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    if (!isSpaceTerminal) return@composed this
+    this.drawBehind {
+        val gridSpacing = 32.dp.toPx()
+        val lineColor = Color(0xFF46C2B4).copy(alpha = 0.04f)
+        
+        // Vertical lines
+        var x = 0f
+        while (x < size.width) {
+            drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), 1f)
+            x += gridSpacing
+        }
+        
+        // Horizontal lines
+        var y = 0f
+        while (y < size.height) {
+            drawLine(lineColor, Offset(0f, y), Offset(size.width, y), 1f)
+            y += gridSpacing
+        }
+    }
+}
+
 @Composable
 fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
+    themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
     content: @Composable () -> Unit
 ) {
+    val isRetroSpace = themeStyle == ThemeStyle.RETRO_SPACE
+    
     val colorScheme = when {
+        isRetroSpace -> RetroSpaceColors
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context)
@@ -90,10 +235,17 @@ fun KakeiboXTheme(
         else -> LightColors
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = KakeiboXShapes,
-        content = content
-    )
+    val shapes = if (isRetroSpace) RetroSpaceShapes else KakeiboXShapes
+    val typography = if (isRetroSpace) RetroSpaceTypography else Typography
+
+    CompositionLocalProvider(
+        LocalThemeStyle provides themeStyle
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = typography,
+            shapes = shapes,
+            content = content
+        )
+    }
 }

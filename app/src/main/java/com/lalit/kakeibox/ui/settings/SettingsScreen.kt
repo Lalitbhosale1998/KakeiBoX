@@ -134,6 +134,10 @@ import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
+import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.theme.LocalThemeStyle
+import com.personal.kakeibox.ui.theme.terminalScanlines
+import androidx.compose.foundation.BorderStroke
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
@@ -271,6 +275,55 @@ fun SettingsScreen(
                         activeSection = if (activeSection == "visual") null else "visual"
                     }
                 ) {
+                    // Interface Aesthetic
+                    if (shouldShow("Interface Aesthetic", keywords = listOf("style", "visual", "retro", "expressive", "aesthetic"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Interface Aesthetic",
+                            description = "Switch the overall visual identity of the app between modern Material 3 and retro space terminal cockpit styling.",
+                            icon = Icons.Outlined.Palette
+                        ) {
+                            val currentStyle = themeSettings.themeStyle
+                            val options = ThemeStyle.entries
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                options.forEach { option ->
+                                    val isSelected = currentStyle == option
+                                    val weight by animateFloatAsState(
+                                        targetValue = if (isSelected) 1.2f else 1f,
+                                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+                                    )
+
+                                    ExpressiveTab(
+                                        text = when(option) {
+                                            ThemeStyle.M3_EXPRESSIVE -> "M3 Expressive"
+                                            ThemeStyle.RETRO_SPACE -> "Retro Space"
+                                        },
+                                        isSelected = isSelected,
+                                        selectedColor = when(option) {
+                                            ThemeStyle.M3_EXPRESSIVE -> MaterialTheme.colorScheme.primary
+                                            ThemeStyle.RETRO_SPACE -> Color(0xFFFF7E6B) // Electric Coral
+                                        },
+                                        modifier = Modifier.weight(weight.coerceAtLeast(0.001f)),
+                                        selectedTextColor = when(option) {
+                                            ThemeStyle.M3_EXPRESSIVE -> MaterialTheme.colorScheme.onPrimary
+                                            ThemeStyle.RETRO_SPACE -> Color(0xFF0A0D1A) // Space navy text
+                                        },
+                                        icon = if (option == ThemeStyle.M3_EXPRESSIVE) Icons.Outlined.Palette else Icons.Outlined.Public,
+                                        shapeType = if (option == ThemeStyle.M3_EXPRESSIVE) "pill" else "clamshell",
+                                        onClick = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setThemeStyle(option) 
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     // App Theme
                     if (shouldShow("App Theme", keywords = listOf("dark", "light", "mode"))) {
                         BentoCard(
@@ -951,10 +1004,19 @@ fun SettingsCategoryCard(
     )
     val contentColor = MaterialTheme.colorScheme.onSurface
 
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val cardShape = if (isSpaceTerminal) RoundedCornerShape(12.dp) else RoundedCornerShape(28.dp)
+    val cardBorder = if (isSpaceTerminal) {
+        BorderStroke(1.5.dp, if (isExpanded) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
+    } else {
+        null
+    }
+    val iconShape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp)
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(cardShape)
             .clickable {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onClick()
@@ -964,10 +1026,12 @@ fun SettingsCategoryCard(
                     dampingRatio = 0.55f,
                     stiffness = 300f
                 )
-            ),
+            )
+            .terminalScanlines(),
         color = containerColor,
         contentColor = contentColor,
-        shape = RoundedCornerShape(28.dp)
+        shape = cardShape,
+        border = cardBorder
     ) {
         Column(
             modifier = Modifier
@@ -984,7 +1048,7 @@ fun SettingsCategoryCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
+                        shape = iconShape,
                         color = if (isExpanded) 
                             MaterialTheme.colorScheme.primary 
                         else 

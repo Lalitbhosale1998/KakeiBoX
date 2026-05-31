@@ -22,6 +22,7 @@ private object Keys {
     val TAB_ORDER = stringPreferencesKey("tab_order")
     val PRIVACY_MODE = booleanPreferencesKey("privacy_mode")
     val TOP_APP_BAR_BACKGROUND = stringPreferencesKey("top_app_bar_background")
+    val THEME_STYLE = stringPreferencesKey("theme_style")
 }
 
 @Singleton
@@ -43,7 +44,8 @@ class UserPreferencesRepository @Inject constructor(
             privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false,
             topAppBarBackground = TopAppBarBackground.valueOf(
                 prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.SURFACE.name
-            )
+            ),
+            themeStyle = ThemeStyle.fromStorage(prefs[Keys.THEME_STYLE])
         )
     }
 
@@ -89,6 +91,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setTopAppBarBackground(background: TopAppBarBackground) {
         dataStore.edit { it[Keys.TOP_APP_BAR_BACKGROUND] = background.name }
+    }
+
+    suspend fun setThemeStyle(style: ThemeStyle) {
+        dataStore.edit { it[Keys.THEME_STYLE] = style.name }
     }
 
 }

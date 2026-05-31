@@ -13,6 +13,7 @@ import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
+import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
 import com.personal.kakeibox.data.repository.BirthdayRepository
@@ -185,6 +186,12 @@ class ThemeViewModel @Inject constructor(
     fun setTopAppBarBackground(background: TopAppBarBackground) {
         viewModelScope.launch {
             preferencesRepository.setTopAppBarBackground(background)
+        }
+    }
+
+    fun setThemeStyle(style: ThemeStyle) {
+        viewModelScope.launch {
+            preferencesRepository.setThemeStyle(style)
         }
     }
 

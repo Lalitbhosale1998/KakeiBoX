@@ -17,6 +17,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.theme.KakeiboXTheme
+import com.personal.kakeibox.ui.theme.terminalGridBackground
 
 @Composable
 fun KakeiboXAppRoot() {
@@ -42,18 +43,19 @@ fun KakeiboXAppRoot() {
 
     KakeiboXTheme(
         darkTheme = darkTheme,
-        dynamicColor = useDynamicColor
+        dynamicColor = useDynamicColor,
+        themeStyle = themeSettings.themeStyle
     ) {
-        if (!themeSettings.biometricEnabled || isAuthenticated) {
-            KakeiboXApp()
-        } else {
-            // Lock Screen placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                // You could add a "Unlock" button here if the prompt was dismissed
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .terminalGridBackground()
+        ) {
+            if (!themeSettings.biometricEnabled || isAuthenticated) {
+                KakeiboXApp()
+            } else {
+                // Lock Screen placeholder
             }
         }
     }
