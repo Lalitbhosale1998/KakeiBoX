@@ -301,7 +301,8 @@ fun SpendScreen(
                         onPeriodClick = { /* Scroll to top or show picker if needed */ },
                         isPrimaryContainer = isPrimaryContainer,
                         bentoIdleColor = bentoIdleColor,
-                        themeSettings = themeSettings
+                        themeSettings = themeSettings,
+                        selectedCategory = uiState.selectedCategory
                     )
                 }
             }
@@ -570,64 +571,150 @@ fun BentoHeroSection(
     onPeriodClick: () -> Unit,
     isPrimaryContainer: Boolean = false,
     bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    themeSettings: ThemeSettings
+    themeSettings: ThemeSettings,
+    selectedCategory: SpendCategory? = null
 ) {
     val salaryAmount = salary?.salaryAmount ?: 0L
     val remaining = salaryAmount - totalSpend
+
+    val leftCardWeight by animateFloatAsState(
+        targetValue = if (selectedCategory == null) 1.2f else 0.001f,
+        animationSpec = spring(
+            dampingRatio = 0.55f,
+            stiffness = 150f
+        ),
+        label = "left_card_weight"
+    )
+
+    val rightColWeight by animateFloatAsState(
+        targetValue = if (selectedCategory == null) 1.0f else 2.0f,
+        animationSpec = spring(
+            dampingRatio = 0.55f,
+            stiffness = 150f
+        ),
+        label = "right_col_weight"
+    )
+
+    val needCardWeight by animateFloatAsState(
+        targetValue = when (selectedCategory) {
+            SpendCategory.NEED -> 2.0f
+            SpendCategory.WANT -> 0.001f
+            null -> 1.0f
+        },
+        animationSpec = spring(
+            dampingRatio = 0.55f,
+            stiffness = 150f
+        ),
+        label = "need_card_weight"
+    )
+
+    val wantCardWeight by animateFloatAsState(
+        targetValue = when (selectedCategory) {
+            SpendCategory.WANT -> 2.0f
+            SpendCategory.NEED -> 0.001f
+            null -> 1.0f
+        },
+        animationSpec = spring(
+            dampingRatio = 0.55f,
+            stiffness = 150f
+        ),
+        label = "want_card_weight"
+    )
     
     Row(
         modifier = Modifier.fillMaxWidth().height(200.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Main Balance Card (Tall Bento)
-        BentoCard(
-            modifier = Modifier.weight(1.2f).fillMaxHeight(),
-            title = "TOTAL SPENT",
-            icon = Icons.Outlined.AccountBalanceWallet,
-            isActive = true,
-            activeContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary,
-            activeContentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onPrimary,
-            onClick = onPeriodClick
+        Box(
+            modifier = Modifier
+                .weight(leftCardWeight.coerceAtLeast(0.001f))
+                .fillMaxHeight()
+                .graphicsLayer {
+                    alpha = ((leftCardWeight - 0.1f) / 1.1f).coerceIn(0f, 1f)
+                    scaleX = (leftCardWeight / 1.2f).coerceIn(0f, 1f)
+                    scaleY = (leftCardWeight / 1.2f).coerceIn(0f, 1f)
+                }
         ) {
-            Column {
-                Text(
-                    text = "Cumulative",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 1.sp,
-                    color = LocalContentColor.current.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                ExpressiveTotalSpentTicker(
-                    totalSpend = totalSpend,
-                    isPrivacyMode = isPrivacyMode,
-                    themeSettings = themeSettings
-                )
+            BentoCard(
+                modifier = Modifier.fillMaxSize(),
+                title = "TOTAL SPENT",
+                icon = Icons.Outlined.AccountBalanceWallet,
+                isActive = true,
+                activeContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary,
+                activeContentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onPrimary,
+                onClick = onPeriodClick
+            ) {
+                Column {
+                    Text(
+                        text = "Cumulative",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp,
+                        color = LocalContentColor.current.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    ExpressiveTotalSpentTicker(
+                        totalSpend = totalSpend,
+                        isPrivacyMode = isPrivacyMode,
+                        themeSettings = themeSettings
+                    )
+                }
             }
         }
 
-        // Stats Stack (Right Bento Side)
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            BentoStatSmall(
-                title = "Needs",
-                amount = totalNeed,
-                icon = Icons.Outlined.ShoppingBag,
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                isPrivacyMode = isPrivacyMode,
-                modifier = Modifier.weight(1f),
-                themeSettings = themeSettings
-            )
-            BentoStatSmall(
-                title = "Wants",
-                amount = totalWant,
-                icon = Icons.Outlined.Star,
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                isPrivacyMode = isPrivacyMode,
-                modifier = Modifier.weight(1f),
-                themeSettings = themeSettings
-            )
+        Box(
+            modifier = Modifier
+                .weight(rightColWeight.coerceAtLeast(0.001f))
+                .fillMaxHeight()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(needCardWeight.coerceAtLeast(0.001f))
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = ((needCardWeight - 0.1f) / 1.9f).coerceIn(0f, 1f)
+                            scaleX = if (selectedCategory == SpendCategory.WANT) (needCardWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                            scaleY = if (selectedCategory == SpendCategory.WANT) (needCardWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                        }
+                ) {
+                    BentoStatSmall(
+                        title = "Needs",
+                        amount = totalNeed,
+                        icon = Icons.Outlined.ShoppingBag,
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        isPrivacyMode = isPrivacyMode,
+                        modifier = Modifier.fillMaxSize(),
+                        themeSettings = themeSettings
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(wantCardWeight.coerceAtLeast(0.001f))
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = ((wantCardWeight - 0.1f) / 1.9f).coerceIn(0f, 1f)
+                            scaleX = if (selectedCategory == SpendCategory.NEED) (wantCardWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                            scaleY = if (selectedCategory == SpendCategory.NEED) (wantCardWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                        }
+                ) {
+                    BentoStatSmall(
+                        title = "Wants",
+                        amount = totalWant,
+                        icon = Icons.Outlined.Star,
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        isPrivacyMode = isPrivacyMode,
+                        modifier = Modifier.fillMaxSize(),
+                        themeSettings = themeSettings
+                    )
+                }
+            }
         }
     }
 }
@@ -1067,7 +1154,20 @@ fun SpendAddEditSheet(
     
     // Animation/Focus States
     var isAmountFocused by remember { mutableStateOf(false) }
+    var isDescFocused by remember { mutableStateOf(false) }
+    var isNoteFocused by remember { mutableStateOf(false) }
     var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
+
+    val descWeight by animateFloatAsState(
+        targetValue = if (isDescFocused) 1.5f else if (isNoteFocused) 0.6f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "spend_desc_weight"
+    )
+    val noteWeight by animateFloatAsState(
+        targetValue = if (isNoteFocused) 1.5f else if (isDescFocused) 0.6f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "spend_note_weight"
+    )
 
     var animateIn by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { animateIn = true }
@@ -1210,26 +1310,65 @@ fun SpendAddEditSheet(
         }
 
         // 3. Description & Note Island
-        ExpressiveOutlinedTextField(
-            value = uiState.inputDescription,
-            onValueChange = onDescriptionChange,
-            label = { Text("What did you buy?") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Expanding Note Drawer
-        AnimatedVisibility(
-            visible = showNoteField,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ExpressiveOutlinedTextField(
-                value = uiState.inputNote,
-                onValueChange = onNoteChange,
-                label = { Text("Extra details...") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column(
+                modifier = Modifier.weight(descWeight.coerceAtLeast(0.001f))
+            ) {
+                ExpressiveOutlinedTextField(
+                    value = uiState.inputDescription,
+                    onValueChange = onDescriptionChange,
+                    label = { Text("What did you buy?") },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { isDescFocused = it.isFocused }
+                )
+                AnimatedVisibility(
+                    visible = isDescFocused,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Text(
+                        text = "e.g., Groceries, Coffee",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            if (showNoteField) {
+                Column(
+                    modifier = Modifier.weight(noteWeight.coerceAtLeast(0.001f))
+                ) {
+                    ExpressiveOutlinedTextField(
+                        value = uiState.inputNote,
+                        onValueChange = onNoteChange,
+                        label = { Text("Extra details...") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { isNoteFocused = it.isFocused }
+                    )
+                    AnimatedVisibility(
+                        visible = isNoteFocused,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        Text(
+                            text = "Add tags or store name",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
 
         if (!showNoteField) {

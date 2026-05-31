@@ -276,7 +276,8 @@ fun SalaryScreen(
                             isPrimaryContainer = isPrimaryContainer,
                             themeSettings = themeSettings,
                             donutMode = uiState.donutMode,
-                            onDonutClick = viewModel::toggleDonutMode
+                            onDonutClick = viewModel::toggleDonutMode,
+                            isHighSavingsActive = uiState.currentFilter == SalaryFilter.HIGH_SAVINGS
                         )
                     }
                 }
@@ -617,9 +618,37 @@ fun ExpressiveHeroCard(
     isPrimaryContainer: Boolean = false,
     themeSettings: ThemeSettings,
     donutMode: DonutDisplayMode = DonutDisplayMode.PERCENTAGE,
-    onDonutClick: () -> Unit = {}
+    onDonutClick: () -> Unit = {},
+    isHighSavingsActive: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
+
+    val leftWeight by animateFloatAsState(
+        targetValue = if (isHighSavingsActive) 0.001f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = 0.55f,
+            stiffness = 150f
+        ),
+        label = "salary_hero_left_weight"
+    )
+
+    val rightWeight by animateFloatAsState(
+        targetValue = if (isHighSavingsActive) 2.0f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = 0.55f,
+            stiffness = 150f
+        ),
+        label = "salary_hero_right_weight"
+    )
+
+    val donutSize by animateDpAsState(
+        targetValue = if (isHighSavingsActive) 150.dp else 100.dp,
+        animationSpec = spring(
+            dampingRatio = 0.55f,
+            stiffness = 150f
+        ),
+        label = "salary_hero_donut_size"
+    )
     
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -635,47 +664,57 @@ fun ExpressiveHeroCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "TOTAL EARNINGS",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                ExpressiveTotalEarningsTicker(
-                    totalSalary = totalSalary,
-                    isPrivacyMode = isPrivacyMode,
-                    themeSettings = themeSettings
-                )
+            Box(
+                modifier = Modifier
+                    .weight(leftWeight.coerceAtLeast(0.001f))
+                    .graphicsLayer {
+                        alpha = ((leftWeight - 0.1f) / 0.9f).coerceIn(0f, 1f)
+                        scaleX = (leftWeight / 1.0f).coerceIn(0f, 1f)
+                        scaleY = (leftWeight / 1.0f).coerceIn(0f, 1f)
+                    }
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "TOTAL EARNINGS",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    ExpressiveTotalEarningsTicker(
+                        totalSalary = totalSalary,
+                        isPrivacyMode = isPrivacyMode,
+                        themeSettings = themeSettings
+                    )
 
-                Text(
-                    text = "Cumulative Net Income",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                )
-                
-                if (currentEntry != null) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    FilledTonalButton(
-                        onClick = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEdit() 
-                        },
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Edit ${DateUtils.getShortMonthName(currentEntry.month)} Record", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Cumulative Net Income",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                    )
+                    
+                    if (currentEntry != null) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        FilledTonalButton(
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onEdit() 
+                            },
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Edit ${DateUtils.getShortMonthName(currentEntry.month)} Record", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -694,90 +733,96 @@ fun ExpressiveHeroCard(
                 label = "savings_progress"
             )
 
-            Surface(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onDonutClick()
-                },
-                color = Color.Transparent,
-                shape = CircleShape
+            Box(
+                modifier = Modifier
+                    .weight(rightWeight.coerceAtLeast(0.001f)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(100.dp).padding(4.dp)
+                Surface(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onDonutClick()
+                    },
+                    color = Color.Transparent,
+                    shape = CircleShape
                 ) {
-                    val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
-                    val progressColor = MaterialTheme.colorScheme.onPrimary
-                    
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val stroke = 10.dp.toPx()
-                        drawArc(
-                            color = trackColor,
-                            startAngle = 0f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            style = Stroke(width = stroke, cap = StrokeCap.Round)
-                        )
-                        drawArc(
-                            color = progressColor,
-                            startAngle = -90f,
-                            sweepAngle = 360f * animatedProgress,
-                            useCenter = false,
-                            style = Stroke(width = stroke, cap = StrokeCap.Round)
-                        )
-                    }
-                    
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        AnimatedContent(
-                            targetState = donutMode,
-                            transitionSpec = {
-                                (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut() + slideOutVertically { -it / 2 })
-                            },
-                            label = "donut_mode_ticker"
-                        ) { mode ->
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                when (mode) {
-                                    DonutDisplayMode.PERCENTAGE -> {
-                                        Text(
-                                            text = "${(savingsRatio * 100).toInt()}%",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            fontWeight = FontWeight.Black
-                                        )
-                                        Text(
-                                            text = "SAVED",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 8.sp
-                                        )
-                                    }
-                                    DonutDisplayMode.ABSOLUTE -> {
-                                        Text(
-                                            text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode, compact = true),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Black
-                                        )
-                                        Text(
-                                            text = "TOTAL",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 8.sp
-                                        )
-                                    }
-                                    DonutDisplayMode.REMAINING_DAYS -> {
-                                        val today = LocalDate.now()
-                                        val nextMonth = today.withDayOfMonth(1).plusMonths(1)
-                                        val days = ChronoUnit.DAYS.between(today, nextMonth)
-                                        Text(
-                                            text = days.toString(),
-                                            style = MaterialTheme.typography.titleLarge,
-                                            fontWeight = FontWeight.Black
-                                        )
-                                        Text(
-                                            text = "DAYS LEFT",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 8.sp
-                                        )
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(donutSize).padding(4.dp)
+                    ) {
+                        val trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
+                        val progressColor = MaterialTheme.colorScheme.onPrimary
+                        
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val stroke = 10.dp.toPx()
+                            drawArc(
+                                color = trackColor,
+                                startAngle = 0f,
+                                sweepAngle = 360f,
+                                useCenter = false,
+                                style = Stroke(width = stroke, cap = StrokeCap.Round)
+                            )
+                            drawArc(
+                                color = progressColor,
+                                startAngle = -90f,
+                                sweepAngle = 360f * animatedProgress,
+                                useCenter = false,
+                                style = Stroke(width = stroke, cap = StrokeCap.Round)
+                            )
+                        }
+                        
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            AnimatedContent(
+                                targetState = donutMode,
+                                transitionSpec = {
+                                    (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut() + slideOutVertically { -it / 2 })
+                                },
+                                label = "donut_mode_ticker"
+                            ) { mode ->
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    when (mode) {
+                                        DonutDisplayMode.PERCENTAGE -> {
+                                            Text(
+                                                text = "${(savingsRatio * 100).toInt()}%",
+                                                style = MaterialTheme.typography.titleLarge,
+                                                fontWeight = FontWeight.Black
+                                            )
+                                            Text(
+                                                text = "SAVED",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 8.sp
+                                            )
+                                        }
+                                        DonutDisplayMode.ABSOLUTE -> {
+                                            Text(
+                                                text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode, compact = true),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Black
+                                            )
+                                            Text(
+                                                text = "TOTAL",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 8.sp
+                                            )
+                                        }
+                                        DonutDisplayMode.REMAINING_DAYS -> {
+                                            val today = LocalDate.now()
+                                            val nextMonth = today.withDayOfMonth(1).plusMonths(1)
+                                            val days = ChronoUnit.DAYS.between(today, nextMonth)
+                                            Text(
+                                                text = days.toString(),
+                                                style = MaterialTheme.typography.titleLarge,
+                                                fontWeight = FontWeight.Black
+                                            )
+                                            Text(
+                                                text = "DAYS LEFT",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 8.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -1120,11 +1165,18 @@ fun ExpressiveTotalEarningsTicker(
     val haptic = LocalHapticFeedback.current
     val formattedTotal = CurrencyUtils.formatAmount(totalSalary, themeSettings.currencySymbol, isPrivacyMode)
     
+    val textStyle = when {
+        formattedTotal.length <= 6 -> MaterialTheme.typography.displayMedium
+        formattedTotal.length <= 9 -> MaterialTheme.typography.displaySmall
+        formattedTotal.length <= 12 -> MaterialTheme.typography.headlineLarge
+        else -> MaterialTheme.typography.headlineMedium
+    }
+    
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (isPrivacyMode) {
             Text(
                 text = formattedTotal,
-                style = MaterialTheme.typography.displayMedium,
+                style = textStyle,
                 fontWeight = FontWeight.Black
             )
         } else {
@@ -1152,7 +1204,7 @@ fun ExpressiveTotalEarningsTicker(
                 ) { targetChar ->
                     Text(
                         text = targetChar.toString(),
-                        style = MaterialTheme.typography.displayMedium,
+                        style = textStyle,
                         fontWeight = FontWeight.Black,
                         softWrap = false
                     )
@@ -1179,7 +1231,20 @@ fun ExpressiveAddEditSheet(
     
     // Focus states for animations
     var isSalaryFocused by remember { mutableStateOf(false) }
+    var isSavingsFocused by remember { mutableStateOf(false) }
+    var isRemittanceFocused by remember { mutableStateOf(false) }
     var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
+
+    val savingsWeight by animateFloatAsState(
+        targetValue = if (isSavingsFocused) 1.5f else if (isRemittanceFocused) 0.6f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "salary_savings_weight"
+    )
+    val remittanceWeight by animateFloatAsState(
+        targetValue = if (isRemittanceFocused) 1.5f else if (isSavingsFocused) 0.6f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "salary_remittance_weight"
+    )
 
     var animateIn by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { animateIn = true }
@@ -1388,25 +1453,66 @@ fun ExpressiveAddEditSheet(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    ExpressiveOutlinedTextField(
-                        value = uiState.inputSavings,
-                        onValueChange = onSavingsChange,
-                        label = { Text("Savings") },
-                        modifier = Modifier.weight(1f),
-                        leadingIcon = { Icon(Icons.Outlined.Savings, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
-                    )
-                    ExpressiveOutlinedTextField(
-                        value = uiState.inputRemittance,
-                        onValueChange = onRemittanceChange,
-                        label = { Text("Remittance") },
-                        modifier = Modifier.weight(1f),
-                        leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ExitToApp, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.weight(savingsWeight.coerceAtLeast(0.001f))
+                    ) {
+                        ExpressiveOutlinedTextField(
+                            value = uiState.inputSavings,
+                            onValueChange = onSavingsChange,
+                            label = { Text("Savings") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { isSavingsFocused = it.isFocused },
+                            leadingIcon = { Icon(Icons.Outlined.Savings, contentDescription = null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true
+                        )
+                        AnimatedVisibility(
+                            visible = isSavingsFocused,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Text(
+                                text = "Target: 20%+",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Column(
+                        modifier = Modifier.weight(remittanceWeight.coerceAtLeast(0.001f))
+                    ) {
+                        ExpressiveOutlinedTextField(
+                            value = uiState.inputRemittance,
+                            onValueChange = onRemittanceChange,
+                            label = { Text("Remittance") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { isRemittanceFocused = it.isFocused },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ExitToApp, contentDescription = null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true
+                        )
+                        AnimatedVisibility(
+                            visible = isRemittanceFocused,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Text(
+                                text = "Transfers/Family",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
 
                 // Expanding Note Drawer (Merged into Allocations Card for space efficiency)

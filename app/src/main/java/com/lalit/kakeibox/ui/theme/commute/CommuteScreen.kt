@@ -1,4 +1,4 @@
-package com.personal.kakeibox.ui.commute
+﻿package com.personal.kakeibox.ui.commute
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.*
@@ -63,6 +63,9 @@ import java.util.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
+import com.personal.kakeibox.ui.components.ExpressiveChip
+
+enum class CommuteFilter { ALL, OFFICE, WFH }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -151,6 +154,14 @@ fun CommuteScreen(
     var showHero by remember { mutableStateOf(false) }
     var showStats by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
+    var currentFilter by remember { mutableStateOf(CommuteFilter.ALL) }
+    val filteredCommuteHistory = remember(currentFilter, uiState.history) {
+        when (currentFilter) {
+            CommuteFilter.ALL -> uiState.history
+            CommuteFilter.OFFICE -> uiState.history.filter { it.totalCommuteDays > 0 }
+            CommuteFilter.WFH -> uiState.history.filter { it.wfhDays > 0 }
+        }
+    }
     LaunchedEffect(Unit) {
         showHero = true
         delay(100)
@@ -479,37 +490,81 @@ fun ExpressiveCommuteCostTicker(
 @Composable
 fun CommuteDetailsBento(
     entry: CommuteEntry,
-    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+    bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    currentFilter: CommuteFilter = CommuteFilter.ALL
 ) {
+    val officeWeight by animateFloatAsState(
+        targetValue = when (currentFilter) {
+            CommuteFilter.OFFICE -> 2.0f
+            CommuteFilter.WFH -> 0.001f
+            CommuteFilter.ALL -> 1.0f
+        },
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "commute_office_weight"
+    )
+
+    val wfhWeight by animateFloatAsState(
+        targetValue = when (currentFilter) {
+            CommuteFilter.WFH -> 2.0f
+            CommuteFilter.OFFICE -> 0.001f
+            CommuteFilter.ALL -> 1.0f
+        },
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "commute_wfh_weight"
+    )
+
     Row(
         modifier = Modifier.fillMaxWidth().height(160.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        BentoCard(
-            title = "Office Days",
-            icon = Icons.Outlined.Business,
-            idleContainerColor = bentoIdleColor,
-            idleContentColor = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
+        Box(
+            modifier = Modifier
+                .weight(officeWeight.coerceAtLeast(0.001f))
+                .fillMaxHeight()
+                .graphicsLayer {
+                    alpha = ((officeWeight - 0.1f) / 1.9f).coerceIn(0f, 1f)
+                    scaleX = if (currentFilter == CommuteFilter.WFH) (officeWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                    scaleY = if (currentFilter == CommuteFilter.WFH) (officeWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                }
         ) {
-            Text(
-                text = entry.totalCommuteDays.toString(),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black
-            )
+            BentoCard(
+                modifier = Modifier.fillMaxSize(),
+                title = "Office Days",
+                icon = Icons.Outlined.Business,
+                idleContainerColor = bentoIdleColor,
+                idleContentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                Text(
+                    text = entry.totalCommuteDays.toString(),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black
+                )
+            }
         }
-        BentoCard(
-            title = "WFH Days",
-            icon = Icons.Outlined.Home,
-            idleContainerColor = bentoIdleColor,
-            idleContentColor = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
+
+        Box(
+            modifier = Modifier
+                .weight(wfhWeight.coerceAtLeast(0.001f))
+                .fillMaxHeight()
+                .graphicsLayer {
+                    alpha = ((wfhWeight - 0.1f) / 1.9f).coerceIn(0f, 1f)
+                    scaleX = if (currentFilter == CommuteFilter.OFFICE) (wfhWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                    scaleY = if (currentFilter == CommuteFilter.OFFICE) (wfhWeight / 1f).coerceIn(0f, 1f) else 1.0f
+                }
         ) {
-            Text(
-                text = entry.wfhDays.toString(),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black
-            )
+            BentoCard(
+                modifier = Modifier.fillMaxSize(),
+                title = "WFH Days",
+                icon = Icons.Outlined.Home,
+                idleContainerColor = bentoIdleColor,
+                idleContentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                Text(
+                    text = entry.wfhDays.toString(),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black
+                )
+            }
         }
     }
 }
@@ -793,6 +848,19 @@ fun CommuteAddEditSheet(
     
     // Focus states for animations
     var isFareFocused by remember { mutableStateOf(false) }
+    var isHolidaysFocused by remember { mutableStateOf(false) }
+    var isWfhFocused by remember { mutableStateOf(false) }
+
+    val holidaysWeight by animateFloatAsState(
+        targetValue = if (isHolidaysFocused) 1.5f else if (isWfhFocused) 0.6f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "commute_holidays_weight"
+    )
+    val wfhWeight by animateFloatAsState(
+        targetValue = if (isWfhFocused) 1.5f else if (isHolidaysFocused) 0.6f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        label = "commute_wfh_weight"
+    )
 
     var animateIn by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { animateIn = true }
@@ -920,23 +988,64 @@ fun CommuteAddEditSheet(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    ExpressiveOutlinedTextField(
-                        value = uiState.inputHolidays,
-                        onValueChange = onHolidaysChange,
-                        label = { Text("Holidays") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        leadingIcon = { Icon(Icons.Outlined.EventBusy, contentDescription = null) }
-                    )
-                    ExpressiveOutlinedTextField(
-                        value = uiState.inputWfhDays,
-                        onValueChange = onWfhChange,
-                        label = { Text("WFH Days") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) }
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.weight(holidaysWeight.coerceAtLeast(0.001f))
+                    ) {
+                        ExpressiveOutlinedTextField(
+                            value = uiState.inputHolidays,
+                            onValueChange = onHolidaysChange,
+                            label = { Text("Holidays") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { isHolidaysFocused = it.isFocused },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            leadingIcon = { Icon(Icons.Outlined.EventBusy, contentDescription = null) }
+                        )
+                        AnimatedVisibility(
+                            visible = isHolidaysFocused,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Text(
+                                text = "Excludes weekends",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Column(
+                        modifier = Modifier.weight(wfhWeight.coerceAtLeast(0.001f))
+                    ) {
+                        ExpressiveOutlinedTextField(
+                            value = uiState.inputWfhDays,
+                            onValueChange = onWfhChange,
+                            label = { Text("WFH Days") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { isWfhFocused = it.isFocused },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) }
+                        )
+                        AnimatedVisibility(
+                            visible = isWfhFocused,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Text(
+                                text = "Saves fare costs",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
