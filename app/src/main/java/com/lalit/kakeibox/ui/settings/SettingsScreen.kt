@@ -356,6 +356,7 @@ fun SettingsScreen(
                                     selectedColor = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.weight(weight),
                                     selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    icon = if (option == TopAppBarBackground.SURFACE) Icons.Outlined.Dock else Icons.Outlined.Palette,
                                     shapeType = if (option == TopAppBarBackground.SURFACE) "clamshell" else "pill",
                                     onClick = { viewModel.setTopAppBarBackground(option) }
                                 )
@@ -399,6 +400,7 @@ fun SettingsScreen(
                                 selectedColor = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.weight(fullWidthWeight),
                                 selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                icon = Icons.Outlined.Dock,
                                 shapeType = "arch",
                                 onClick = { viewModel.setNavBarStyle(NavBarStyle.FULL_WIDTH) }
                             )
@@ -408,6 +410,7 @@ fun SettingsScreen(
                                 selectedColor = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.weight(floatingWeight),
                                 selectedTextColor = MaterialTheme.colorScheme.onSecondary,
+                                icon = Icons.Outlined.Wallet,
                                 shapeType = "pill",
                                 onClick = { viewModel.setNavBarStyle(NavBarStyle.FLOATING) }
                             )
@@ -417,6 +420,7 @@ fun SettingsScreen(
                                 selectedColor = MaterialTheme.colorScheme.tertiary,
                                 modifier = Modifier.weight(splitWeight),
                                 selectedTextColor = MaterialTheme.colorScheme.onTertiary,
+                                icon = Icons.Outlined.ShoppingCart,
                                 shapeType = "clamshell",
                                 onClick = { viewModel.setNavBarStyle(NavBarStyle.SPLIT) }
                             )
@@ -740,6 +744,7 @@ fun SettingsScreen(
                                     selectedColor = MaterialTheme.colorScheme.secondaryContainer,
                                     modifier = Modifier.weight(segmentWeight),
                                     selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    icon = if (language == AppLanguage.ENGLISH) Icons.Outlined.Language else Icons.Outlined.Public,
                                     onClick = { 
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.setAppLanguage(language) 
@@ -778,6 +783,12 @@ fun SettingsScreen(
                                     selectedColor = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.weight(segmentWeight),
                                     selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    icon = when (symbol) {
+                                        "₹" -> Icons.Outlined.Payments
+                                        "¥" -> Icons.Outlined.Wallet
+                                        "$" -> Icons.Outlined.Payments
+                                        else -> Icons.Outlined.ShoppingCart
+                                    },
                                     shapeType = when (symbol) {
                                         "₹" -> "slanted"
                                         "¥" -> "clamshell"

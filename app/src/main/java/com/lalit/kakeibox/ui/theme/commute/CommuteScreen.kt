@@ -421,11 +421,57 @@ fun CommuteHeroSection(
                 color = LocalContentColor.current.copy(alpha = 0.7f)
             )
             Spacer(modifier = Modifier.height(4.dp))
+            ExpressiveCommuteCostTicker(
+                totalCost = totalCost,
+                isPrivacyMode = isPrivacyMode,
+                themeSettings = themeSettings
+            )
+        }
+    }
+}
+
+@Composable
+fun ExpressiveCommuteCostTicker(
+    totalCost: Long,
+    isPrivacyMode: Boolean,
+    themeSettings: ThemeSettings
+) {
+    val haptic = LocalHapticFeedback.current
+    val formattedTotal = CurrencyUtils.formatAmount(totalCost, themeSettings.currencySymbol, isPrivacyMode)
+    
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isPrivacyMode) {
             Text(
-                text = CurrencyUtils.formatAmount(totalCost, themeSettings.currencySymbol, isPrivacyMode),
+                text = formattedTotal,
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Black
             )
+        } else {
+            formattedTotal.forEachIndexed { index, char ->
+                val isDigit = char.isDigit()
+                
+                AnimatedContent(
+                    targetState = char,
+                    transitionSpec = {
+                        if (isDigit) {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
+                                .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
+                        } else {
+                            fadeIn(animationSpec = tween(150))
+                                .togetherWith(fadeOut(animationSpec = tween(150)))
+                        }
+                    },
+                    label = "commute_cost_ticker_$index"
+                ) { digitChar ->
+                    Text(
+                        text = digitChar.toString(),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black,
+                        softWrap = false
+                    )
+                }
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.personal.kakeibox.ui.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.LinearEasing
@@ -79,6 +82,54 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.util.DateUtils
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import androidx.compose.ui.composed
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import kotlin.random.Random
+
+fun Modifier.elasticClick(
+    enabled: Boolean = true,
+    hapticType: HapticFeedbackType = HapticFeedbackType.LongPress,
+    onClick: () -> Unit
+): Modifier = composed {
+    val haptic = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed && enabled) 0.94f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "elastic_scale"
+    )
+    
+    this
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
+        .clickable(
+            interactionSource = interactionSource,
+            indication = LocalIndication.current,
+            enabled = enabled
+        ) {
+            haptic.performHapticFeedback(hapticType)
+            onClick()
+        }
+}
 
 @Composable
 fun ExpressivePeriodSelector(
@@ -338,34 +389,53 @@ fun ExpressiveTab(
     }
 
     Surface(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
         modifier = modifier
             .height(56.dp)
+            .elasticClick(
+                hapticType = HapticFeedbackType.TextHandleMove,
+                onClick = onClick
+            )
             .graphicsLayer(scaleX = scale, scaleY = scale),
         shape = shape,
         color = bgColor,
         contentColor = txtColor
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            if (icon != null && isSelected) {
+            if (icon != null) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                    modifier = Modifier.size(20.dp)
+                )
+                AnimatedVisibility(
+                    visible = isSelected,
+                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                            expandHorizontally(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy), expandFrom = Alignment.Start),
+                    exit = fadeOut(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                           shrinkHorizontally(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy), shrinkTowards = Alignment.Start)
+                ) {
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.padding(start = 6.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Clip
+                    )
+                }
+            } else {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
-            )
         }
     }
 }
@@ -377,21 +447,199 @@ fun ExpressiveEmptyState(
     icon: String = "✨",
     color: Color = MaterialTheme.colorScheme.onSurface
 ) {
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    var x by remember { mutableStateOf(100f) }
+    var y by remember { mutableStateOf(100f) }
+    var vx by remember { mutableStateOf(0f) }
+    var vy by remember { mutableStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
+    
+    val haptic = LocalHapticFeedback.current
+    
+    // Tap particle burst list
+    var particles by remember { mutableStateOf(listOf<Particle>()) }
+    
+    // Radius of our bouncing emoji
+    val radiusPx = 50f
+    
+    // Physics game loop
+    LaunchedEffect(isDragging, size) {
+        if (size.width == 0 || size.height == 0) return@LaunchedEffect
+        // Center initially if x, y are defaults
+        if (x == 100f && y == 100f) {
+            x = size.width / 2f
+            y = size.height / 3f
+        }
+        
+        while (true) {
+            if (!isDragging) {
+                // Apply gravity
+                vy += 0.4f
+                // Apply air resistance (friction)
+                vx *= 0.98f
+                vy *= 0.98f
+                
+                // Update position
+                x += vx
+                y += vy
+                
+                // Left border collision
+                if (x - radiusPx < 0) {
+                    x = radiusPx
+                    vx = -vx * 0.75f
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+                // Right border collision
+                if (x + radiusPx > size.width) {
+                    x = size.width - radiusPx
+                    vx = -vx * 0.75f
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+                // Top border collision
+                if (y - radiusPx < 0) {
+                    y = radiusPx
+                    vy = -vy * 0.75f
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+                // Bottom border collision (ground)
+                if (y + radiusPx > size.height) {
+                    y = size.height - radiusPx
+                    vy = -vy * 0.75f
+                    // If moving very slow vertically, stop gravity pull
+                    if (Math.abs(vy) < 1f) vy = 0f
+                    vx *= 0.9f // extra friction on ground
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+            }
+            
+            // Update particles
+            if (particles.isNotEmpty()) {
+                particles = particles.mapNotNull { p ->
+                    val newLife = p.life - 0.05f
+                    if (newLife <= 0f) null
+                    else p.copy(
+                        x = p.x + p.vx,
+                        y = p.y + p.vy,
+                        vy = p.vy + 0.1f, // gravity on particles
+                        life = newLife
+                    )
+                }
+            }
+            
+            delay(16) // ~60fps
+        }
+    }
+    
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(48.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = icon,
-            fontSize = 64.sp,
-            modifier = Modifier.graphicsLayer {
-                rotationZ = -10f
+        // Dynamic Canvas for physics play
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .onSizeChanged { size = it }
+                .pointerInput(size) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            val dx = offset.x - x
+                            val dy = offset.y - y
+                            if (dx * dx + dy * dy < (radiusPx * 3) * (radiusPx * 3)) {
+                                isDragging = true
+                                vx = 0f
+                                vy = 0f
+                            }
+                        },
+                        onDrag = { change, dragAmount ->
+                            if (isDragging) {
+                                change.consume()
+                                x = (x + dragAmount.x).coerceIn(radiusPx, size.width.toFloat() - radiusPx)
+                                y = (y + dragAmount.y).coerceIn(radiusPx, size.height.toFloat() - radiusPx)
+                                vx = dragAmount.x * 0.8f
+                                vy = dragAmount.y * 0.8f
+                            }
+                        },
+                        onDragEnd = {
+                            isDragging = false
+                        },
+                        onDragCancel = {
+                            isDragging = false
+                        }
+                    )
+                }
+                .pointerInput(size) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type == PointerEventType.Press) {
+                                val pressPoint = event.changes.first().position
+                                val dx = pressPoint.x - x
+                                val dy = pressPoint.y - y
+                                if (dx * dx + dy * dy < (radiusPx * 2) * (radiusPx * 2)) {
+                                    // Kick emoji upwards & sidewards
+                                    vx = Random.nextFloat() * 12f - 6f
+                                    vy = -15f
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    // Generate particles
+                                    val newParticles = (1..15).map {
+                                        val angle = Random.nextFloat() * 2 * Math.PI
+                                        val speed = Random.nextFloat() * 6f + 2f
+                                        Particle(
+                                            x = x,
+                                            y = y,
+                                            vx = (Math.cos(angle) * speed).toFloat(),
+                                            vy = (Math.sin(angle) * speed).toFloat(),
+                                            color = color,
+                                            life = 1.0f
+                                        )
+                                    }
+                                    particles = particles + newParticles
+                                }
+                            }
+                        }
+                    }
+                }
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                // Draw particles
+                particles.forEach { p ->
+                    drawCircle(
+                        color = p.color.copy(alpha = p.life),
+                        radius = 6f * p.life,
+                        center = Offset(p.x, p.y)
+                    )
+                }
+                
+                // Draw floating emoji / icon
+                drawIntoCanvas { canvas ->
+                    val paint = android.graphics.Paint().apply {
+                        textSize = 100f
+                        textAlign = android.graphics.Paint.Align.CENTER
+                    }
+                    val textHeightOffset = (paint.descent() + paint.ascent()) / 2
+                    canvas.nativeCanvas.drawText(icon, x, y - textHeightOffset, paint)
+                }
+                
+                // Draw a soft physical shadow bubble below the ball if it is near the ground
+                if (size.height > 0) {
+                    val groundDist = size.height - radiusPx - y
+                    if (groundDist < 80f) {
+                        val shadowScale = (1f - (groundDist / 80f)).coerceIn(0f, 1f)
+                        drawOval(
+                            color = color.copy(alpha = 0.15f * shadowScale),
+                            topLeft = Offset(x - radiusPx * shadowScale, size.height - 8f),
+                            size = androidx.compose.ui.geometry.Size(radiusPx * 2 * shadowScale, 6f)
+                        )
+                    }
+                }
             }
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,
             style = MaterialTheme.typography.titleMedium,
@@ -400,13 +648,22 @@ fun ExpressiveEmptyState(
             color = color
         )
         Text(
-            text = "Time to add something new!",
+            text = "Tap or flick the emoji above! Time to add something new.",
             style = MaterialTheme.typography.bodyMedium,
             color = color.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
     }
 }
+
+data class Particle(
+    val x: Float,
+    val y: Float,
+    val vx: Float,
+    val vy: Float,
+    val color: Color,
+    val life: Float
+)
 
 @Composable
 fun BentoCard(
@@ -489,10 +746,11 @@ fun BentoCard(
     Surface(
         modifier = modifier
             .clip(RoundedCornerShape(32.dp))
-            .then(if (onClick != null && enabled) Modifier.clickable { 
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onClick() 
-            } else Modifier),
+            .then(if (onClick != null && enabled) Modifier.elasticClick(
+                enabled = enabled,
+                hapticType = HapticFeedbackType.LongPress,
+                onClick = onClick
+            ) else Modifier),
         color = backgroundColor,
         contentColor = contentColor,
         shape = RoundedCornerShape(32.dp)
@@ -693,12 +951,12 @@ fun ExpressiveChip(
     }
 
     Surface(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
         modifier = modifier
             .height(38.dp)
+            .elasticClick(
+                hapticType = HapticFeedbackType.TextHandleMove,
+                onClick = onClick
+            )
             .graphicsLayer(scaleX = scale, scaleY = scale),
         shape = shape,
         color = bgColor,
