@@ -150,192 +150,226 @@ fun KakeiboXApp(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (themeSettings.navBarStyle == NavBarStyle.FULL_WIDTH) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    tonalElevation = 0.dp,
-                    windowInsets = WindowInsets.navigationBars
+                val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
+                val selectedIndex = remember(currentDestination, bottomNavItems) {
+                    bottomNavItems.indexOfFirst { item ->
+                        currentDestination?.hierarchy?.any { it.route == item.route } == true
+                    }.coerceAtLeast(0)
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 0.dp
                 ) {
-                    bottomNavItems.forEach { item ->
-                        val isSelected = currentDestination?.hierarchy?.any {
-                            it.route == item.route
-                        } == true
-
-                        val iconScale by animateFloatAsState(
-                            targetValue = if (isSelected) 1.25f else 1f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium
-                            ),
-                            label = "icon_scale_${item.route}"
-                        )
-
-                        val cornerRadius by animateIntAsState(
-                            targetValue = if (isSelected) 28 else 16,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessLow
-                            ),
-                            label = "corner_morph_${item.route}"
-                        )
-
-                        val itemShape = when (item.route) {
-                            NavRoutes.Salary.route -> RoundedCornerShape(
-                                topStart = cornerRadius.dp,
-                                topEnd = cornerRadius.dp,
-                                bottomStart = if (isSelected) 4.dp else cornerRadius.dp,
-                                bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                            .height(80.dp)
+                    ) {
+                        // ── Morphing Sliding Background Pill ──
+                        if (tabBounds.size == bottomNavItems.size) {
+                            val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
+                            val animatedX by animateFloatAsState(
+                                targetValue = targetBounds.first,
+                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                label = "full_pill_x"
                             )
-                            NavRoutes.Spend.route -> RoundedCornerShape(
-                                topStart = cornerRadius.dp,
-                                bottomEnd = cornerRadius.dp,
-                                topEnd = if (isSelected) 4.dp else cornerRadius.dp,
-                                bottomStart = if (isSelected) 4.dp else cornerRadius.dp
+                            val animatedWidth by animateFloatAsState(
+                                targetValue = targetBounds.second,
+                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                label = "full_pill_width"
                             )
-                            NavRoutes.Commute.route -> RoundedCornerShape(
-                                topStart = cornerRadius.dp,
-                                bottomStart = cornerRadius.dp,
-                                topEnd = if (isSelected) 4.dp else cornerRadius.dp,
-                                bottomEnd = if (isSelected) 4.dp else cornerRadius.dp
-                            )
-                            else -> RoundedCornerShape(cornerRadius.dp) // pill
-                        }
+                            val targetColor = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
+                                NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
+                                NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
+                                NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f)
+                                NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f)
+                                else -> Color.Transparent
+                            }
+                            val animatedColor by animateColorAsState(targetColor, label = "full_pill_color")
 
-                        val labelScale by animateFloatAsState(
-                            targetValue = if (isSelected) 1.05f else 0.95f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessLow
-                            ),
-                            label = "label_scale_${item.route}"
-                        )
+                            val distance = targetBounds.first - animatedX
+                            val absDistance = java.lang.Math.abs(distance)
+                            val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
+                            val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
 
-                        val iconTranslationY by animateFloatAsState(
-                            targetValue = if (isSelected && item.route == NavRoutes.Salary.route) -5f else 0f,
-                            animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
-                            label = "icon_y_${item.route}"
-                        )
-                        val iconTranslationX by animateFloatAsState(
-                            targetValue = if (isSelected && item.route == NavRoutes.Commute.route) 5f else 0f,
-                            animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
-                            label = "icon_x_${item.route}"
-                        )
-                        val iconRotation by animateFloatAsState(
-                            targetValue = when {
-                                isSelected && item.route == NavRoutes.Spend.route -> 15f
-                                isSelected && item.route == NavRoutes.Settings.route -> 360f
-                                else -> 0f
-                            },
-                            animationSpec = spring(
-                                dampingRatio = if (item.route == NavRoutes.Settings.route) 0.6f else 0.4f,
-                                stiffness = Spring.StiffnessLow
-                            ),
-                            label = "icon_rot_${item.route}"
-                        )
-
-                        val selectedColor = when (item.route) {
-                            NavRoutes.Salary.route -> Color(0xFFFFD700)
-                            NavRoutes.Spend.route -> Color(0xFFF43F5E)
-                            NavRoutes.Commute.route -> Color(0xFF6EE7B7)
-                            NavRoutes.Settings.route -> Color(0xFF8B5CF6)
-                            else -> MaterialTheme.colorScheme.primary
-                        }
-
-                        // ── Adaptive Bento Item ──
-                        val itemWeight by animateFloatAsState(
-                            targetValue = if (isSelected) 2.0f else 0.8f,
-                            animationSpec = spring(stiffness = Spring.StiffnessLow),
-                            label = "weight_anim"
-                        )
-
-                        NavigationBarItem(
-                            selected = isSelected,
-                            modifier = Modifier.weight(itemWeight),
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                            Box(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .offset { IntOffset(animatedX.roundToInt(), 0) }
+                                    .width(with(LocalDensity.current) { animatedWidth.toDp() })
+                                    .fillMaxHeight()
+                                    .graphicsLayer {
+                                        scaleX = stretchX
+                                        scaleY = squashY
+                                        transformOrigin = TransformOrigin(0.5f, 0.5f)
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                    .background(animatedColor, RoundedCornerShape(24.dp))
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .selectableGroup()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            bottomNavItems.forEachIndexed { index, item ->
+                                val isSelected = currentDestination?.hierarchy?.any {
+                                    it.route == item.route
+                                } == true
+
+                                val itemWeight by animateFloatAsState(
+                                    targetValue = if (isSelected) 2.0f else 0.8f,
+                                    animationSpec = spring(stiffness = Spring.StiffnessLow),
+                                    label = "full_weight_anim"
+                                )
+
+                                val iconScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.25f else 1f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium
+                                    ),
+                                    label = "full_icon_scale_${item.route}"
+                                )
+
+                                val labelScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.05f else 0.95f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "full_label_scale_${item.route}"
+                                )
+
+                                val iconTranslationY by animateFloatAsState(
+                                    targetValue = if (isSelected && item.route == NavRoutes.Salary.route) -5f else 0f,
+                                    animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                                    label = "full_icon_y_${item.route}"
+                                )
+                                val iconTranslationX by animateFloatAsState(
+                                    targetValue = if (isSelected && item.route == NavRoutes.Commute.route) 5f else 0f,
+                                    animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
+                                    label = "full_icon_x_${item.route}"
+                                )
+                                val iconRotation by animateFloatAsState(
+                                    targetValue = when {
+                                        isSelected && item.route == NavRoutes.Spend.route -> 15f
+                                        isSelected && item.route == NavRoutes.Settings.route -> 360f
+                                        else -> 0f
+                                    },
+                                    animationSpec = spring(
+                                        dampingRatio = if (item.route == NavRoutes.Settings.route) 0.6f else 0.4f,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "full_icon_rot_${item.route}"
+                                )
+
+                                val selectedColor = when (item.route) {
+                                    NavRoutes.Salary.route -> Color(0xFFFFD700)
+                                    NavRoutes.Spend.route -> Color(0xFFF43F5E)
+                                    NavRoutes.Commute.route -> Color(0xFF6EE7B7)
+                                    NavRoutes.Settings.route -> Color(0xFF8B5CF6)
+                                    else -> MaterialTheme.colorScheme.primary
                                 }
-                            },
-                            icon = {
-                                val bgAlpha by animateFloatAsState(if (isSelected) 0.15f else 0f, label = "bg_alpha_${item.route}")
-                                
-                                Box(
+
+                                Column(
                                     modifier = Modifier
-                                        .size(width = 88.dp, height = 62.dp) // Sleek fixed size for the indicator pill
-                                        .clip(itemShape)
-                                        .background(selectedColor.copy(alpha = bgAlpha)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            // Pulsing Halo Ring
-                                            if (isSelected) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(32.dp)
-                                                        .graphicsLayer {
-                                                            scaleX = 1f + (haloProgress.value * 0.8f)
-                                                            scaleY = 1f + (haloProgress.value * 0.8f)
-                                                            alpha = 1f - haloProgress.value
-                                                        }
-                                                        .background(
-                                                            color = selectedColor.copy(alpha = 0.35f),
-                                                            shape = CircleShape
-                                                        )
-                                                )
-                                            }
-
-                                            Icon(
-                                                imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                                contentDescription = stringResource(item.labelRes),
-                                                tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(22.dp).graphicsLayer {
-                                                    scaleX = iconScale
-                                                    scaleY = iconScale
-                                                    translationY = iconTranslationY.dp.toPx()
-                                                    translationX = iconTranslationX.dp.toPx()
-                                                    rotationZ = iconRotation
+                                        .weight(itemWeight)
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .onGloballyPositioned { coordinates ->
+                                            val parent = coordinates.parentLayoutCoordinates
+                                            if (parent != null) {
+                                                val localPos = parent.localPositionOf(coordinates, Offset.Zero)
+                                                val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
+                                                if (index >= tabBounds.size) {
+                                                    tabBounds.add(newBounds)
+                                                } else if (tabBounds[index] != newBounds) {
+                                                    tabBounds[index] = newBounds
                                                 }
-                                            )
+                                            }
                                         }
-                                        
-                                        AnimatedVisibility(
-                                            visible = isSelected,
-                                            enter = fadeIn() + expandVertically(),
-                                            exit = fadeOut() + shrinkVertically()
-                                        ) {
-                                            Text(
-                                                text = stringResource(item.labelRes),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Black,
-                                                color = selectedColor,
-                                                maxLines = 1,
-                                                modifier = Modifier
-                                                    .padding(top = 2.dp)
-                                                    .graphicsLayer {
-                                                        scaleX = labelScale
-                                                        scaleY = labelScale
+                                        .selectable(
+                                            selected = isSelected,
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                navController.navigate(item.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
                                                     }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            },
+                                            role = Role.Tab
+                                        ),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        // Pulsing Halo Ring
+                                        if (isSelected) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .graphicsLayer {
+                                                        scaleX = 1f + (haloProgress.value * 0.8f)
+                                                        scaleY = 1f + (haloProgress.value * 0.8f)
+                                                        alpha = 1f - haloProgress.value
+                                                    }
+                                                    .background(
+                                                        color = selectedColor.copy(alpha = 0.35f),
+                                                        shape = CircleShape
+                                                    )
                                             )
                                         }
+
+                                        Icon(
+                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                            contentDescription = stringResource(item.labelRes),
+                                            tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(22.dp).graphicsLayer {
+                                                scaleX = iconScale
+                                                scaleY = iconScale
+                                                translationY = iconTranslationY.dp.toPx()
+                                                translationX = iconTranslationX.dp.toPx()
+                                                rotationZ = iconRotation
+                                            }
+                                        )
+                                    }
+
+                                    AnimatedVisibility(
+                                        visible = isSelected,
+                                        enter = fadeIn() + expandVertically(),
+                                        exit = fadeOut() + shrinkVertically()
+                                    ) {
+                                        Text(
+                                            text = stringResource(item.labelRes),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Black,
+                                            color = selectedColor,
+                                            maxLines = 1,
+                                            modifier = Modifier
+                                                .padding(top = 2.dp)
+                                                .graphicsLayer {
+                                                    scaleX = labelScale
+                                                    scaleY = labelScale
+                                                }
+                                        )
                                     }
                                 }
-                            },
-                            label = null,
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = Color.Transparent
-                            )
-                        )
+                            }
+                        }
                     }
                 }
             }

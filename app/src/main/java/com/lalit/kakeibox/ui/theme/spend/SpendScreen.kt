@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.settings.ThemeViewModel
+import com.personal.kakeibox.ui.settings.BirthdayManagementContent
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.LocalContext
@@ -378,6 +379,23 @@ fun SpendScreen(
             actions = {
                 IconButton(onClick = { 
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    themeViewModel.toggleBirthdaySheet(true) 
+                }) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Cake, 
+                            contentDescription = "Birthdays Hub", 
+                            modifier = Modifier.padding(8.dp),
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                IconButton(onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     viewModel.toggleHistorySheet() 
                 }) {
                     Surface(
@@ -438,6 +456,36 @@ fun SpendScreen(
                 onEdit = viewModel::openEditSheet,
                 onDelete = viewModel::openDeleteDialog,
                 themeSettings = themeSettings
+            )
+        }
+    }
+
+    val showBirthdaySheet by themeViewModel.showBirthdaySheet.collectAsStateWithLifecycle()
+    val birthdays by themeViewModel.birthdays.collectAsStateWithLifecycle()
+
+    if (showBirthdaySheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { themeViewModel.toggleBirthdaySheet(false) },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(32.dp)
+                        .height(4.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                )
+            }
+        ) {
+            BirthdayManagementContent(
+                birthdays = birthdays,
+                onAdd = themeViewModel::addBirthday,
+                onDelete = themeViewModel::deleteBirthday,
+                onToggleEnabled = { birthday ->
+                    themeViewModel.updateBirthday(birthday.copy(isEnabled = !birthday.isEnabled))
+                }
             )
         }
     }

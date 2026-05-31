@@ -426,8 +426,7 @@ fun SettingsScreen(
             }
 
             // ── Section: Personalization ──
-            val showPersonalization = shouldShow("Birthdays", "Manage birthday alerts", listOf("reminder", "cake")) ||
-                                     shouldShow("Tab Order", "Long press and drag to reorder", listOf("navigation", "reorder"))
+            val showPersonalization = shouldShow("Tab Order", "Long press and drag to reorder", listOf("navigation", "reorder"))
 
             if (showPersonalization) {
                 Text(
@@ -437,32 +436,6 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                 )
-
-                if (shouldShow("Birthdays", keywords = listOf("reminder", "cake"))) {
-                    BentoCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = "Birthdays Hub",
-                        description = "Manage special date reminders and alerts.",
-                        icon = Icons.Outlined.Cake,
-                        isActive = birthdays.isNotEmpty(),
-                        activeContainerColor = MaterialTheme.colorScheme.secondary,
-                        activeContentColor = MaterialTheme.colorScheme.onSecondary,
-                        onClick = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.toggleBirthdaySheet(true)
-                        }
-                    ) {
-                        Text(
-                            text = if (birthdays.isEmpty()) "No reminders" else "${birthdays.size} active reminders",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (birthdays.isNotEmpty()) 
-                                MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                            else 
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
 
                 if (shouldShow("Tab Order", keywords = listOf("navigation", "reorder"))) {
                     BentoCard(
@@ -885,32 +858,7 @@ fun SettingsScreen(
         }
     }
 
-    // ── Birthday Management Bottom Sheet ──
-    if (showBirthdaySheet) {
-        ModalBottomSheet(
-            onDismissRequest = { viewModel.toggleBirthdaySheet(false) },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = {
-                Box(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .width(32.dp)
-                        .height(4.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                )
-            }
-        ) {
-            BirthdayManagementContent(
-                birthdays = birthdays,
-                onAdd = viewModel::addBirthday,
-                onDelete = viewModel::deleteBirthday,
-                onToggleEnabled = { birthday ->
-                    viewModel.updateBirthday(birthday.copy(isEnabled = !birthday.isEnabled))
-                }
-            )
-        }
-    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
