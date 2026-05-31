@@ -17,5 +17,9 @@ data class ThemeSettings(
     val privacyModeEnabled: Boolean = false,
     val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.SURFACE,
     val themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
-    val appFont: AppFont = AppFont.NUNITO
+    val appFont: AppFont = AppFont.NUNITO,
+    val backdropPattern: BackdropPattern = BackdropPattern.NONE,
+    val glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
+    val crtFilterEnabled: Boolean = false,
+    val touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE
 )

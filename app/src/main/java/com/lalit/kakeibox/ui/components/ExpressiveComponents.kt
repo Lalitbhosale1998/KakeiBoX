@@ -88,6 +88,12 @@ import com.personal.kakeibox.ui.theme.terminalScanlines
 import com.personal.kakeibox.ui.theme.terminalButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalContentColor
+import com.personal.kakeibox.ui.theme.LocalTouchSynesthesia
+import com.personal.kakeibox.data.preferences.TouchSynesthesia
+import com.personal.kakeibox.ui.theme.SynthClickGenerator
+import com.personal.kakeibox.ui.theme.LocalGlowIntensity
+import com.personal.kakeibox.ui.theme.glow
+import com.personal.kakeibox.data.preferences.GlowIntensity
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.layout.RowScope
@@ -114,6 +120,7 @@ fun Modifier.elasticClick(
     onClick: () -> Unit
 ): Modifier = composed {
     val haptic = LocalHapticFeedback.current
+    val touchSynesthesia = LocalTouchSynesthesia.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     
@@ -137,6 +144,18 @@ fun Modifier.elasticClick(
             enabled = enabled
         ) {
             haptic.performHapticFeedback(hapticType)
+            when (touchSynesthesia) {
+                TouchSynesthesia.OFF -> {}
+                TouchSynesthesia.SUBTLE -> {
+                    SynthClickGenerator.playClick(frequency = 800f, durationMs = 30)
+                }
+                TouchSynesthesia.CASSETTE_CLICK -> {
+                    SynthClickGenerator.playClick(frequency = 150f, durationMs = 40)
+                }
+                TouchSynesthesia.MECHANICAL -> {
+                    SynthClickGenerator.playClick(frequency = 1800f, durationMs = 25)
+                }
+            }
             onClick()
         }
 }
@@ -780,8 +799,15 @@ fun BentoCard(
     }
     val iconShape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp)
 
+    val glowIntensity = LocalGlowIntensity.current
+
     Surface(
         modifier = modifier
+            .glow(
+                color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
+                intensity = if (isActive) glowIntensity else GlowIntensity.OFF,
+                shape = cardShape
+            )
             .clip(cardShape)
             .then(if (onClick != null && enabled) Modifier.elasticClick(
                 enabled = enabled,

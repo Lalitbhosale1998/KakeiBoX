@@ -11,6 +11,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.AppFont
+import com.personal.kakeibox.data.preferences.BackdropPattern
+import com.personal.kakeibox.data.preferences.GlowIntensity
+import com.personal.kakeibox.data.preferences.TouchSynesthesia
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
@@ -201,6 +204,31 @@ class ThemeViewModel @Inject constructor(
             preferencesRepository.setAppFont(font)
         }
     }
+
+    fun setBackdropPattern(pattern: BackdropPattern) {
+        viewModelScope.launch {
+            preferencesRepository.setBackdropPattern(pattern)
+        }
+    }
+
+    fun setGlowIntensity(intensity: GlowIntensity) {
+        viewModelScope.launch {
+            preferencesRepository.setGlowIntensity(intensity)
+        }
+    }
+
+    fun setCrtFilterEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.setCrtFilterEnabled(enabled)
+        }
+    }
+
+    fun setTouchSynesthesia(synesthesia: TouchSynesthesia) {
+        viewModelScope.launch {
+            preferencesRepository.setTouchSynesthesia(synesthesia)
+        }
+    }
+
 
     fun exportToCsv(onResult: (String?) -> Unit) {
         viewModelScope.launch {

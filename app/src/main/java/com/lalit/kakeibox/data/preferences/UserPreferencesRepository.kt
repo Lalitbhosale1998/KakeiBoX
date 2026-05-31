@@ -24,6 +24,10 @@ private object Keys {
     val TOP_APP_BAR_BACKGROUND = stringPreferencesKey("top_app_bar_background")
     val THEME_STYLE = stringPreferencesKey("theme_style")
     val APP_FONT = stringPreferencesKey("app_font")
+    val BACKDROP_PATTERN = stringPreferencesKey("backdrop_pattern")
+    val GLOW_INTENSITY = stringPreferencesKey("glow_intensity")
+    val CRT_FILTER_ENABLED = booleanPreferencesKey("crt_filter_enabled")
+    val TOUCH_SYNESTHESIA = stringPreferencesKey("touch_synesthesia")
 }
 
 @Singleton
@@ -47,7 +51,11 @@ class UserPreferencesRepository @Inject constructor(
                 prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.SURFACE.name
             ),
             themeStyle = ThemeStyle.fromStorage(prefs[Keys.THEME_STYLE]),
-            appFont = AppFont.fromStorage(prefs[Keys.APP_FONT])
+            appFont = AppFont.fromStorage(prefs[Keys.APP_FONT]),
+            backdropPattern = BackdropPattern.fromStorage(prefs[Keys.BACKDROP_PATTERN]),
+            glowIntensity = GlowIntensity.fromStorage(prefs[Keys.GLOW_INTENSITY]),
+            crtFilterEnabled = prefs[Keys.CRT_FILTER_ENABLED] ?: false,
+            touchSynesthesia = TouchSynesthesia.fromStorage(prefs[Keys.TOUCH_SYNESTHESIA])
         )
     }
 
@@ -101,6 +109,22 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setAppFont(font: AppFont) {
         dataStore.edit { it[Keys.APP_FONT] = font.name }
+    }
+
+    suspend fun setBackdropPattern(pattern: BackdropPattern) {
+        dataStore.edit { it[Keys.BACKDROP_PATTERN] = pattern.name }
+    }
+
+    suspend fun setGlowIntensity(intensity: GlowIntensity) {
+        dataStore.edit { it[Keys.GLOW_INTENSITY] = intensity.name }
+    }
+
+    suspend fun setCrtFilterEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.CRT_FILTER_ENABLED] = enabled }
+    }
+
+    suspend fun setTouchSynesthesia(synesthesia: TouchSynesthesia) {
+        dataStore.edit { it[Keys.TOUCH_SYNESTHESIA] = synesthesia.name }
     }
 
 }

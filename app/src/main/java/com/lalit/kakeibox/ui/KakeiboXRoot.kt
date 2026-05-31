@@ -18,6 +18,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.theme.KakeiboXTheme
 import com.personal.kakeibox.ui.theme.terminalGridBackground
+import com.personal.kakeibox.ui.theme.backdropPattern
+import com.personal.kakeibox.ui.theme.crtScreenFilter
+import com.personal.kakeibox.data.preferences.ThemeStyle
 
 @Composable
 fun KakeiboXAppRoot() {
@@ -45,13 +48,18 @@ fun KakeiboXAppRoot() {
         darkTheme = darkTheme,
         dynamicColor = useDynamicColor,
         themeStyle = themeSettings.themeStyle,
-        appFont = themeSettings.appFont
+        appFont = themeSettings.appFont,
+        touchSynesthesia = themeSettings.touchSynesthesia,
+        glowIntensity = themeSettings.glowIntensity
     ) {
+        val isSpaceTerminal = themeSettings.themeStyle == ThemeStyle.RETRO_SPACE
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
+                .backdropPattern(themeSettings.backdropPattern)
                 .terminalGridBackground()
+                .crtScreenFilter(isSpaceTerminal && themeSettings.crtFilterEnabled)
         ) {
             if (!themeSettings.biometricEnabled || isAuthenticated) {
                 KakeiboXApp()

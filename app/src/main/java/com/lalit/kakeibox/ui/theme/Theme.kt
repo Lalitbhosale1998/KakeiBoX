@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.material3.Shapes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,18 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.animation.core.animateFloat
+import com.personal.kakeibox.data.preferences.BackdropPattern
+import com.personal.kakeibox.data.preferences.GlowIntensity
+import com.personal.kakeibox.data.preferences.TouchSynesthesia
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF1565C0),
@@ -91,6 +104,8 @@ private val DarkColors = darkColorScheme(
 )
 
 val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle.M3_EXPRESSIVE }
+val LocalTouchSynesthesia = staticCompositionLocalOf { TouchSynesthesia.SUBTLE }
+val LocalGlowIntensity = staticCompositionLocalOf { GlowIntensity.SUBTLE }
 
 private val RetroSpaceColors = darkColorScheme(
     primary = Color(0xFFFF7E6B),       // Electric Coral
@@ -313,12 +328,162 @@ fun Modifier.terminalButton(
     }
 }
 
+fun Modifier.glow(
+    color: Color,
+    radius: androidx.compose.ui.unit.Dp = 8.dp,
+    intensity: GlowIntensity,
+    shape: Shape = RoundedCornerShape(12.dp)
+): Modifier = composed {
+    if (intensity == GlowIntensity.OFF) return@composed this
+    
+    val alphaFactor = if (intensity == GlowIntensity.PULSING) {
+        val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "glow_pulse")
+        val alpha by infiniteTransition.animateFloat(
+            initialValue = 0.3f,
+            targetValue = 0.8f,
+            animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                animation = androidx.compose.animation.core.tween(1500, easing = androidx.compose.animation.core.LinearEasing),
+                repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+            ),
+            label = "alpha"
+        )
+        alpha
+    } else {
+        when (intensity) {
+            GlowIntensity.SUBTLE -> 0.25f
+            GlowIntensity.NEON -> 0.75f
+            else -> 0.0f
+        }
+    }
+
+    this.drawBehind {
+        val shadowRadius = radius.toPx()
+        val paint = Paint().asFrameworkPaint().apply {
+            this.color = android.graphics.Color.TRANSPARENT
+            setShadowLayer(
+                shadowRadius,
+                0f,
+                0f,
+                color.copy(alpha = alphaFactor).toArgb()
+            )
+        }
+        
+        drawIntoCanvas { canvas ->
+            val outline = shape.createOutline(size, layoutDirection, this)
+            when (outline) {
+                is Outline.Rectangle -> {
+                    canvas.nativeCanvas.drawRect(
+                        0f, 0f, size.width, size.height, paint
+                    )
+                }
+                is Outline.Rounded -> {
+                    val rect = outline.roundRect
+                    canvas.nativeCanvas.drawRoundRect(
+                        rect.left, rect.top, rect.right, rect.bottom,
+                        rect.topLeftCornerRadius.x, rect.topLeftCornerRadius.y,
+                        paint
+                    )
+                }
+                is Outline.Generic -> {
+                    canvas.nativeCanvas.drawPath(
+                        outline.path.asAndroidPath(), paint
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun Modifier.backdropPattern(pattern: BackdropPattern): Modifier = this.drawBehind {
+    when (pattern) {
+        BackdropPattern.NONE -> {}
+        BackdropPattern.RADAR_DOTS -> {
+            val dotColor = Color(0xFF46C2B4).copy(alpha = 0.07f)
+            val spacing = 24.dp.toPx()
+            var x = 0f
+            while (x < size.width) {
+                var y = 0f
+                while (y < size.height) {
+                    drawCircle(color = dotColor, radius = 1.5f.dp.toPx(), center = Offset(x, y))
+                    y += spacing
+                }
+                x += spacing
+            }
+        }
+        BackdropPattern.BLUEPRINT_GRID -> {
+            val gridColor = Color(0xFF3B82F6).copy(alpha = 0.05f)
+            val spacing = 32.dp.toPx()
+            var x = 0f
+            while (x < size.width) {
+                drawLine(gridColor, Offset(x, 0f), Offset(x, size.height), 1f)
+                x += spacing
+            }
+            var y = 0f
+            while (y < size.height) {
+                drawLine(gridColor, Offset(0f, y), Offset(size.width, y), 1f)
+                y += spacing
+            }
+        }
+        BackdropPattern.COCKPIT_STRIPES -> {
+            val stripeColor = Color(0xFFFFB359).copy(alpha = 0.035f)
+            val stripeWidth = 15.dp.toPx()
+            val stripeGap = 30.dp.toPx()
+            val path = Path()
+            var xOffset = -size.height
+            while (xOffset < size.width) {
+                path.moveTo(xOffset, 0f)
+                path.lineTo(xOffset + stripeWidth, 0f)
+                path.lineTo(xOffset + stripeWidth + size.height, size.height)
+                path.lineTo(xOffset + size.height, size.height)
+                path.close()
+                xOffset += stripeGap
+            }
+            drawPath(path = path, color = stripeColor)
+        }
+    }
+}
+
+fun Modifier.crtScreenFilter(enabled: Boolean): Modifier = this.drawWithContent {
+    drawContent()
+    if (!enabled) return@drawWithContent
+    
+    // 1. Phosphor Vignette
+    val colors = arrayOf(
+        0.0f to Color.Transparent,
+        0.82f to Color.Transparent,
+        1.0f to Color.Black.copy(alpha = 0.45f)
+    )
+    drawRect(
+        brush = Brush.radialGradient(
+            colorStops = colors,
+            center = Offset(size.width / 2, size.height / 2),
+            radius = size.width.coerceAtLeast(size.height) / 1.3f
+        )
+    )
+    
+    // 2. Horizontal Scanlines
+    val scanlineColor = Color.Black.copy(alpha = 0.08f)
+    val lineSpacing = 6.dp.toPx()
+    var y = 0f
+    while (y < size.height) {
+        drawLine(
+            color = scanlineColor,
+            start = Offset(0f, y),
+            end = Offset(size.width, y),
+            strokeWidth = 1.25.dp.toPx()
+        )
+        y += lineSpacing
+    }
+}
+
 @Composable
 fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
     appFont: AppFont = AppFont.NUNITO,
+    touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
+    glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
     content: @Composable () -> Unit
 ) {
     val isRetroSpace = themeStyle == ThemeStyle.RETRO_SPACE
@@ -339,7 +504,9 @@ fun KakeiboXTheme(
     val typography = getTypography(selectedFont)
 
     CompositionLocalProvider(
-        LocalThemeStyle provides themeStyle
+        LocalThemeStyle provides themeStyle,
+        LocalTouchSynesthesia provides touchSynesthesia,
+        LocalGlowIntensity provides glowIntensity
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

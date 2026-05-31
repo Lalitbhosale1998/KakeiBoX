@@ -141,11 +141,17 @@ import com.personal.kakeibox.ui.theme.terminalScanlines
 import com.personal.kakeibox.ui.theme.NunitoFontFamily
 import com.personal.kakeibox.ui.theme.OutfitFontFamily
 import com.personal.kakeibox.ui.theme.PlayfairFontFamily
+import com.personal.kakeibox.ui.theme.LocalGlowIntensity
+import com.personal.kakeibox.ui.theme.glow
+import com.personal.kakeibox.data.preferences.GlowIntensity
+import com.personal.kakeibox.data.preferences.BackdropPattern
+import com.personal.kakeibox.data.preferences.TouchSynesthesia
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.BorderStroke
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
+import com.personal.kakeibox.ui.components.elasticClick
 import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
 import com.personal.kakeibox.ui.components.RetroProgressIndicator
 import com.personal.kakeibox.ui.components.ExpressiveButton
@@ -385,6 +391,161 @@ fun SettingsScreen(
                                             Spacer(modifier = Modifier.weight(1f))
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    // Backdrop Pattern
+                    if (shouldShow("Backdrop Pattern", keywords = listOf("background", "grid", "stripe", "pattern"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Backdrop Pattern",
+                            description = "Overlay detailed geometric grids or mecha hazard stripes behind app pages.",
+                            icon = Icons.Outlined.Palette
+                        ) {
+                            val backdropOptions = BackdropPattern.entries
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp)
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                backdropOptions.forEach { pattern ->
+                                    val isSelected = themeSettings.backdropPattern == pattern
+                                    val name = when(pattern) {
+                                        BackdropPattern.NONE -> "None"
+                                        BackdropPattern.RADAR_DOTS -> "Radar Dots"
+                                        BackdropPattern.BLUEPRINT_GRID -> "Blueprint Grid"
+                                        BackdropPattern.COCKPIT_STRIPES -> "Mecha Stripes"
+                                    }
+                                    ExpressiveTab(
+                                        text = name,
+                                        isSelected = isSelected,
+                                        selectedColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        onClick = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setBackdropPattern(pattern) 
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Accent Glow Intensity
+                    if (shouldShow("Accent Glow", keywords = listOf("glow", "shadow", "aura", "intensity"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Accent Glow Intensity",
+                            description = "Configure the drop shadow glow ranges behind selected cards and controls.",
+                            icon = Icons.Outlined.Palette
+                        ) {
+                            val glowOptions = GlowIntensity.entries
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp)
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                glowOptions.forEach { glow ->
+                                    val isSelected = themeSettings.glowIntensity == glow
+                                    val name = when(glow) {
+                                        GlowIntensity.OFF -> "Off"
+                                        GlowIntensity.SUBTLE -> "Subtle"
+                                        GlowIntensity.NEON -> "Neon Glow"
+                                        GlowIntensity.PULSING -> "Pulsing Aura"
+                                    }
+                                    ExpressiveTab(
+                                        text = name,
+                                        isSelected = isSelected,
+                                        selectedColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        onClick = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setGlowIntensity(glow) 
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // CRT Screen Distortion (Retro Only)
+                    val isSpaceTerminal = themeSettings.themeStyle == ThemeStyle.RETRO_SPACE
+                    if (isSpaceTerminal && shouldShow("CRT", keywords = listOf("crt", "distortion", "scanline", "curve"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "CRT Screen Distortion",
+                            description = "Apply vintage CRT glass curvature vignettes and scanlines to the display.",
+                            icon = Icons.Outlined.Palette,
+                            isActive = themeSettings.crtFilterEnabled,
+                            activeContainerColor = MaterialTheme.colorScheme.primary,
+                            activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setCrtFilterEnabled(!themeSettings.crtFilterEnabled) 
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = if (themeSettings.crtFilterEnabled) "CRT Screen: Active" else "CRT Screen: Inactive",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeSettings.crtFilterEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Switch(
+                                    checked = themeSettings.crtFilterEnabled,
+                                    onCheckedChange = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.setCrtFilterEnabled(it) 
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Touch Synesthesia
+                    if (shouldShow("Touch Synesthesia", keywords = listOf("sound", "haptic", "click", "feedback", "audio"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Haptic Sound Synesthesia",
+                            description = "Trigger programmatic sound clicks synced to tap animations.",
+                            icon = Icons.Outlined.NotificationsActive
+                        ) {
+                            val synesthesiaOptions = TouchSynesthesia.entries
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp)
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                synesthesiaOptions.forEach { syn ->
+                                    val isSelected = themeSettings.touchSynesthesia == syn
+                                    val name = when(syn) {
+                                        TouchSynesthesia.OFF -> "Off"
+                                        TouchSynesthesia.SUBTLE -> "Subtle"
+                                        TouchSynesthesia.CASSETTE_CLICK -> "Cassette click"
+                                        TouchSynesthesia.MECHANICAL -> "Cherry Switch"
+                                    }
+                                    ExpressiveTab(
+                                        text = name,
+                                        isSelected = isSelected,
+                                        selectedColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        onClick = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setTouchSynesthesia(syn) 
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -1079,14 +1240,19 @@ fun SettingsCategoryCard(
     }
     val iconShape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp)
 
+    val glowIntensity = LocalGlowIntensity.current
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(cardShape)
-            .clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onClick()
-            }
+            .glow(
+                color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
+                intensity = if (isExpanded) glowIntensity else GlowIntensity.OFF,
+                shape = cardShape
+            )
+            .elasticClick(
+                onClick = onClick
+            )
             .animateContentSize(
                 animationSpec = spring(
                     dampingRatio = 0.55f,
@@ -1723,14 +1889,19 @@ fun FontOptionCard(
         else MaterialTheme.colorScheme.onSurface
     }
 
+    val glowIntensity = LocalGlowIntensity.current
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(shape)
-            .clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onClick()
-            },
+            .glow(
+                color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
+                intensity = if (isSelected) glowIntensity else GlowIntensity.OFF,
+                shape = shape
+            )
+            .elasticClick(
+                onClick = onClick
+            ),
         color = animatedBgColor,
         shape = shape,
         border = BorderStroke(
