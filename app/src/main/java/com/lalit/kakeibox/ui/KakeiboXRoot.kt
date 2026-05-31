@@ -44,7 +44,8 @@ fun KakeiboXAppRoot() {
     KakeiboXTheme(
         darkTheme = darkTheme,
         dynamicColor = useDynamicColor,
-        themeStyle = themeSettings.themeStyle
+        themeStyle = themeSettings.themeStyle,
+        appFont = themeSettings.appFont
     ) {
         Box(
             modifier = Modifier

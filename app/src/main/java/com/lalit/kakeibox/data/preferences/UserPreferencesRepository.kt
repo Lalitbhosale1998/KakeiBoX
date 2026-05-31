@@ -23,6 +23,7 @@ private object Keys {
     val PRIVACY_MODE = booleanPreferencesKey("privacy_mode")
     val TOP_APP_BAR_BACKGROUND = stringPreferencesKey("top_app_bar_background")
     val THEME_STYLE = stringPreferencesKey("theme_style")
+    val APP_FONT = stringPreferencesKey("app_font")
 }
 
 @Singleton
@@ -45,7 +46,8 @@ class UserPreferencesRepository @Inject constructor(
             topAppBarBackground = TopAppBarBackground.valueOf(
                 prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.SURFACE.name
             ),
-            themeStyle = ThemeStyle.fromStorage(prefs[Keys.THEME_STYLE])
+            themeStyle = ThemeStyle.fromStorage(prefs[Keys.THEME_STYLE]),
+            appFont = AppFont.fromStorage(prefs[Keys.APP_FONT])
         )
     }
 
@@ -95,6 +97,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setThemeStyle(style: ThemeStyle) {
         dataStore.edit { it[Keys.THEME_STYLE] = style.name }
+    }
+
+    suspend fun setAppFont(font: AppFont) {
+        dataStore.edit { it[Keys.APP_FONT] = font.name }
     }
 
 }

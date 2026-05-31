@@ -18,6 +18,7 @@ import androidx.compose.material3.Shapes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.data.preferences.AppFont
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Modifier
@@ -132,23 +133,32 @@ private val RetroSpaceShapes = Shapes(
     extraLarge = RoundedCornerShape(16.dp)
 )
 
-private val RetroSpaceTypography = androidx.compose.material3.Typography(
-    displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = FontFamily.Monospace),
-    displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = FontFamily.Monospace),
-    displaySmall = com.personal.kakeibox.ui.theme.Typography.displaySmall.copy(fontFamily = FontFamily.Monospace),
-    headlineLarge = com.personal.kakeibox.ui.theme.Typography.headlineLarge.copy(fontFamily = FontFamily.Monospace),
-    headlineMedium = com.personal.kakeibox.ui.theme.Typography.headlineMedium.copy(fontFamily = FontFamily.Monospace),
-    headlineSmall = com.personal.kakeibox.ui.theme.Typography.headlineSmall.copy(fontFamily = FontFamily.Monospace),
-    titleLarge = com.personal.kakeibox.ui.theme.Typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
-    titleMedium = com.personal.kakeibox.ui.theme.Typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
-    titleSmall = com.personal.kakeibox.ui.theme.Typography.titleSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
-    bodyLarge = com.personal.kakeibox.ui.theme.Typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
-    bodyMedium = com.personal.kakeibox.ui.theme.Typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-    bodySmall = com.personal.kakeibox.ui.theme.Typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-    labelLarge = com.personal.kakeibox.ui.theme.Typography.labelLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
-    labelMedium = com.personal.kakeibox.ui.theme.Typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-    labelSmall = com.personal.kakeibox.ui.theme.Typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-)
+private fun getTypography(appFont: AppFont): androidx.compose.material3.Typography {
+    val fontFamily = when (appFont) {
+        AppFont.NUNITO -> com.personal.kakeibox.ui.theme.NunitoFontFamily
+        AppFont.MONOSPACE -> FontFamily.Monospace
+        AppFont.SYSTEM_SANS -> FontFamily.SansSerif
+        AppFont.OUTFIT -> com.personal.kakeibox.ui.theme.OutfitFontFamily
+        AppFont.PLAYFAIR -> com.personal.kakeibox.ui.theme.PlayfairFontFamily
+    }
+    return androidx.compose.material3.Typography(
+        displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = fontFamily),
+        displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = fontFamily),
+        displaySmall = com.personal.kakeibox.ui.theme.Typography.displaySmall.copy(fontFamily = fontFamily),
+        headlineLarge = com.personal.kakeibox.ui.theme.Typography.headlineLarge.copy(fontFamily = fontFamily),
+        headlineMedium = com.personal.kakeibox.ui.theme.Typography.headlineMedium.copy(fontFamily = fontFamily),
+        headlineSmall = com.personal.kakeibox.ui.theme.Typography.headlineSmall.copy(fontFamily = fontFamily),
+        titleLarge = com.personal.kakeibox.ui.theme.Typography.titleLarge.copy(fontFamily = fontFamily),
+        titleMedium = com.personal.kakeibox.ui.theme.Typography.titleMedium.copy(fontFamily = fontFamily),
+        titleSmall = com.personal.kakeibox.ui.theme.Typography.titleSmall.copy(fontFamily = fontFamily),
+        bodyLarge = com.personal.kakeibox.ui.theme.Typography.bodyLarge.copy(fontFamily = fontFamily),
+        bodyMedium = com.personal.kakeibox.ui.theme.Typography.bodyMedium.copy(fontFamily = fontFamily),
+        bodySmall = com.personal.kakeibox.ui.theme.Typography.bodySmall.copy(fontFamily = fontFamily),
+        labelLarge = com.personal.kakeibox.ui.theme.Typography.labelLarge.copy(fontFamily = fontFamily),
+        labelMedium = com.personal.kakeibox.ui.theme.Typography.labelMedium.copy(fontFamily = fontFamily),
+        labelSmall = com.personal.kakeibox.ui.theme.Typography.labelSmall.copy(fontFamily = fontFamily),
+    )
+}
 
 fun Modifier.terminalScanlines(): Modifier = composed {
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
@@ -308,6 +318,7 @@ fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
+    appFont: AppFont = AppFont.NUNITO,
     content: @Composable () -> Unit
 ) {
     val isRetroSpace = themeStyle == ThemeStyle.RETRO_SPACE
@@ -324,7 +335,8 @@ fun KakeiboXTheme(
     }
 
     val shapes = if (isRetroSpace) RetroSpaceShapes else KakeiboXShapes
-    val typography = if (isRetroSpace) RetroSpaceTypography else Typography
+    val selectedFont = if (isRetroSpace && appFont == AppFont.NUNITO) AppFont.MONOSPACE else appFont
+    val typography = getTypography(selectedFont)
 
     CompositionLocalProvider(
         LocalThemeStyle provides themeStyle

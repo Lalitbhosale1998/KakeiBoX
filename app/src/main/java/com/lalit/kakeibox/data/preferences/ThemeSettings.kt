@@ -16,5 +16,6 @@ data class ThemeSettings(
     val tabOrder: List<String> = listOf("salary", "spend", "commute", "settings"),
     val privacyModeEnabled: Boolean = false,
     val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.SURFACE,
-    val themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE
+    val themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
+    val appFont: AppFont = AppFont.NUNITO
 )

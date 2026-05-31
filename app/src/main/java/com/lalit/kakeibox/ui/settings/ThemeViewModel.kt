@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.kakeibox.data.preferences.AppLanguage
+import com.personal.kakeibox.data.preferences.AppFont
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
@@ -192,6 +193,12 @@ class ThemeViewModel @Inject constructor(
     fun setThemeStyle(style: ThemeStyle) {
         viewModelScope.launch {
             preferencesRepository.setThemeStyle(style)
+        }
+    }
+
+    fun setAppFont(font: AppFont) {
+        viewModelScope.launch {
+            preferencesRepository.setAppFont(font)
         }
     }
 

@@ -76,6 +76,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -348,6 +349,7 @@ fun ExpressiveTab(
     selectedTextColor: Color = Color.Unspecified,
     icon: ImageVector? = null,
     shapeType: String = "pill",
+    fontFamily: FontFamily? = null,
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -446,7 +448,7 @@ fun ExpressiveTab(
                 ) {
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = if (fontFamily != null) MaterialTheme.typography.labelLarge.copy(fontFamily = fontFamily) else MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
                         modifier = Modifier.padding(start = 6.dp),
                         maxLines = 1,
@@ -456,7 +458,7 @@ fun ExpressiveTab(
             } else {
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = if (fontFamily != null) MaterialTheme.typography.labelLarge.copy(fontFamily = fontFamily) else MaterialTheme.typography.labelLarge,
                     fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

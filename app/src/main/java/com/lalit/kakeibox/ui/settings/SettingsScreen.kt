@@ -135,8 +135,13 @@ import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.data.preferences.AppFont
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.terminalScanlines
+import com.personal.kakeibox.ui.theme.NunitoFontFamily
+import com.personal.kakeibox.ui.theme.OutfitFontFamily
+import com.personal.kakeibox.ui.theme.PlayfairFontFamily
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.BorderStroke
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
@@ -321,6 +326,65 @@ fun SettingsScreen(
                                             viewModel.setThemeStyle(option) 
                                         }
                                     )
+                                }
+                            }
+                        }
+                    }
+
+                    // App Font Face
+                    if (shouldShow("App Font Face", keywords = listOf("font", "typeface", "text", "style"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "App Font Face",
+                            description = "Change the globally applied typography typeface.",
+                            icon = Icons.Outlined.Code
+                        ) {
+                            val currentFont = themeSettings.appFont
+                            val options = AppFont.entries
+                            
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                options.chunked(2).forEach { rowOptions ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        rowOptions.forEach { option ->
+                                            val isSelected = currentFont == option
+                                            val displayName = when(option) {
+                                                AppFont.NUNITO -> "Nunito"
+                                                AppFont.MONOSPACE -> "Monospace"
+                                                AppFont.SYSTEM_SANS -> "System Sans"
+                                                AppFont.OUTFIT -> "Outfit"
+                                                AppFont.PLAYFAIR -> "Playfair"
+                                            }
+                                            val optionFontFamily = when(option) {
+                                                AppFont.NUNITO -> NunitoFontFamily
+                                                AppFont.MONOSPACE -> FontFamily.Monospace
+                                                AppFont.SYSTEM_SANS -> FontFamily.SansSerif
+                                                AppFont.OUTFIT -> OutfitFontFamily
+                                                AppFont.PLAYFAIR -> PlayfairFontFamily
+                                            }
+                                            
+                                            FontOptionCard(
+                                                modifier = Modifier.weight(1f),
+                                                name = displayName,
+                                                isSelected = isSelected,
+                                                fontFamily = optionFontFamily,
+                                                onClick = { 
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    viewModel.setAppFont(option) 
+                                                }
+                                            )
+                                        }
+                                        if (rowOptions.size == 1) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1611,4 +1675,100 @@ fun BentoGridToColumnLayout(
         }
     }
 }
+
+@Composable
+fun FontOptionCard(
+    modifier: Modifier = Modifier,
+    name: String,
+    isSelected: Boolean,
+    fontFamily: FontFamily,
+    onClick: () -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    
+    val shape = if (isSpaceTerminal) {
+        RoundedCornerShape(6.dp)
+    } else {
+        RoundedCornerShape(16.dp)
+    }
+    
+    val animatedBgColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            if (isSpaceTerminal) Color(0xFFFF7E6B).copy(alpha = 0.15f)
+            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+        } else {
+            if (isSpaceTerminal) Color(0xFF0F172A).copy(alpha = 0.5f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+        },
+        label = "font_opt_bg"
+    )
+    
+    val animatedBorderColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            if (isSpaceTerminal) Color(0xFFFF7E6B)
+            else MaterialTheme.colorScheme.primary
+        } else {
+            if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.3f)
+            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+        },
+        label = "font_opt_border"
+    )
+
+    val textColor = if (isSelected) {
+        if (isSpaceTerminal) Color(0xFFFF7E6B)
+        else MaterialTheme.colorScheme.primary
+    } else {
+        if (isSpaceTerminal) Color(0xFF46C2B4)
+        else MaterialTheme.colorScheme.onSurface
+    }
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick()
+            },
+        color = animatedBgColor,
+        shape = shape,
+        border = BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = animatedBorderColor
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = fontFamily),
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Outlined.Check,
+                        contentDescription = "Selected",
+                        tint = textColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Aa Bb Cc 123",
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = fontFamily),
+                color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+            )
+        }
+    }
+}
+
 
