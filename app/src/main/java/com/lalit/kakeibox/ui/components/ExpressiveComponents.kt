@@ -84,6 +84,12 @@ import com.personal.kakeibox.util.DateUtils
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.terminalScanlines
+import com.personal.kakeibox.ui.theme.terminalButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.RowScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import androidx.compose.ui.composed
@@ -1007,6 +1013,103 @@ fun ExpressiveChip(
                 overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+
+@Composable
+fun ExpressiveButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    backgroundColor: Color = MaterialTheme.colorScheme.primary,
+    content: @Composable RowScope.() -> Unit
+) {
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    if (isSpaceTerminal) {
+        Surface(
+            modifier = modifier
+                .height(52.dp)
+                .then(if (enabled) Modifier.elasticClick(
+                    enabled = enabled,
+                    hapticType = HapticFeedbackType.LongPress,
+                    onClick = onClick
+                ) else Modifier)
+                .terminalButton(enabled, backgroundColor),
+            color = Color.Transparent,
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CompositionLocalProvider(
+                    LocalContentColor provides if (enabled) Color(0xFF0C1020) else Color(0xFF0C1020).copy(alpha = 0.4f)
+                ) {
+                    content()
+                }
+            }
+        }
+    } else {
+        Button(
+            onClick = onClick,
+            modifier = modifier.height(56.dp),
+            enabled = enabled,
+            shape = RoundedCornerShape(24.dp),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = backgroundColor
+            ),
+            content = content
+        )
+    }
+}
+
+@Composable
+fun RetroProgressIndicator(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.primaryContainer
+) {
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    if (isSpaceTerminal) {
+        val infiniteTransition = rememberInfiniteTransition(label = "retro_progress_inf")
+        val progressPercent by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1500, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "progress_percent"
+        )
+        Canvas(modifier = modifier.height(8.dp)) {
+            val totalSegments = 12
+            val spacing = 3.dp.toPx()
+            val segmentWidth = (size.width - (totalSegments - 1) * spacing) / totalSegments
+            val activeCount = (progressPercent * totalSegments).toInt()
+            
+            for (i in 0 until totalSegments) {
+                val isSegmentActive = i < activeCount
+                val segmentColor = if (isSegmentActive) {
+                    if (i > totalSegments * 0.8f) Color(0xFFFF7E6B) else color
+                } else {
+                    trackColor.copy(alpha = 0.15f)
+                }
+                val x = i * (segmentWidth + spacing)
+                drawRoundRect(
+                    color = segmentColor,
+                    topLeft = Offset(x, 0f),
+                    size = androidx.compose.ui.geometry.Size(segmentWidth, size.height),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.dp.toPx())
+                )
+            }
+        }
+    } else {
+        LinearProgressIndicator(
+            modifier = modifier,
+            color = color,
+            trackColor = trackColor
+        )
     }
 }
 

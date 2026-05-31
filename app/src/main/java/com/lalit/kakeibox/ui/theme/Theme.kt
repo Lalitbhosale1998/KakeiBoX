@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -211,6 +212,93 @@ fun Modifier.terminalGridBackground(): Modifier = composed {
         while (y < size.height) {
             drawLine(lineColor, Offset(0f, y), Offset(size.width, y), 1f)
             y += gridSpacing
+        }
+    }
+}
+
+fun Modifier.terminalButton(
+    enabled: Boolean = true,
+    backgroundColor: Color = Color(0xFFFF7E6B) // Electric Coral
+): Modifier = composed {
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    if (!isSpaceTerminal) return@composed this
+    
+    this.drawBehind {
+        // Draw mecha main fill
+        val fillBrush = if (enabled) {
+            Brush.verticalGradient(
+                colors = listOf(
+                    backgroundColor,
+                    backgroundColor.copy(alpha = 0.85f)
+                )
+            )
+        } else {
+            Brush.verticalGradient(
+                colors = listOf(
+                    backgroundColor.copy(alpha = 0.3f),
+                    backgroundColor.copy(alpha = 0.2f)
+                )
+            )
+        }
+        
+        drawRoundRect(
+            brush = fillBrush,
+            size = size,
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(10.dp.toPx())
+        )
+        
+        if (enabled) {
+            // 1. Draw horizontal speed lines in the background
+            val lineCount = 4
+            val startY = size.height * 0.5f
+            val lineSpacing = 3.dp.toPx()
+            for (i in 0 until lineCount) {
+                val y = startY + i * lineSpacing
+                val alpha = 0.15f + (i * 0.05f)
+                drawLine(
+                    color = Color(0xFF0C1020).copy(alpha = alpha), // Dark lines
+                    start = Offset(6.dp.toPx(), y),
+                    end = Offset(size.width - 6.dp.toPx(), y),
+                    strokeWidth = 1.5.dp.toPx()
+                )
+            }
+            
+            // 2. Draw glowing neon stripe at the top edge
+            drawLine(
+                color = Color(0xFFFFB359), // Warm Amber top stripe
+                start = Offset(12.dp.toPx(), 4.dp.toPx()),
+                end = Offset(size.width - 12.dp.toPx(), 4.dp.toPx()),
+                strokeWidth = 2.dp.toPx()
+            )
+            
+            // 3. Draw vertical mecha tactical side stripes
+            val sideStripeColor = Color(0xFF46C2B4) // Neon Cyan side bars
+            // Left
+            drawLine(
+                color = sideStripeColor,
+                start = Offset(1.dp.toPx(), size.height * 0.2f),
+                end = Offset(1.dp.toPx(), size.height * 0.8f),
+                strokeWidth = 3.dp.toPx()
+            )
+            // Right
+            drawLine(
+                color = sideStripeColor,
+                start = Offset(size.width - 1.dp.toPx(), size.height * 0.2f),
+                end = Offset(size.width - 1.dp.toPx(), size.height * 0.8f),
+                strokeWidth = 3.dp.toPx()
+            )
+        }
+    }
+    .drawWithContent {
+        drawContent()
+        if (enabled) {
+            // Double border line
+            drawRoundRect(
+                color = Color(0xFF0C1020).copy(alpha = 0.25f),
+                size = size,
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(10.dp.toPx()),
+                style = Stroke(width = 1.dp.toPx())
+            )
         }
     }
 }

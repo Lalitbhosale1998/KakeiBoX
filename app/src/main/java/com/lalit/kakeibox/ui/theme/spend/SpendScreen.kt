@@ -85,6 +85,9 @@ import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
+import com.personal.kakeibox.ui.components.ExpressiveButton
+import com.personal.kakeibox.ui.theme.LocalThemeStyle
+import com.personal.kakeibox.data.preferences.ThemeStyle
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
@@ -1123,10 +1126,9 @@ fun SpendDeleteDialog(entry: SpendEntry?, onConfirm: () -> Unit, onDismiss: () -
                         Text("Cancel", fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.width(12.dp))
-                    Button(
+                    ExpressiveButton(
                         onClick = onConfirm,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        shape = RoundedCornerShape(16.dp)
+                        backgroundColor = MaterialTheme.colorScheme.error
                     ) {
                         Text("Delete", fontWeight = FontWeight.ExtraBold)
                     }
@@ -1382,11 +1384,9 @@ fun SpendAddEditSheet(
             }
         }
 
-        Button(
+        ExpressiveButton(
             onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSave() },
-            modifier = Modifier.fillMaxWidth().height(64.dp),
-            shape = RoundedCornerShape(28.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Icon(Icons.Default.Check, contentDescription = null)
             Spacer(modifier = Modifier.width(12.dp))

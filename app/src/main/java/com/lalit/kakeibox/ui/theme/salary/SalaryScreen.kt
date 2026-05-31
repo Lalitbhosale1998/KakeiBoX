@@ -79,6 +79,7 @@ import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressivePeriodSelector
 import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
 import com.personal.kakeibox.ui.components.ExpressiveChip
+import com.personal.kakeibox.ui.components.ExpressiveButton
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -1211,10 +1212,9 @@ fun ExpressiveEmptyHero(onAdd: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(32.dp))
-            Button(
+            ExpressiveButton(
                 onClick = onAdd,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(20.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -1621,23 +1621,15 @@ fun ExpressiveAddEditSheet(
         
         val isInputValid = uiState.inputSalary.isNotBlank() && uiState.inputSalary.toDoubleOrNull() != null
         
-        Button(
+        ExpressiveButton(
             onClick = {
                 if (isInputValid) {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onSave()
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp),
-            enabled = isInputValid,
-            shape = RoundedCornerShape(28.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isInputValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = if (isInputValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-            )
+            modifier = Modifier.fillMaxWidth(),
+            enabled = isInputValid
         ) {
             AnimatedContent(
                 targetState = isInputValid,
@@ -1715,10 +1707,9 @@ fun ExpressiveDeleteDialog(
                         Text("Cancel", fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.width(12.dp))
-                    Button(
+                    ExpressiveButton(
                         onClick = onConfirm,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        shape = RoundedCornerShape(16.dp)
+                        backgroundColor = MaterialTheme.colorScheme.error
                     ) {
                         Text("Delete", fontWeight = FontWeight.ExtraBold)
                     }

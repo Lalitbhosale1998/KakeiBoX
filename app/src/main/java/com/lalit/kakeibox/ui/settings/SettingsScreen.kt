@@ -142,6 +142,8 @@ import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
+import com.personal.kakeibox.ui.components.RetroProgressIndicator
+import com.personal.kakeibox.ui.components.ExpressiveButton
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import kotlinx.coroutines.delay
 import java.time.Instant
@@ -743,8 +745,8 @@ fun SettingsScreen(
                                     )
                                     
                                     if (isSyncing) {
-                                        LinearProgressIndicator(
-                                            modifier = Modifier.fillMaxWidth().height(4.dp).graphicsLayer(clip = true, shape = RoundedCornerShape(2.dp)),
+                                        RetroProgressIndicator(
+                                            modifier = Modifier.fillMaxWidth().height(8.dp),
                                             color = MaterialTheme.colorScheme.primary,
                                             trackColor = MaterialTheme.colorScheme.primaryContainer
                                         )
@@ -1411,7 +1413,7 @@ fun BirthdayManagementContent(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Button(
+                ExpressiveButton(
                     onClick = {
                         if (newName.isNotBlank()) {
                             onAdd(newName, selectedDate)
@@ -1420,14 +1422,7 @@ fun BirthdayManagementContent(
                             showAddDialog = false
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .graphicsLayer {
-                            // Subtle shadow/elevation feel
-                            shadowElevation = 8f
-                        },
-                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     enabled = newName.isNotBlank()
                 ) {
                     Text(

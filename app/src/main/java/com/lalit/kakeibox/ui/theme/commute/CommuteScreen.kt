@@ -49,6 +49,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
 import com.personal.kakeibox.data.entity.CommuteEntry
 import com.personal.kakeibox.ui.components.BentoCard
+import com.personal.kakeibox.ui.components.ExpressiveButton
+import com.personal.kakeibox.ui.theme.LocalThemeStyle
+import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
 import com.personal.kakeibox.data.preferences.ThemeSettings
@@ -641,10 +644,9 @@ fun CommuteDeleteDialog(
                         Text("Cancel", fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.width(12.dp))
-                    Button(
+                    ExpressiveButton(
                         onClick = onConfirm,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        shape = RoundedCornerShape(16.dp)
+                        backgroundColor = MaterialTheme.colorScheme.error
                     ) {
                         Text("Delete", fontWeight = FontWeight.ExtraBold)
                     }
@@ -1054,21 +1056,16 @@ fun CommuteAddEditSheet(
 
         val isInputValid = uiState.inputOneWayFare.isNotBlank() && uiState.inputOneWayFare.toDoubleOrNull() != null
 
-        Button(
+        ExpressiveButton(
             onClick = {
                 if (isInputValid) {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onSave()
                 }
             },
-            modifier = Modifier.fillMaxWidth().height(64.dp),
+            modifier = Modifier.fillMaxWidth(),
             enabled = isInputValid,
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isInputValid) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = if (isInputValid) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-            ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 4.dp)
+            backgroundColor = MaterialTheme.colorScheme.tertiary
         ) {
             AnimatedContent(
                 targetState = isInputValid,
