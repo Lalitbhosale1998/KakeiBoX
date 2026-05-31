@@ -1,4 +1,4 @@
-﻿package com.personal.kakeibox.ui.commute
+package com.personal.kakeibox.ui.commute
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.*
@@ -499,7 +499,7 @@ fun CommuteDetailsBento(
             CommuteFilter.WFH -> 0.001f
             CommuteFilter.ALL -> 1.0f
         },
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "commute_office_weight"
     )
 
@@ -509,7 +509,7 @@ fun CommuteDetailsBento(
             CommuteFilter.OFFICE -> 0.001f
             CommuteFilter.ALL -> 1.0f
         },
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "commute_wfh_weight"
     )
 
@@ -853,12 +853,12 @@ fun CommuteAddEditSheet(
 
     val holidaysWeight by animateFloatAsState(
         targetValue = if (isHolidaysFocused) 1.5f else if (isWfhFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "commute_holidays_weight"
     )
     val wfhWeight by animateFloatAsState(
         targetValue = if (isWfhFocused) 1.5f else if (isHolidaysFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "commute_wfh_weight"
     )
 

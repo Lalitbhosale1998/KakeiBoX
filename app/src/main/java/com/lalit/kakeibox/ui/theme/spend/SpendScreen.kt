@@ -581,7 +581,7 @@ fun BentoHeroSection(
         targetValue = if (selectedCategory == null) 1.2f else 0.001f,
         animationSpec = spring(
             dampingRatio = 0.55f,
-            stiffness = 150f
+            stiffness = 300f
         ),
         label = "left_card_weight"
     )
@@ -590,7 +590,7 @@ fun BentoHeroSection(
         targetValue = if (selectedCategory == null) 1.0f else 2.0f,
         animationSpec = spring(
             dampingRatio = 0.55f,
-            stiffness = 150f
+            stiffness = 300f
         ),
         label = "right_col_weight"
     )
@@ -603,7 +603,7 @@ fun BentoHeroSection(
         },
         animationSpec = spring(
             dampingRatio = 0.55f,
-            stiffness = 150f
+            stiffness = 300f
         ),
         label = "need_card_weight"
     )
@@ -616,7 +616,7 @@ fun BentoHeroSection(
         },
         animationSpec = spring(
             dampingRatio = 0.55f,
-            stiffness = 150f
+            stiffness = 300f
         ),
         label = "want_card_weight"
     )
@@ -1160,12 +1160,12 @@ fun SpendAddEditSheet(
 
     val descWeight by animateFloatAsState(
         targetValue = if (isDescFocused) 1.5f else if (isNoteFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "spend_desc_weight"
     )
     val noteWeight by animateFloatAsState(
         targetValue = if (isNoteFocused) 1.5f else if (isDescFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "spend_note_weight"
     )
 

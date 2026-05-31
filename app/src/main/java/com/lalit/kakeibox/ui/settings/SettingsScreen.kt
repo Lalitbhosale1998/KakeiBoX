@@ -66,6 +66,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -108,6 +109,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -117,6 +119,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -233,812 +236,833 @@ fun SettingsScreen(
                 return terms.any { it.contains(searchQuery, ignoreCase = true) }
             }
 
-            // ── Section: Visual Style ──
+            // ── Section Declarations ──
             val showAppearance = shouldShow("App Theme", "Personalize your visual experience", listOf("dark", "light", "mode", "appearance")) ||
                                shouldShow("Dynamic", "Match app colors to your wallpaper", listOf("wallpaper", "appearance", "color")) ||
                                shouldShow("Top App Bar Background", "navigation bar", listOf("appearance", "header")) ||
                                shouldShow("Navigation Layout", "floating island", listOf("navigation", "layout", "bar", "appearance"))
 
-            if (showAppearance) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            activeSection = if (activeSection == "visual") null else "visual"
-                        }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Visual Style",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    val rotation by animateFloatAsState(
-                        targetValue = if (activeSection == "visual" || searchQuery.isNotEmpty()) 180f else 0f,
-                        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
-                        label = "visual_arrow_rotation"
-                    )
-                    Icon(
-                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.graphicsLayer { rotationZ = rotation }
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = activeSection == "visual" || searchQuery.isNotEmpty(),
-                    enter = fadeIn(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            expandVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)),
-                    exit = fadeOut(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            shrinkVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f))
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // Row 1: Theme selection
-                        if (shouldShow("App Theme", keywords = listOf("dark", "light", "mode"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "App Theme",
-                                description = "Personalize your visual experience with light, dark, or system-adaptive modes.",
-                                icon = when(themeSettings.darkThemePreference) {
-                                    DarkThemePreference.DARK -> Icons.Outlined.DarkMode
-                                    DarkThemePreference.LIGHT -> Icons.Outlined.LightMode
-                                    else -> Icons.Outlined.AutoMode
-                                }
-                            ) {
-                                val options = listOf(DarkThemePreference.SYSTEM, DarkThemePreference.LIGHT, DarkThemePreference.DARK)
-                                SingleChoiceSegmentedButtonRow(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
-                                ) {
-                                    options.forEachIndexed { index, preference ->
-                                        val isSelected = themeSettings.darkThemePreference == preference
-                                        SegmentedButton(
-                                            selected = isSelected,
-                                            onClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                viewModel.setDarkThemePreference(preference)
-                                            },
-                                            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                                            label = {
-                                                Text(
-                                                    preference.name.lowercase().replaceFirstChar { it.uppercase() },
-                                                    style = MaterialTheme.typography.labelLarge
-                                                )
-                                            },
-                                            colors = SegmentedButtonDefaults.colors(
-                                                activeContainerColor = MaterialTheme.colorScheme.primary,
-                                                activeContentColor = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Row 2: Dynamic Color
-                        if (shouldShow("Dynamic", keywords = listOf("wallpaper", "color"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Dynamic Color",
-                                description = "Match app colors to your system wallpaper dynamically.",
-                                icon = Icons.Outlined.Palette,
-                                isActive = themeSettings.useDynamicColor,
-                                activeContainerColor = MaterialTheme.colorScheme.primary,
-                                activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    viewModel.setUseDynamicColor(!themeSettings.useDynamicColor)
-                                }
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = if (themeSettings.useDynamicColor) "Active" else "Inactive",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (themeSettings.useDynamicColor) 
-                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                        else 
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Switch(
-                                        checked = themeSettings.useDynamicColor,
-                                        onCheckedChange = { 
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            viewModel.setUseDynamicColor(it) 
-                                        },
-                                        modifier = Modifier.graphicsLayer { scaleX = 0.8f; scaleY = 0.8f }
-                                    )
-                                }
-                            }
-                        }
-
-                        // Row: Top Bar
-                        if (shouldShow("Top App Bar Background", keywords = listOf("header", "navigation"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Top App Bar Background",
-                                description = "Choose the background color for the top navigation bar.",
-                                icon = Icons.Outlined.Palette
-                            ) {
-                                val currentBackground = themeSettings.topAppBarBackground
-                                val options = TopAppBarBackground.entries
-                                
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    options.forEach { option ->
-                                        val isSelected = currentBackground == option
-                                        val weight by animateFloatAsState(
-                                            targetValue = if (isSelected) 1.2f else 1f,
-                                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
-                                        )
-
-                                        ExpressiveTab(
-                                            text = option.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
-                                            isSelected = isSelected,
-                                            selectedColor = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.weight(weight.coerceAtLeast(0.001f)),
-                                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                            icon = if (option == TopAppBarBackground.SURFACE) Icons.Outlined.Dock else Icons.Outlined.Palette,
-                                            shapeType = if (option == TopAppBarBackground.SURFACE) "clamshell" else "pill",
-                                            onClick = { viewModel.setTopAppBarBackground(option) }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Row: Nav Style
-                        if (shouldShow("Navigation Layout", keywords = listOf("floating", "bar"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Navigation Layout",
-                                description = "Choose between a classic full-width bar or a modern floating island.",
-                                icon = Icons.Outlined.Dock
-                            ) {
-                                val currentNavStyle = themeSettings.navBarStyle
-                                val fullWidthWeight by animateFloatAsState(
-                                    targetValue = if (currentNavStyle == NavBarStyle.FULL_WIDTH) 1.5f else 0.8f,
-                                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                                    label = "nav_full_weight"
-                                )
-                                val floatingWeight by animateFloatAsState(
-                                    targetValue = if (currentNavStyle == NavBarStyle.FLOATING) 1.5f else 0.8f,
-                                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                                    label = "nav_floating_weight"
-                                )
-                                val splitWeight by animateFloatAsState(
-                                    targetValue = if (currentNavStyle == NavBarStyle.SPLIT) 1.5f else 0.8f,
-                                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-                                    label = "nav_split_weight"
-                                )
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    ExpressiveTab(
-                                        text = "Full",
-                                        isSelected = currentNavStyle == NavBarStyle.FULL_WIDTH,
-                                        selectedColor = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.weight(fullWidthWeight.coerceAtLeast(0.001f)),
-                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                        icon = Icons.Outlined.Dock,
-                                        shapeType = "arch",
-                                        onClick = { viewModel.setNavBarStyle(NavBarStyle.FULL_WIDTH) }
-                                    )
-                                    ExpressiveTab(
-                                        text = "Floating",
-                                        isSelected = currentNavStyle == NavBarStyle.FLOATING,
-                                        selectedColor = MaterialTheme.colorScheme.secondary,
-                                        modifier = Modifier.weight(floatingWeight.coerceAtLeast(0.001f)),
-                                        selectedTextColor = MaterialTheme.colorScheme.onSecondary,
-                                        icon = Icons.Outlined.Wallet,
-                                        shapeType = "pill",
-                                        onClick = { viewModel.setNavBarStyle(NavBarStyle.FLOATING) }
-                                    )
-                                    ExpressiveTab(
-                                        text = "Split-Dock",
-                                        isSelected = currentNavStyle == NavBarStyle.SPLIT,
-                                        selectedColor = MaterialTheme.colorScheme.tertiary,
-                                        modifier = Modifier.weight(splitWeight.coerceAtLeast(0.001f)),
-                                        selectedTextColor = MaterialTheme.colorScheme.onTertiary,
-                                        icon = Icons.Outlined.ShoppingCart,
-                                        shapeType = "clamshell",
-                                        onClick = { viewModel.setNavBarStyle(NavBarStyle.SPLIT) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ── Section: Personalization ──
             val showPersonalization = shouldShow("Tab Order", "Long press and drag to reorder", listOf("navigation", "reorder"))
 
-            if (showPersonalization) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            activeSection = if (activeSection == "personalization") null else "personalization"
-                        }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Personalization",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    val rotation by animateFloatAsState(
-                        targetValue = if (activeSection == "personalization" || searchQuery.isNotEmpty()) 180f else 0f,
-                        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
-                        label = "personalization_arrow_rotation"
-                    )
-                    Icon(
-                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.graphicsLayer { rotationZ = rotation }
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = activeSection == "personalization" || searchQuery.isNotEmpty(),
-                    enter = fadeIn(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            expandVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)),
-                    exit = fadeOut(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            shrinkVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f))
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        if (shouldShow("Tab Order", keywords = listOf("navigation", "reorder"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Tab Order",
-                                description = "Long press and drag to reorder navigation tabs.",
-                                icon = Icons.Outlined.Reorder
-                            ) {
-                                val tabOrder = themeSettings.tabOrder
-                                var draggingItemIndex by remember { mutableStateOf<Int?>(null) }
-                                var deltaY by remember { mutableFloatStateOf(0f) }
-                                
-                                Column(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    tabOrder.forEachIndexed { index, route ->
-                                        val isDragging = draggingItemIndex == index
-                                        val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
-                                        val scale by animateFloatAsState(if (isDragging) 1.05f else 1f)
-
-                                        Surface(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .graphicsLayer {
-                                                    translationY = if (isDragging) deltaY else 0f
-                                                    scaleX = scale
-                                                    scaleY = scale
-                                                }
-                                                .pointerInput(Unit) {
-                                                    detectDragGesturesAfterLongPress(
-                                                        onDragStart = { 
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                            draggingItemIndex = index 
-                                                        },
-                                                        onDrag = { change, dragAmount ->
-                                                            change.consume()
-                                                            deltaY += dragAmount.y
-                                                            
-                                                            val newIndex = (index + (deltaY / 60).toInt()).coerceIn(0, tabOrder.size - 1)
-                                                            if (newIndex != index && draggingItemIndex != null) {
-                                                                val newList = tabOrder.toMutableList()
-                                                                Collections.swap(newList, index, newIndex)
-                                                                viewModel.setTabOrder(newList)
-                                                                draggingItemIndex = newIndex
-                                                                deltaY = 0f
-                                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                            }
-                                                        },
-                                                        onDragEnd = { 
-                                                            draggingItemIndex = null
-                                                            deltaY = 0f
-                                                        },
-                                                        onDragCancel = { 
-                                                            draggingItemIndex = null
-                                                            deltaY = 0f
-                                                        }
-                                                    )
-                                                },
-                                            shape = RoundedCornerShape(16.dp),
-                                            color = if (isDragging) MaterialTheme.colorScheme.secondaryContainer 
-                                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                            tonalElevation = elevation
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.padding(16.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = when(route) {
-                                                        "salary" -> Icons.Outlined.Wallet
-                                                        "spend" -> Icons.Outlined.ShoppingCart
-                                                        "commute" -> Icons.Outlined.DirectionsBus
-                                                        else -> Icons.Outlined.Settings
-                                                    },
-                                                    contentDescription = null,
-                                                    tint = if (isDragging) MaterialTheme.colorScheme.onSecondaryContainer 
-                                                           else MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                                Spacer(modifier = Modifier.width(16.dp))
-                                                Text(
-                                                    text = route.replaceFirstChar { it.uppercase() },
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = if (isDragging) MaterialTheme.colorScheme.onSecondaryContainer 
-                                                           else MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                                Spacer(modifier = Modifier.weight(1f))
-                                                Icon(
-                                                    imageVector = Icons.Outlined.DragHandle,
-                                                    contentDescription = "Drag to reorder",
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ── Section: Security & Privacy ──
             val showSecurity = shouldShow("Security", "Biometric lock", listOf("fingerprint", "privacy")) ||
                              shouldShow("Privacy Mode", "Mask sensitive financial amounts", listOf("mask", "hide")) ||
                              shouldShow("Data Health", "backed up", listOf("sync", "cloud")) ||
                              shouldShow("Export Data", "CSV file", listOf("download", "backup"))
 
-            if (showSecurity) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            activeSection = if (activeSection == "security") null else "security"
-                        }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Security & Privacy",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    val rotation by animateFloatAsState(
-                        targetValue = if (activeSection == "security" || searchQuery.isNotEmpty()) 180f else 0f,
-                        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
-                        label = "security_arrow_rotation"
-                    )
-                    Icon(
-                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.graphicsLayer { rotationZ = rotation }
-                    )
-                }
+            val showRegional = shouldShow("Language", "Choose your preferred language", listOf("locale", "regional")) ||
+                              shouldShow("Currency", "currency symbol", listOf("money", "symbol"))
 
-                AnimatedVisibility(
-                    visible = activeSection == "security" || searchQuery.isNotEmpty(),
-                    enter = fadeIn(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            expandVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)),
-                    exit = fadeOut(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            shrinkVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f))
+            val showAbout = shouldShow("About", keywords = listOf("version", "github", "developer")) ||
+                           shouldShow("Version", keywords = listOf("app"))
+
+            @Composable
+            fun VisualStyleCard(expanded: Boolean) {
+                SettingsCategoryCard(
+                    title = "Visual Style",
+                    description = "Theme mode, dynamic colors, top bar style, and navigation layout preferences",
+                    icon = Icons.Outlined.Palette,
+                    isExpanded = expanded,
+                    onClick = {
+                        activeSection = if (activeSection == "visual") null else "visual"
+                    }
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // Privacy Mode Bento Card
-                        if (shouldShow("Privacy Mode", keywords = listOf("mask", "hide", "sensitive"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Privacy Mode",
-                                description = "Mask sensitive financial amounts across all screens with '••••'.",
-                                icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                isActive = themeSettings.privacyModeEnabled,
-                                activeContainerColor = MaterialTheme.colorScheme.primary,
-                                activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled)
-                                }
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = if (themeSettings.privacyModeEnabled) "Active" else "Inactive",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (themeSettings.privacyModeEnabled) 
-                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                        else 
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Switch(
-                                        checked = themeSettings.privacyModeEnabled,
-                                        onCheckedChange = { 
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            viewModel.setPrivacyModeEnabled(it) 
-                                        },
-                                        modifier = Modifier.graphicsLayer { scaleX = 0.7f; scaleY = 0.7f }
-                                    )
-                                }
+                    // App Theme
+                    if (shouldShow("App Theme", keywords = listOf("dark", "light", "mode"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "App Theme",
+                            description = "Personalize your visual experience with light, dark, or system-adaptive modes.",
+                            icon = when(themeSettings.darkThemePreference) {
+                                DarkThemePreference.DARK -> Icons.Outlined.DarkMode
+                                DarkThemePreference.LIGHT -> Icons.Outlined.LightMode
+                                else -> Icons.Outlined.AutoMode
                             }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth().height(160.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // App Security (Biometric)
-                            if (shouldShow("Security", keywords = listOf("fingerprint", "lock"))) {
-                                BentoCard(
-                                    modifier = Modifier.weight(1f),
-                                    title = "Security",
-                                    description = "Biometric lock.",
-                                    icon = if (themeSettings.biometricEnabled) Icons.Filled.Fingerprint else Icons.Outlined.Fingerprint,
-                                    isActive = themeSettings.biometricEnabled,
-                                    activeContainerColor = MaterialTheme.colorScheme.primary,
-                                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                    onClick = { 
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        viewModel.setBiometricEnabled(!themeSettings.biometricEnabled)
-                                    }
-                                ) {
-                                   Text(
-                                        text = if (themeSettings.biometricEnabled) "Enabled" else "Disabled",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (themeSettings.biometricEnabled) 
-                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                        else 
-                                            MaterialTheme.colorScheme.onSurfaceVariant
+                            val options = listOf(DarkThemePreference.SYSTEM, DarkThemePreference.LIGHT, DarkThemePreference.DARK)
+                            SingleChoiceSegmentedButtonRow(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+                            ) {
+                                options.forEachIndexed { index, preference ->
+                                    val isSelected = themeSettings.darkThemePreference == preference
+                                    SegmentedButton(
+                                        selected = isSelected,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setDarkThemePreference(preference)
+                                        },
+                                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                        label = {
+                                            Text(
+                                                preference.name.lowercase().replaceFirstChar { it.uppercase() },
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
+                                        },
+                                        colors = SegmentedButtonDefaults.colors(
+                                            activeContainerColor = MaterialTheme.colorScheme.primary,
+                                            activeContentColor = MaterialTheme.colorScheme.onPrimary
+                                        )
                                     )
                                 }
                             }
+                        }
+                    }
 
-                            // Data Health Bento Card
-                            if (shouldShow("Data Health", keywords = listOf("sync", "cloud", "backup"))) {
-                                var isSyncing by remember { mutableStateOf(false) }
-                                val syncScale by animateFloatAsState(
-                                    targetValue = if (isSyncing) 0.95f else 1f,
-                                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                    // Dynamic Color
+                    if (shouldShow("Dynamic", keywords = listOf("wallpaper", "color"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Dynamic Color",
+                            description = "Match app colors to your system wallpaper dynamically.",
+                            icon = Icons.Outlined.Palette,
+                            isActive = themeSettings.useDynamicColor,
+                            activeContainerColor = MaterialTheme.colorScheme.primary,
+                            activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setUseDynamicColor(!themeSettings.useDynamicColor)
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = if (themeSettings.useDynamicColor) "Active" else "Inactive",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeSettings.useDynamicColor) 
+                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                    else 
+                                        MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-
-                                LaunchedEffect(isSyncing) {
-                                    if (isSyncing) {
-                                        delay(2000)
-                                        isSyncing = false
-                                    }
-                                }
-
-                                BentoCard(
-                                    modifier = Modifier.weight(1f).graphicsLayer(scaleX = syncScale, scaleY = syncScale),
-                                    title = "Data Health",
-                                    description = if (isSyncing) "Syncing..." else "Data is backed up.",
-                                    icon = if (isSyncing) Icons.Outlined.Sync else Icons.Outlined.CloudUpload,
-                                    isActive = isSyncing,
-                                    activeContainerColor = MaterialTheme.colorScheme.primary,
-                                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                    onClick = { 
+                                Switch(
+                                    checked = themeSettings.useDynamicColor,
+                                    onCheckedChange = { 
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        isSyncing = true 
-                                    }
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(top = 4.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        viewModel.setUseDynamicColor(it) 
+                                    },
+                                    modifier = Modifier.graphicsLayer { scaleX = 0.8f; scaleY = 0.8f }
+                                )
+                            }
+                        }
+                    }
+
+                    // Top Bar
+                    if (shouldShow("Top App Bar Background", keywords = listOf("header", "navigation"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Top App Bar Background",
+                            description = "Choose the background color for the top navigation bar.",
+                            icon = Icons.Outlined.Palette
+                        ) {
+                            val currentBackground = themeSettings.topAppBarBackground
+                            val options = TopAppBarBackground.entries
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                options.forEach { option ->
+                                    val isSelected = currentBackground == option
+                                    val weight by animateFloatAsState(
+                                        targetValue = if (isSelected) 1.2f else 1f,
+                                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+                                    )
+
+                                    ExpressiveTab(
+                                        text = option.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
+                                        isSelected = isSelected,
+                                        selectedColor = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.weight(weight.coerceAtLeast(0.001f)),
+                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        icon = if (option == TopAppBarBackground.SURFACE) Icons.Outlined.Dock else Icons.Outlined.Palette,
+                                        shapeType = if (option == TopAppBarBackground.SURFACE) "clamshell" else "pill",
+                                        onClick = { viewModel.setTopAppBarBackground(option) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Nav Style
+                    if (shouldShow("Navigation Layout", keywords = listOf("floating", "bar"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Navigation Layout",
+                            description = "Choose between a classic full-width bar or a modern floating island.",
+                            icon = Icons.Outlined.Dock
+                        ) {
+                            val currentNavStyle = themeSettings.navBarStyle
+                            val fullWidthWeight by animateFloatAsState(
+                                targetValue = if (currentNavStyle == NavBarStyle.FULL_WIDTH) 1.5f else 0.8f,
+                                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                                label = "nav_full_weight"
+                            )
+                            val floatingWeight by animateFloatAsState(
+                                targetValue = if (currentNavStyle == NavBarStyle.FLOATING) 1.5f else 0.8f,
+                                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                                label = "nav_floating_weight"
+                            )
+                            val splitWeight by animateFloatAsState(
+                                targetValue = if (currentNavStyle == NavBarStyle.SPLIT) 1.5f else 0.8f,
+                                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                                label = "nav_split_weight"
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                ExpressiveTab(
+                                    text = "Full",
+                                    isSelected = currentNavStyle == NavBarStyle.FULL_WIDTH,
+                                    selectedColor = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.weight(fullWidthWeight.coerceAtLeast(0.001f)),
+                                    selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    icon = Icons.Outlined.Dock,
+                                    shapeType = "arch",
+                                    onClick = { viewModel.setNavBarStyle(NavBarStyle.FULL_WIDTH) }
+                                )
+                                ExpressiveTab(
+                                    text = "Floating",
+                                    isSelected = currentNavStyle == NavBarStyle.FLOATING,
+                                    selectedColor = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.weight(floatingWeight.coerceAtLeast(0.001f)),
+                                    selectedTextColor = MaterialTheme.colorScheme.onSecondary,
+                                    icon = Icons.Outlined.Wallet,
+                                    shapeType = "pill",
+                                    onClick = { viewModel.setNavBarStyle(NavBarStyle.FLOATING) }
+                                )
+                                ExpressiveTab(
+                                    text = "Split-Dock",
+                                    isSelected = currentNavStyle == NavBarStyle.SPLIT,
+                                    selectedColor = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier.weight(splitWeight.coerceAtLeast(0.001f)),
+                                    selectedTextColor = MaterialTheme.colorScheme.onTertiary,
+                                    icon = Icons.Outlined.ShoppingCart,
+                                    shapeType = "clamshell",
+                                    onClick = { viewModel.setNavBarStyle(NavBarStyle.SPLIT) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Composable
+            fun PersonalizationCard(expanded: Boolean) {
+                SettingsCategoryCard(
+                    title = "Personalization",
+                    description = "Tab layout ordering and navigation customization options",
+                    icon = Icons.Outlined.Reorder,
+                    isExpanded = expanded,
+                    onClick = {
+                        activeSection = if (activeSection == "personalization") null else "personalization"
+                    }
+                ) {
+                    if (shouldShow("Tab Order", keywords = listOf("navigation", "reorder"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Tab Order",
+                            description = "Long press and drag to reorder navigation tabs.",
+                            icon = Icons.Outlined.Reorder
+                        ) {
+                            val tabOrder = themeSettings.tabOrder
+                            var draggingItemIndex by remember { mutableStateOf<Int?>(null) }
+                            var deltaY by remember { mutableFloatStateOf(0f) }
+                            
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                tabOrder.forEachIndexed { index, route ->
+                                    val isDragging = draggingItemIndex == index
+                                    val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
+                                    val scale by animateFloatAsState(if (isDragging) 1.05f else 1f)
+
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .graphicsLayer {
+                                                translationY = if (isDragging) deltaY else 0f
+                                                scaleX = scale
+                                                scaleY = scale
+                                            }
+                                            .pointerInput(Unit) {
+                                                detectDragGesturesAfterLongPress(
+                                                    onDragStart = { 
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        draggingItemIndex = index 
+                                                    },
+                                                    onDrag = { change, dragAmount ->
+                                                        change.consume()
+                                                        deltaY += dragAmount.y
+                                                        
+                                                        val newIndex = (index + (deltaY / 60).toInt()).coerceIn(0, tabOrder.size - 1)
+                                                        if (newIndex != index && draggingItemIndex != null) {
+                                                            val newList = tabOrder.toMutableList()
+                                                            Collections.swap(newList, index, newIndex)
+                                                            viewModel.setTabOrder(newList)
+                                                            draggingItemIndex = newIndex
+                                                            deltaY = 0f
+                                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                        }
+                                                    },
+                                                    onDragEnd = { 
+                                                        draggingItemIndex = null
+                                                        deltaY = 0f
+                                                    },
+                                                    onDragCancel = { 
+                                                        draggingItemIndex = null
+                                                        deltaY = 0f
+                                                    }
+                                                )
+                                            },
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = if (isDragging) MaterialTheme.colorScheme.secondaryContainer 
+                                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                        tonalElevation = elevation
                                     ) {
-                                        Text(
-                                            text = if (isSyncing) "Updating..." else "Secure",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSyncing) MaterialTheme.colorScheme.primary else Color(0xFF4CAF50)
-                                        )
-                                        
-                                        if (isSyncing) {
-                                            LinearProgressIndicator(
-                                                modifier = Modifier.fillMaxWidth().height(4.dp).graphicsLayer(clip = true, shape = RoundedCornerShape(2.dp)),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                trackColor = MaterialTheme.colorScheme.primaryContainer
+                                        Row(
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = when(route) {
+                                                    "salary" -> Icons.Outlined.Wallet
+                                                    "spend" -> Icons.Outlined.ShoppingCart
+                                                    "commute" -> Icons.Outlined.DirectionsBus
+                                                    else -> Icons.Outlined.Settings
+                                                },
+                                                contentDescription = null,
+                                                tint = if (isDragging) MaterialTheme.colorScheme.onSecondaryContainer 
+                                                       else MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                            Text(
+                                                text = route.replaceFirstChar { it.uppercase() },
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.Medium,
+                                                color = if (isDragging) MaterialTheme.colorScheme.onSecondaryContainer 
+                                                       else MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Icon(
+                                                imageVector = Icons.Outlined.DragHandle,
+                                                contentDescription = "Drag to reorder",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                             )
                                         }
                                     }
                                 }
                             }
                         }
+                    }
+                }
+            }
 
-                        // Export Data Bento Card
-                        if (shouldShow("Export Data", keywords = listOf("download", "csv"))) {
+            @Composable
+            fun SecurityCard(expanded: Boolean) {
+                SettingsCategoryCard(
+                    title = "Security & Privacy",
+                    description = "Biometrics lock, screen content masking, and CSV data exports",
+                    icon = Icons.Outlined.Fingerprint,
+                    isExpanded = expanded,
+                    onClick = {
+                        activeSection = if (activeSection == "security") null else "security"
+                    }
+                ) {
+                    // Privacy Mode Bento Card
+                    if (shouldShow("Privacy Mode", keywords = listOf("mask", "hide", "sensitive"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Privacy Mode",
+                            description = "Mask sensitive financial amounts across all screens with '••••'.",
+                            icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            isActive = themeSettings.privacyModeEnabled,
+                            activeContainerColor = MaterialTheme.colorScheme.primary,
+                            activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled)
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = if (themeSettings.privacyModeEnabled) "Active" else "Inactive",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeSettings.privacyModeEnabled) 
+                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                    else 
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Switch(
+                                    checked = themeSettings.privacyModeEnabled,
+                                    onCheckedChange = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.setPrivacyModeEnabled(it) 
+                                    },
+                                    modifier = Modifier.graphicsLayer { scaleX = 0.7f; scaleY = 0.7f }
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(160.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // App Security (Biometric)
+                        if (shouldShow("Security", keywords = listOf("fingerprint", "lock"))) {
                             BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Export Data",
-                                description = "Download your spending and salary history as a CSV file.",
-                                icon = Icons.Outlined.FileDownload,
-                                onClick = {
+                                modifier = Modifier.weight(1f),
+                                title = "Security",
+                                description = "Biometric lock.",
+                                icon = if (themeSettings.biometricEnabled) Icons.Filled.Fingerprint else Icons.Outlined.Fingerprint,
+                                isActive = themeSettings.biometricEnabled,
+                                activeContainerColor = MaterialTheme.colorScheme.primary,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                                onClick = { 
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    viewModel.exportToCsv { csvData ->
-                                        if (csvData != null) {
-                                            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                                type = "text/csv"
-                                                putExtra(android.content.Intent.EXTRA_SUBJECT, "KakeiboX Export")
-                                                putExtra(android.content.Intent.EXTRA_TEXT, csvData)
-                                            }
-                                            context.startActivity(android.content.Intent.createChooser(intent, "Export Data"))
-                                        }
+                                    viewModel.setBiometricEnabled(!themeSettings.biometricEnabled)
+                                }
+                            ) {
+                               Text(
+                                    text = if (themeSettings.biometricEnabled) "Enabled" else "Disabled",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeSettings.biometricEnabled) 
+                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                    else 
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Data Health Bento Card
+                        if (shouldShow("Data Health", keywords = listOf("sync", "cloud", "backup"))) {
+                            var isSyncing by remember { mutableStateOf(false) }
+                            val syncScale by animateFloatAsState(
+                                targetValue = if (isSyncing) 0.95f else 1f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                            )
+
+                            LaunchedEffect(isSyncing) {
+                                if (isSyncing) {
+                                    delay(2000)
+                                    isSyncing = false
+                                }
+                            }
+
+                            BentoCard(
+                                modifier = Modifier.weight(1f).graphicsLayer(scaleX = syncScale, scaleY = syncScale),
+                                title = "Data Health",
+                                description = if (isSyncing) "Syncing..." else "Data is backed up.",
+                                icon = if (isSyncing) Icons.Outlined.Sync else Icons.Outlined.CloudUpload,
+                                isActive = isSyncing,
+                                activeContainerColor = MaterialTheme.colorScheme.primary,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                                onClick = { 
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    isSyncing = true 
+                                }
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = if (isSyncing) "Updating..." else "Secure",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSyncing) MaterialTheme.colorScheme.primary else Color(0xFF4CAF50)
+                                    )
+                                    
+                                    if (isSyncing) {
+                                        LinearProgressIndicator(
+                                            modifier = Modifier.fillMaxWidth().height(4.dp).graphicsLayer(clip = true, shape = RoundedCornerShape(2.dp)),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.primaryContainer
+                                        )
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    // Export Data Bento Card
+                    if (shouldShow("Export Data", keywords = listOf("download", "csv"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Export Data",
+                            description = "Download your spending and salary history as a CSV file.",
+                            icon = Icons.Outlined.FileDownload,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.exportToCsv { csvData ->
+                                    if (csvData != null) {
+                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                            type = "text/csv"
+                                            putExtra(android.content.Intent.EXTRA_SUBJECT, "KakeiboX Export")
+                                            putExtra(android.content.Intent.EXTRA_TEXT, csvData)
+                                        }
+                                        context.startActivity(android.content.Intent.createChooser(intent, "Export Data"))
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+            @Composable
+            fun RegionalCard(expanded: Boolean) {
+                SettingsCategoryCard(
+                    title = "Regional & Locale",
+                    description = "Preferred application language and reporting currency symbol configuration",
+                    icon = Icons.Outlined.Language,
+                    isExpanded = expanded,
+                    onClick = {
+                        activeSection = if (activeSection == "regional") null else "regional"
+                    }
+                ) {
+                    // Language Selection
+                    if (shouldShow("Language", keywords = listOf("locale", "regional"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Language",
+                            description = "Choose your preferred language.",
+                            icon = Icons.Outlined.Language
+                        ) {
+                            val languages = AppLanguage.entries
+                            val currentLanguage = themeSettings.appLanguage
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                languages.forEach { language ->
+                                    val isSelected = currentLanguage == language
+                                    val segmentWeight by animateFloatAsState(
+                                        targetValue = if (isSelected) 1.5f else 1f,
+                                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+                                    )
+
+                                    ExpressiveTab(
+                                        text = language.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        isSelected = isSelected,
+                                        selectedColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        modifier = Modifier.weight(segmentWeight.coerceAtLeast(0.001f)),
+                                        selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        icon = if (language == AppLanguage.ENGLISH) Icons.Outlined.Language else Icons.Outlined.Public,
+                                        onClick = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setAppLanguage(language) 
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Currency Section
+                    if (shouldShow("Currency Symbol", keywords = listOf("money", "symbol"))) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Currency Symbol",
+                            description = "Set your preferred currency symbol for all reports.",
+                            icon = Icons.Outlined.Payments
+                        ) {
+                            val currencies = listOf("₹", "¥", "$", "€")
+                            val currentSymbol = themeSettings.currencySymbol
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                currencies.forEach { symbol ->
+                                    val isSelected = currentSymbol == symbol
+                                    val segmentWeight by animateFloatAsState(
+                                        targetValue = if (isSelected) 1.5f else 1f,
+                                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+                                    )
+
+                                    ExpressiveTab(
+                                        text = symbol,
+                                        isSelected = isSelected,
+                                        selectedColor = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.weight(segmentWeight.coerceAtLeast(0.001f)),
+                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        icon = when (symbol) {
+                                            "₹" -> Icons.Outlined.Payments
+                                            "¥" -> Icons.Outlined.Wallet
+                                            "$" -> Icons.Outlined.Payments
+                                            else -> Icons.Outlined.ShoppingCart
+                                        },
+                                        shapeType = when (symbol) {
+                                            "₹" -> "slanted"
+                                            "¥" -> "clamshell"
+                                            "$" -> "arch"
+                                            else -> "pill"
+                                        },
+                                        onClick = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setCurrencySymbol(symbol) 
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Composable
+            fun AboutCard(expanded: Boolean) {
+                SettingsCategoryCard(
+                    title = stringResource(R.string.settings_section_about),
+                    description = "Version metadata, developer profile, and GitHub repository source code",
+                    icon = Icons.Outlined.Info,
+                    isExpanded = expanded,
+                    onClick = {
+                        activeSection = if (activeSection == "about") null else "about"
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(140.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (shouldShow("Version")) {
+                            BentoCard(
+                                modifier = Modifier.weight(1f),
+                                title = stringResource(R.string.about_version),
+                                description = stringResource(R.string.about_version_desc),
+                                icon = Icons.Outlined.Info,
+                                isActive = true,
+                                activeContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+
+                        if (shouldShow("Developer")) {
+                            BentoCard(
+                                modifier = Modifier.weight(1f),
+                                title = stringResource(R.string.about_developer),
+                                description = stringResource(R.string.about_developer_desc),
+                                icon = Icons.Outlined.Code,
+                                onClick = { /* Open dev profile */ }
+                            )
+                        }
+                    }
+
+                    if (shouldShow("GitHub")) {
+                        BentoCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = stringResource(R.string.about_github),
+                            description = stringResource(R.string.about_github_desc),
+                            icon = Icons.Outlined.Public,
+                            onClick = {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/Lalitbhosale1998/KakeiBoX"))
+                                context.startActivity(intent)
+                            }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.about_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                         }
                     }
                 }
             }
 
-            // ── Section: Regional ──
-            val showRegional = shouldShow("Language", "Choose your preferred language", listOf("locale", "regional")) ||
-                              shouldShow("Currency", "currency symbol", listOf("money", "symbol"))
+            // ── Unified Layout with Continuous Morph Animations ──
+            val isSearchActive = searchQuery.isNotEmpty()
 
-            if (showRegional) {
+            val showVisual = !isSearchActive && (activeSection == null || activeSection == "visual") || isSearchActive && showAppearance
+            val showPersonalizationCard = !isSearchActive && (activeSection == null || activeSection == "personalization") || isSearchActive && showPersonalization
+            val showSecurityCard = !isSearchActive && (activeSection == null || activeSection == "security") || isSearchActive && showSecurity
+            val showRegionalCard = !isSearchActive && (activeSection == null || activeSection == "regional") || isSearchActive && showRegional
+            val showAboutCard = !isSearchActive && (activeSection == null || activeSection == "about") || isSearchActive && showAbout
+
+            val visualAlpha by animateFloatAsState(
+                targetValue = if (showVisual) 1f else 0f,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "visual_alpha"
+            )
+            val personalizationAlpha by animateFloatAsState(
+                targetValue = if (showPersonalizationCard) 1f else 0f,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "personalization_alpha"
+            )
+            val securityAlpha by animateFloatAsState(
+                targetValue = if (showSecurityCard) 1f else 0f,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "security_alpha"
+            )
+            val regionalAlpha by animateFloatAsState(
+                targetValue = if (showRegionalCard) 1f else 0f,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "regional_alpha"
+            )
+            val aboutAlpha by animateFloatAsState(
+                targetValue = if (showAboutCard) 1f else 0f,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "about_alpha"
+            )
+
+            // Weights inside the rows
+            val visualTargetWeight = if (showVisual && showPersonalizationCard) 1f else if (showVisual) 1f else 0.001f
+            val personalizationTargetWeight = if (showVisual && showPersonalizationCard) 1f else if (showPersonalizationCard) 1f else 0.001f
+
+            val visualWeight by animateFloatAsState(
+                targetValue = visualTargetWeight,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "visual_weight"
+            )
+            val personalizationWeight by animateFloatAsState(
+                targetValue = personalizationTargetWeight,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "personalization_weight"
+            )
+
+            val regionalTargetWeight = if (showRegionalCard && showAboutCard) 1f else if (showRegionalCard) 1f else 0.001f
+            val aboutTargetWeight = if (showRegionalCard && showAboutCard) 1f else if (showAboutCard) 1f else 0.001f
+
+            val regionalWeight by animateFloatAsState(
+                targetValue = regionalTargetWeight,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "regional_weight"
+            )
+            val aboutWeight by animateFloatAsState(
+                targetValue = aboutTargetWeight,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "about_weight"
+            )
+
+            // Dynamic spacer heights
+            val hasRow1 = showVisual || showPersonalizationCard
+            val hasRow2 = showSecurityCard
+            val hasRow3 = showRegionalCard || showAboutCard
+
+            val spacer1TargetHeight = if (hasRow1 && (hasRow2 || hasRow3)) 16.dp else 0.dp
+            val spacer2TargetHeight = if (hasRow2 && hasRow3) 16.dp else 0.dp
+
+            val spacer1Height by animateDpAsState(
+                targetValue = spacer1TargetHeight,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "spacer1_height"
+            )
+            val spacer2Height by animateDpAsState(
+                targetValue = spacer2TargetHeight,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                label = "spacer2_height"
+            )
+
+            // Row 1 Container (Appearance and Personalization)
+            if (hasRow1 || visualAlpha > 0.01f || personalizationAlpha > 0.01f) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            activeSection = if (activeSection == "regional") null else "regional"
-                        }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .animateContentSize(spring(dampingRatio = 0.55f, stiffness = 300f)),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        if (showVisual && showPersonalizationCard) 16.dp else 0.dp
+                    )
                 ) {
-                    Text(
-                        text = "Regional & Locale",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    val rotation by animateFloatAsState(
-                        targetValue = if (activeSection == "regional" || searchQuery.isNotEmpty()) 180f else 0f,
-                        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
-                        label = "regional_arrow_rotation"
-                    )
-                    Icon(
-                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.graphicsLayer { rotationZ = rotation }
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = activeSection == "regional" || searchQuery.isNotEmpty(),
-                    enter = fadeIn(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            expandVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)),
-                    exit = fadeOut(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            shrinkVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f))
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // Language Selection
-                        if (shouldShow("Language", keywords = listOf("locale", "regional"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Language",
-                                description = "Choose your preferred language.",
-                                icon = Icons.Outlined.Language
-                            ) {
-                                val languages = AppLanguage.entries
-                                val currentLanguage = themeSettings.appLanguage
-                                
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    languages.forEach { language ->
-                                        val isSelected = currentLanguage == language
-                                        val segmentWeight by animateFloatAsState(
-                                            targetValue = if (isSelected) 1.5f else 1f,
-                                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
-                                        )
-
-                                        ExpressiveTab(
-                                            text = language.name.lowercase().replaceFirstChar { it.uppercase() },
-                                            isSelected = isSelected,
-                                            selectedColor = MaterialTheme.colorScheme.secondaryContainer,
-                                            modifier = Modifier.weight(segmentWeight.coerceAtLeast(0.001f)),
-                                            selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                            icon = if (language == AppLanguage.ENGLISH) Icons.Outlined.Language else Icons.Outlined.Public,
-                                            onClick = { 
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                viewModel.setAppLanguage(language) 
-                                            }
-                                        )
-                                    }
+                    if (showVisual || visualAlpha > 0.01f) {
+                        Box(
+                            modifier = Modifier
+                                .weight(visualWeight.coerceAtLeast(0.001f))
+                                .graphicsLayer {
+                                    alpha = visualAlpha
+                                    scaleX = visualAlpha.coerceAtLeast(0.001f)
+                                    scaleY = visualAlpha.coerceAtLeast(0.001f)
                                 }
-                            }
+                        ) {
+                            VisualStyleCard(expanded = activeSection == "visual" || (isSearchActive && showAppearance))
                         }
-
-                        // Currency Section
-                        if (shouldShow("Currency Symbol", keywords = listOf("money", "symbol"))) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Currency Symbol",
-                                description = "Set your preferred currency symbol for all reports.",
-                                icon = Icons.Outlined.Payments
-                            ) {
-                                val currencies = listOf("₹", "¥", "$", "€")
-                                val currentSymbol = themeSettings.currencySymbol
-                                
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    currencies.forEach { symbol ->
-                                        val isSelected = currentSymbol == symbol
-                                        val segmentWeight by animateFloatAsState(
-                                            targetValue = if (isSelected) 1.5f else 1f,
-                                            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
-                                        )
-
-                                        ExpressiveTab(
-                                            text = symbol,
-                                            isSelected = isSelected,
-                                            selectedColor = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.weight(segmentWeight.coerceAtLeast(0.001f)),
-                                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                            icon = when (symbol) {
-                                                "₹" -> Icons.Outlined.Payments
-                                                "¥" -> Icons.Outlined.Wallet
-                                                "$" -> Icons.Outlined.Payments
-                                                else -> Icons.Outlined.ShoppingCart
-                                            },
-                                            shapeType = when (symbol) {
-                                                "₹" -> "slanted"
-                                                "¥" -> "clamshell"
-                                                "$" -> "arch"
-                                                else -> "pill"
-                                            },
-                                            onClick = { 
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                viewModel.setCurrencySymbol(symbol) 
-                                            }
-                                        )
-                                    }
+                    }
+                    if (showPersonalizationCard || personalizationAlpha > 0.01f) {
+                        Box(
+                            modifier = Modifier
+                                .weight(personalizationWeight.coerceAtLeast(0.001f))
+                                .graphicsLayer {
+                                    alpha = personalizationAlpha
+                                    scaleX = personalizationAlpha.coerceAtLeast(0.001f)
+                                    scaleY = personalizationAlpha.coerceAtLeast(0.001f)
                                 }
-                            }
+                        ) {
+                            PersonalizationCard(expanded = activeSection == "personalization" || (isSearchActive && showPersonalization))
                         }
                     }
                 }
             }
 
-            // ── Section: About ──
-            val showAbout = shouldShow("About", keywords = listOf("version", "github", "developer")) ||
-                           shouldShow("Version", keywords = listOf("app"))
+            if (spacer1Height > 0.dp) {
+                Spacer(modifier = Modifier.height(spacer1Height))
+            }
 
-            if (showAbout) {
+            // Row 2 Container (Security & Privacy)
+            if (showSecurityCard || securityAlpha > 0.01f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize(spring(dampingRatio = 0.55f, stiffness = 300f))
+                        .graphicsLayer {
+                            alpha = securityAlpha
+                            scaleX = securityAlpha.coerceAtLeast(0.001f)
+                            scaleY = securityAlpha.coerceAtLeast(0.001f)
+                        }
+                ) {
+                    SecurityCard(expanded = activeSection == "security" || (isSearchActive && showSecurity))
+                }
+            }
+
+            if (spacer2Height > 0.dp) {
+                Spacer(modifier = Modifier.height(spacer2Height))
+            }
+
+            // Row 3 Container (Regional & About)
+            if (hasRow3 || regionalAlpha > 0.01f || aboutAlpha > 0.01f) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            activeSection = if (activeSection == "about") null else "about"
-                        }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .animateContentSize(spring(dampingRatio = 0.55f, stiffness = 300f)),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        if (showRegionalCard && showAboutCard) 16.dp else 0.dp
+                    )
                 ) {
-                    Text(
-                        text = stringResource(R.string.settings_section_about),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    val rotation by animateFloatAsState(
-                        targetValue = if (activeSection == "about" || searchQuery.isNotEmpty()) 180f else 0f,
-                        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
-                        label = "about_arrow_rotation"
-                    )
-                    Icon(
-                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.graphicsLayer { rotationZ = rotation }
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = activeSection == "about" || searchQuery.isNotEmpty(),
-                    enter = fadeIn(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            expandVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)),
-                    exit = fadeOut(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f)) +
-                            shrinkVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f))
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().height(140.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            if (shouldShow("Version")) {
-                                BentoCard(
-                                    modifier = Modifier.weight(1f),
-                                    title = stringResource(R.string.about_version),
-                                    description = stringResource(R.string.about_version_desc),
-                                    icon = Icons.Outlined.Info,
-                                    isActive = true,
-                                    activeContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    activeContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            }
-
-                            if (shouldShow("Developer")) {
-                                BentoCard(
-                                    modifier = Modifier.weight(1f),
-                                    title = stringResource(R.string.about_developer),
-                                    description = stringResource(R.string.about_developer_desc),
-                                    icon = Icons.Outlined.Code,
-                                    onClick = { /* Open dev profile */ }
-                                )
-                            }
-                        }
-
-                        if (shouldShow("GitHub")) {
-                            BentoCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = stringResource(R.string.about_github),
-                                description = stringResource(R.string.about_github_desc),
-                                icon = Icons.Outlined.Public,
-                                onClick = {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/Lalitbhosale1998/KakeiBoX"))
-                                    context.startActivity(intent)
+                    if (showRegionalCard || regionalAlpha > 0.01f) {
+                        Box(
+                            modifier = Modifier
+                                .weight(regionalWeight.coerceAtLeast(0.001f))
+                                .graphicsLayer {
+                                    alpha = regionalAlpha
+                                    scaleX = regionalAlpha.coerceAtLeast(0.001f)
+                                    scaleY = regionalAlpha.coerceAtLeast(0.001f)
                                 }
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.about_description),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
+                        ) {
+                            RegionalCard(expanded = activeSection == "regional" || (isSearchActive && showRegional))
+                        }
+                    }
+                    if (showAboutCard || aboutAlpha > 0.01f) {
+                        Box(
+                            modifier = Modifier
+                                .weight(aboutWeight.coerceAtLeast(0.001f))
+                                .graphicsLayer {
+                                    alpha = aboutAlpha
+                                    scaleX = aboutAlpha.coerceAtLeast(0.001f)
+                                    scaleY = aboutAlpha.coerceAtLeast(0.001f)
+                                }
+                        ) {
+                            AboutCard(expanded = activeSection == "about" || (isSearchActive && showAbout))
                         }
                     }
                 }
@@ -1047,6 +1071,136 @@ fun SettingsScreen(
     }
 
 
+}
+
+@Composable
+fun SettingsCategoryCard(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    isExpanded: Boolean,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+    val containerColor by animateColorAsState(
+        targetValue = if (isExpanded) 
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f) 
+        else 
+            MaterialTheme.colorScheme.surfaceContainerLow,
+        label = "category_container_color"
+    )
+    val contentColor = MaterialTheme.colorScheme.onSurface
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick()
+            }
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = 0.55f,
+                    stiffness = 300f
+                )
+            ),
+        color = containerColor,
+        contentColor = contentColor,
+        shape = RoundedCornerShape(28.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (isExpanded) 
+                            MaterialTheme.colorScheme.primary 
+                        else 
+                            MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = if (isExpanded) 
+                                    MaterialTheme.colorScheme.onPrimary 
+                                else 
+                                    MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        if (!isExpanded) {
+                            Text(
+                                text = description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+                
+                val rotation by animateFloatAsState(
+                    targetValue = if (isExpanded) 180f else 0f,
+                    animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+                    label = "arrow_rotation"
+                )
+                
+                Icon(
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .graphicsLayer { rotationZ = rotation }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn(animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f)) +
+                        expandVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f)),
+                exit = fadeOut(animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f)) +
+                        shrinkVertically(animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    content()
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

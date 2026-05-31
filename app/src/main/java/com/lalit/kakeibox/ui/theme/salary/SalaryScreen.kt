@@ -627,7 +627,7 @@ fun ExpressiveHeroCard(
         targetValue = if (isHighSavingsActive) 0.001f else 1.0f,
         animationSpec = spring(
             dampingRatio = 0.55f,
-            stiffness = 150f
+            stiffness = 300f
         ),
         label = "salary_hero_left_weight"
     )
@@ -636,7 +636,7 @@ fun ExpressiveHeroCard(
         targetValue = if (isHighSavingsActive) 2.0f else 1.0f,
         animationSpec = spring(
             dampingRatio = 0.55f,
-            stiffness = 150f
+            stiffness = 300f
         ),
         label = "salary_hero_right_weight"
     )
@@ -645,7 +645,7 @@ fun ExpressiveHeroCard(
         targetValue = if (isHighSavingsActive) 150.dp else 100.dp,
         animationSpec = spring(
             dampingRatio = 0.55f,
-            stiffness = 150f
+            stiffness = 300f
         ),
         label = "salary_hero_donut_size"
     )
@@ -1237,12 +1237,12 @@ fun ExpressiveAddEditSheet(
 
     val savingsWeight by animateFloatAsState(
         targetValue = if (isSavingsFocused) 1.5f else if (isRemittanceFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "salary_savings_weight"
     )
     val remittanceWeight by animateFloatAsState(
         targetValue = if (isRemittanceFocused) 1.5f else if (isSavingsFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 150f),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "salary_remittance_weight"
     )
 
