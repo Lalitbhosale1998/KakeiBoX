@@ -229,6 +229,29 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun applyStylePreset(
+        themeStyle: ThemeStyle,
+        appFont: AppFont,
+        backdropPattern: BackdropPattern,
+        glowIntensity: GlowIntensity,
+        crtFilterEnabled: Boolean,
+        touchSynesthesia: TouchSynesthesia,
+        darkThemePreference: DarkThemePreference,
+        useDynamicColor: Boolean
+    ) {
+        viewModelScope.launch {
+            preferencesRepository.applyStylePreset(
+                themeStyle = themeStyle,
+                appFont = appFont,
+                backdropPattern = backdropPattern,
+                glowIntensity = glowIntensity,
+                crtFilterEnabled = crtFilterEnabled,
+                touchSynesthesia = touchSynesthesia,
+                darkThemePreference = darkThemePreference,
+                useDynamicColor = useDynamicColor
+            )
+        }
+    }
 
     fun exportToCsv(onResult: (String?) -> Unit) {
         viewModelScope.launch {

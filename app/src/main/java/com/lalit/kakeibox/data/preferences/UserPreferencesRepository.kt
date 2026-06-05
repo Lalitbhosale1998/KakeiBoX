@@ -127,4 +127,25 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { it[Keys.TOUCH_SYNESTHESIA] = synesthesia.name }
     }
 
+    suspend fun applyStylePreset(
+        themeStyle: ThemeStyle,
+        appFont: AppFont,
+        backdropPattern: BackdropPattern,
+        glowIntensity: GlowIntensity,
+        crtFilterEnabled: Boolean,
+        touchSynesthesia: TouchSynesthesia,
+        darkThemePreference: DarkThemePreference,
+        useDynamicColor: Boolean
+    ) {
+        dataStore.edit { prefs ->
+            prefs[Keys.THEME_STYLE] = themeStyle.name
+            prefs[Keys.APP_FONT] = appFont.name
+            prefs[Keys.BACKDROP_PATTERN] = backdropPattern.name
+            prefs[Keys.GLOW_INTENSITY] = glowIntensity.name
+            prefs[Keys.CRT_FILTER_ENABLED] = crtFilterEnabled
+            prefs[Keys.TOUCH_SYNESTHESIA] = touchSynesthesia.name
+            prefs[Keys.DARK_THEME] = darkThemePreference.name
+            prefs[Keys.DYNAMIC_COLOR] = useDynamicColor
+        }
+    }
 }
