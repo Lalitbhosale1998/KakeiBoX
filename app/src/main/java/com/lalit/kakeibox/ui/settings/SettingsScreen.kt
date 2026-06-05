@@ -138,6 +138,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -196,6 +199,59 @@ fun SettingsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var activeTab by remember { mutableStateOf("visual") }
     var showTabOrderSheet by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    val backupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/octet-stream"),
+        onResult = { uri ->
+            if (uri != null) {
+                try {
+                    context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        viewModel.backupDatabase(context, outputStream) { success ->
+                            if (success) {
+                                Toast.makeText(context, "Database backup successful!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Database backup failed.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(context, "Failed to write backup file.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    )
+
+    val restoreLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri ->
+            if (uri != null) {
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        viewModel.restoreDatabase(context, inputStream) { success ->
+                            if (success) {
+                                Toast.makeText(context, "Database restore successful! Restarting...", Toast.LENGTH_LONG).show()
+                                // Restart app after 1.5 seconds to let Toast display
+                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                                    intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                    context.startActivity(intent)
+                                    java.lang.System.exit(0)
+                                }, 1500)
+                            } else {
+                                Toast.makeText(context, "Database restore failed.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(context, "Failed to read backup file.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    )
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val haptic = LocalHapticFeedback.current
@@ -621,21 +677,25 @@ fun SettingsScreen(
                         }
 
                         SettingsGroup(title = "Data Management") {
-                            var isSyncing by remember { mutableStateOf(false) }
-                            LaunchedEffect(isSyncing) {
-                                if (isSyncing) {
-                                    delay(2000)
-                                    isSyncing = false
-                                }
-                            }
                             SettingsActionRow(
-                                title = "Data Backup Health",
-                                description = if (isSyncing) "Syncing database backup securely..." else "All database assets successfully synchronized.",
+                                title = "Backup Database",
+                                description = "Export a copy of your local database (.db) file to device storage.",
                                 icon = Icons.Outlined.CloudUpload,
-                                actionLabel = if (isSyncing) "Syncing" else "Backup Now",
+                                actionLabel = "Backup",
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    isSyncing = true
+                                    backupLauncher.launch("kakeibox_backup.db")
+                                }
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                            SettingsActionRow(
+                                title = "Restore Database",
+                                description = "Import a previously backed up (.db) file to restore your data.",
+                                icon = Icons.Outlined.FileDownload,
+                                actionLabel = "Restore",
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    restoreLauncher.launch(arrayOf("*/*"))
                                 }
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))

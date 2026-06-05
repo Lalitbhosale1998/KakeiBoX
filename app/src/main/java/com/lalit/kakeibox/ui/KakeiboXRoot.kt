@@ -64,7 +64,10 @@ fun KakeiboXAppRoot() {
             if (!themeSettings.biometricEnabled || isAuthenticated) {
                 KakeiboXApp()
             } else {
-                // Lock Screen placeholder
+                KakeiboXLockScreen(
+                    themeSettings = themeSettings,
+                    themeViewModel = themeViewModel
+                )
             }
         }
     }

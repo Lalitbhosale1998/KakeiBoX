@@ -35,7 +35,12 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.concurrent.Executor
 import javax.inject.Inject
+import com.personal.kakeibox.data.database.KakeiboXDatabase
 import com.personal.kakeibox.data.entity.BirthdayEntry
+import android.content.Context
+import java.io.InputStream
+import java.io.OutputStream
+import kotlinx.coroutines.Dispatchers
 
 @HiltViewModel
 class ThemeViewModel @Inject constructor(
@@ -43,7 +48,8 @@ class ThemeViewModel @Inject constructor(
     private val spendRepository: SpendRepository,
     private val salaryRepository: SalaryRepository,
     private val exerciseRepository: ExerciseRepository,
-    private val birthdayRepository: BirthdayRepository
+    private val birthdayRepository: BirthdayRepository,
+    private val database: KakeiboXDatabase
 ) : ViewModel() {
 
     private val _isAuthenticated = mutableStateOf(false)
@@ -287,4 +293,58 @@ class ThemeViewModel @Inject constructor(
             }
         }
     }
+
+    fun backupDatabase(context: Context, outputStream: OutputStream, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Checkpoint database to flush WAL log into the main DB file
+                database.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").close()
+                
+                // Get the database path
+                val dbFile = context.getDatabasePath("kakeibox_database")
+                if (dbFile.exists()) {
+                    dbFile.inputStream().use { input ->
+                        outputStream.use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    onResult(true)
+                } else {
+                    onResult(false)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onResult(false)
+            }
+        }
+    }
+
+    fun restoreDatabase(context: Context, inputStream: InputStream, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Close the database to release locks
+                database.close()
+                
+                val dbFile = context.getDatabasePath("kakeibox_database")
+                val walFile = context.getDatabasePath("kakeibox_database-wal")
+                val shmFile = context.getDatabasePath("kakeibox_database-shm")
+                
+                // Delete WAL and SHM files if they exist
+                if (walFile.exists()) walFile.delete()
+                if (shmFile.exists()) shmFile.delete()
+                
+                // Overwrite the database file
+                inputStream.use { input ->
+                    dbFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                onResult(true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onResult(false)
+            }
+        }
+    }
 }
+
