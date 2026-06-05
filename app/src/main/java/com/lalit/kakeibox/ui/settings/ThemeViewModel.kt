@@ -21,7 +21,7 @@ import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
 import com.personal.kakeibox.data.repository.BirthdayRepository
-import com.personal.kakeibox.data.repository.CommuteRepository
+import com.personal.kakeibox.data.repository.ExerciseRepository
 import com.personal.kakeibox.data.repository.SalaryRepository
 import com.personal.kakeibox.data.repository.SpendRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,7 +42,7 @@ class ThemeViewModel @Inject constructor(
     private val preferencesRepository: UserPreferencesRepository,
     private val spendRepository: SpendRepository,
     private val salaryRepository: SalaryRepository,
-    private val commuteRepository: CommuteRepository,
+    private val exerciseRepository: ExerciseRepository,
     private val birthdayRepository: BirthdayRepository
 ) : ViewModel() {
 
@@ -258,7 +258,7 @@ class ThemeViewModel @Inject constructor(
             try {
                 val spends = spendRepository.getAllEntries().first()
                 val salaries = salaryRepository.getAllEntries().first()
-                val commutes = commuteRepository.getAllEntries().first()
+                val exercises = exerciseRepository.getAllExercises().first()
 
                 val csvBuilder = StringBuilder()
                 
@@ -275,11 +275,10 @@ class ThemeViewModel @Inject constructor(
                     csvBuilder.append("${it.month}/${it.year},${it.salaryAmount},${it.remittanceAmount},${it.savingsAmount},${it.note}\n")
                 }
 
-                csvBuilder.append("\nCOMMUTE HISTORY\n")
-                csvBuilder.append("Date,One Way Fare,Holidays,WFH Days,Total Cost\n")
-                commutes.forEach {
-                    val total = (it.oneWayFare * 2) * (20 - it.holidays - it.wfhDays) // simplified calc for export
-                    csvBuilder.append("${it.createdAt},${it.oneWayFare},${it.holidays},${it.wfhDays},$total\n")
+                csvBuilder.append("\nEXERCISE SCHEDULE\n")
+                csvBuilder.append("Day,Name,Sets,Reps,Description\n")
+                exercises.forEach {
+                    csvBuilder.append("${it.dayOfWeek},${it.name},${it.sets},${it.reps},${it.description}\n")
                 }
 
                 onResult(csvBuilder.toString())

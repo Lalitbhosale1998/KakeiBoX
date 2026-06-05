@@ -50,7 +50,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.AutoMode
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.DirectionsBus
+import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Dock
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.FileDownload
@@ -1114,7 +1114,7 @@ fun SettingsScreen(
                                     imageVector = when(route) {
                                         "salary" -> Icons.Outlined.Wallet
                                         "spend" -> Icons.Outlined.ShoppingCart
-                                        "commute" -> Icons.Outlined.DirectionsBus
+                                        "exercise" -> Icons.Outlined.FitnessCenter
                                         else -> Icons.Outlined.Settings
                                     },
                                     contentDescription = null,

@@ -4,7 +4,7 @@
     <!-- Tab Labels -->
     <string name="tab_salary">給与</string>
     <string name="tab_spend">支出</string>
-    <string name="tab_commute">通勤</string>
+    <string name="tab_exercise">運動</string>
     <string name="tab_settings">設定</string>
 
     <!-- Salary Screen -->

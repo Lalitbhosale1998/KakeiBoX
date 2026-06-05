@@ -6,10 +6,12 @@ import androidx.room.TypeConverters
 import com.personal.kakeibox.data.converter.Converters
 import com.personal.kakeibox.data.dao.BirthdayDao
 import com.personal.kakeibox.data.dao.CommuteDao
+import com.personal.kakeibox.data.dao.ExerciseDao
 import com.personal.kakeibox.data.dao.SalaryDao
 import com.personal.kakeibox.data.dao.SpendDao
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.data.entity.CommuteEntry
+import com.personal.kakeibox.data.entity.ExerciseEntry
 import com.personal.kakeibox.data.entity.SalaryEntry
 import com.personal.kakeibox.data.entity.SpendEntry
 
@@ -18,9 +20,10 @@ import com.personal.kakeibox.data.entity.SpendEntry
         SalaryEntry::class,
         SpendEntry::class,
         CommuteEntry::class,
-        BirthdayEntry::class
+        BirthdayEntry::class,
+        ExerciseEntry::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -29,4 +32,5 @@ abstract class KakeiboXDatabase : RoomDatabase() {
     abstract fun spendDao(): SpendDao
     abstract fun commuteDao(): CommuteDao
     abstract fun birthdayDao(): BirthdayDao
+    abstract fun exerciseDao(): ExerciseDao
 }

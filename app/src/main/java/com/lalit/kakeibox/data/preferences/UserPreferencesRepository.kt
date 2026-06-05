@@ -20,6 +20,7 @@ private object Keys {
     val APP_LANGUAGE = stringPreferencesKey("app_language")
     val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
     val TAB_ORDER = stringPreferencesKey("tab_order")
+    val REST_DAYS = stringPreferencesKey("rest_days")
     val PRIVACY_MODE = booleanPreferencesKey("privacy_mode")
     val TOP_APP_BAR_BACKGROUND = stringPreferencesKey("top_app_bar_background")
     val THEME_STYLE = stringPreferencesKey("theme_style")
@@ -45,7 +46,22 @@ class UserPreferencesRepository @Inject constructor(
             dateFormat = prefs[Keys.DATE_FORMAT] ?: "MMM dd, yyyy",
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
-            tabOrder = (prefs[Keys.TAB_ORDER] ?: "salary,spend,settings").split(",").filter { it != "commute" },
+            tabOrder = run {
+                val rawOrder = prefs[Keys.TAB_ORDER] ?: "salary,spend,exercise,settings"
+                var parsed = rawOrder.split(",").filter { it != "commute" && it.isNotBlank() }
+                if (!parsed.contains("exercise")) {
+                    val list = parsed.toMutableList()
+                    val settingsIndex = list.indexOf("settings")
+                    if (settingsIndex != -1) {
+                        list.add(settingsIndex, "exercise")
+                    } else {
+                        list.add("exercise")
+                    }
+                    parsed = list
+                }
+                parsed
+            },
+            restDays = (prefs[Keys.REST_DAYS] ?: "Saturday,Sunday").split(",").filter { it.isNotBlank() },
             privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false,
             topAppBarBackground = TopAppBarBackground.valueOf(
                 prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.SURFACE.name
@@ -146,6 +162,12 @@ class UserPreferencesRepository @Inject constructor(
             prefs[Keys.TOUCH_SYNESTHESIA] = touchSynesthesia.name
             prefs[Keys.DARK_THEME] = darkThemePreference.name
             prefs[Keys.DYNAMIC_COLOR] = useDynamicColor
+        }
+    }
+
+    suspend fun setRestDays(days: List<String>) {
+        dataStore.edit { prefs ->
+            prefs[Keys.REST_DAYS] = days.joinToString(",")
         }
     }
 }

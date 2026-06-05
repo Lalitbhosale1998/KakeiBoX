@@ -10,11 +10,13 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.personal.kakeibox.data.dao.BirthdayDao
 import com.personal.kakeibox.data.dao.CommuteDao
+import com.personal.kakeibox.data.dao.ExerciseDao
 import com.personal.kakeibox.data.dao.SalaryDao
 import com.personal.kakeibox.data.dao.SpendDao
 import com.personal.kakeibox.data.database.KakeiboXDatabase
 import com.personal.kakeibox.data.repository.BirthdayRepository
 import com.personal.kakeibox.data.repository.CommuteRepository
+import com.personal.kakeibox.data.repository.ExerciseRepository
 import com.personal.kakeibox.data.repository.SalaryRepository
 import com.personal.kakeibox.data.repository.SpendRepository
 import dagger.Module
@@ -96,4 +98,14 @@ object AppModule {
     @Singleton
     fun provideBirthdayRepository(birthdayDao: BirthdayDao): BirthdayRepository =
         BirthdayRepository(birthdayDao)
+
+    @Provides
+    @Singleton
+    fun provideExerciseDao(database: KakeiboXDatabase): ExerciseDao =
+        database.exerciseDao()
+
+    @Provides
+    @Singleton
+    fun provideExerciseRepository(exerciseDao: ExerciseDao): ExerciseRepository =
+        ExerciseRepository(exerciseDao)
 }
