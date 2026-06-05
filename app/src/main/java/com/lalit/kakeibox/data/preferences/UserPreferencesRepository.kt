@@ -45,7 +45,7 @@ class UserPreferencesRepository @Inject constructor(
             dateFormat = prefs[Keys.DATE_FORMAT] ?: "MMM dd, yyyy",
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
-            tabOrder = (prefs[Keys.TAB_ORDER] ?: "salary,spend,commute,settings").split(","),
+            tabOrder = (prefs[Keys.TAB_ORDER] ?: "salary,spend,settings").split(",").filter { it != "commute" },
             privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false,
             topAppBarBackground = TopAppBarBackground.valueOf(
                 prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.SURFACE.name

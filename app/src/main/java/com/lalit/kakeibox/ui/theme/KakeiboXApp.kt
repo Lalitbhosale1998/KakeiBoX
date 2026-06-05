@@ -70,7 +70,6 @@ import com.personal.kakeibox.R
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.ui.navigation.BottomNavItem
 import com.personal.kakeibox.ui.navigation.NavRoutes
-import com.personal.kakeibox.ui.commute.CommuteScreen
 import com.personal.kakeibox.ui.salary.SalaryScreen
 import com.personal.kakeibox.ui.settings.SettingsScreen
 import com.personal.kakeibox.ui.settings.ThemeViewModel
@@ -128,12 +127,6 @@ fun KakeiboXApp(
                 icon = Icons.Outlined.ShoppingCart,
                 selectedIcon = Icons.Filled.ShoppingCart
             )
-            NavRoutes.Commute.route -> BottomNavItem(
-                route = NavRoutes.Commute.route,
-                labelRes = R.string.tab_commute,
-                icon = Icons.Outlined.DirectionsBus,
-                selectedIcon = Icons.Filled.DirectionsBus
-            )
             NavRoutes.Settings.route -> BottomNavItem(
                 route = NavRoutes.Settings.route,
                 labelRes = R.string.tab_settings,
@@ -185,7 +178,6 @@ fun KakeiboXApp(
                             val targetColor = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
                                 NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
                                 NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
-                                NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f)
                                 NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f)
                                 else -> Color.Transparent
                             }
@@ -274,7 +266,6 @@ fun KakeiboXApp(
                                 val selectedColor = when (item.route) {
                                     NavRoutes.Salary.route -> Color(0xFFFFD700)
                                     NavRoutes.Spend.route -> Color(0xFFF43F5E)
-                                    NavRoutes.Commute.route -> Color(0xFF6EE7B7)
                                     NavRoutes.Settings.route -> Color(0xFF8B5CF6)
                                     else -> MaterialTheme.colorScheme.primary
                                 }
@@ -404,9 +395,6 @@ fun KakeiboXApp(
             composable(NavRoutes.Spend.route) {
                 SpendScreen()
             }
-            composable(NavRoutes.Commute.route) {
-                CommuteScreen()
-            }
             composable(NavRoutes.Settings.route) {
                 SettingsScreen()
             }
@@ -485,7 +473,6 @@ fun KakeiboXApp(
                             val targetColor = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
                                 NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
                                 NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
-                                NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f)
                                 NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f)
                                 else -> Color.Transparent
                             }
@@ -584,7 +571,6 @@ fun KakeiboXApp(
                                         when (item.route) {
                                             NavRoutes.Salary.route -> Color(0xFFFFD700) // Vibrant Gold
                                             NavRoutes.Spend.route -> Color(0xFFF43F5E)  // Vibrant Rose
-                                            NavRoutes.Commute.route -> Color(0xFF6EE7B7) // Fresh Mint
                                             NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Vibrant Violet
                                             else -> MaterialTheme.colorScheme.onSurface
                                         }
@@ -797,7 +783,6 @@ fun KakeiboXApp(
                             val targetColor = when (leftItems.getOrNull(leftSelectedIndex)?.route) {
                                 NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
                                 NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
-                                NavRoutes.Commute.route -> Color(0xFF6EE7B7).copy(alpha = 0.15f)
                                 else -> Color.Transparent
                             }
                             val animatedColor by animateColorAsState(targetColor, label = "left_pill_color")
@@ -883,7 +868,6 @@ fun KakeiboXApp(
                                         when (item.route) {
                                             NavRoutes.Salary.route -> Color(0xFFFFD700)
                                             NavRoutes.Spend.route -> Color(0xFFF43F5E)
-                                            NavRoutes.Commute.route -> Color(0xFF6EE7B7)
                                             else -> MaterialTheme.colorScheme.onSurface
                                         }
                                     } else MaterialTheme.colorScheme.onSurfaceVariant,
