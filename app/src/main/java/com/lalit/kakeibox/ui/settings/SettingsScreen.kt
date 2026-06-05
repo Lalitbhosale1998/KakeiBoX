@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -132,6 +133,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
@@ -339,7 +341,7 @@ fun SettingsScreen(
 
                                     Surface(
                                         modifier = Modifier
-                                            .width(220.dp)
+                                            .width(250.dp)
                                             .glow(
                                                 color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
                                                 intensity = if (isActive) glowIntensity else GlowIntensity.OFF,
@@ -368,8 +370,8 @@ fun SettingsScreen(
                                         )
                                     ) {
                                         Column(
-                                            modifier = Modifier.padding(16.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            modifier = Modifier.padding(14.dp),
+                                            verticalArrangement = Arrangement.spacedBy(10.dp)
                                         ) {
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
@@ -387,7 +389,7 @@ fun SettingsScreen(
                                                     Text(
                                                         text = preset.name,
                                                         style = MaterialTheme.typography.titleMedium,
-                                                        fontWeight = FontWeight.Bold,
+                                                        fontWeight = FontWeight.Black,
                                                         color = if (isActive) {
                                                             if (isSpaceTerminal) Color(0xFFFF7E6B)
                                                             else MaterialTheme.colorScheme.primary
@@ -406,14 +408,20 @@ fun SettingsScreen(
                                                     )
                                                 }
                                             }
+
+                                            PresetVisualPreview(preset = preset, isSpaceTerminal = isSpaceTerminal)
+
                                             Text(
                                                 text = preset.description,
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                minLines = 3,
-                                                maxLines = 3,
+                                                maxLines = 2,
+                                                minLines = 2,
+                                                lineHeight = 14.sp,
                                                 overflow = TextOverflow.Ellipsis
                                             )
+
+                                            PresetSpecsTags(preset = preset, isSpaceTerminal = isSpaceTerminal)
                                         }
                                     }
                                 }
@@ -2459,6 +2467,232 @@ fun SettingsActionRow(
                     fontWeight = FontWeight.Black,
                     color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
+    val previewShape = RoundedCornerShape(12.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .clip(previewShape)
+            .border(
+                1.dp,
+                if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.2f)
+                else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                previewShape
+            )
+    ) {
+        when (preset.name) {
+            "Clean Material" -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFE0E7FF),
+                                    Color(0xFFFEE2E2),
+                                    Color(0xFFEDE9FE)
+                                )
+                            )
+                        )
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(70.dp)
+                                .height(24.dp)
+                                .background(Color(0xFF6366F1), RoundedCornerShape(12.dp))
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(Color(0xFFF43F5E), CircleShape)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(6.dp)
+                                .background(Color(0xFF94A3B8).copy(alpha = 0.5f), CircleShape)
+                        )
+                    }
+                }
+            }
+            "Tactical Cockpit" -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF020617))
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val strokeColor = Color(0xFF10B981).copy(alpha = 0.15f)
+                        val gridSpace = 16.dp.toPx()
+                        var x = 0f
+                        while (x < size.width) {
+                            drawLine(strokeColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+                            x += gridSpace
+                        }
+                        var y = 0f
+                        while (y < size.height) {
+                            drawLine(strokeColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+                            y += gridSpace
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color(0xFF10B981).copy(alpha = 0.1f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                    )
+                    Text(
+                        text = "SYS: OK // LOCK",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF10B981),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }
+            "Blueprint Modern" -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF1E3A8A))
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val strokeColor = Color(0xFF60A5FA).copy(alpha = 0.2f)
+                        val gridSpace = 10.dp.toPx()
+                        var x = 0f
+                        while (x < size.width) {
+                            drawLine(strokeColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 0.5f)
+                            x += gridSpace
+                        }
+                        var y = 0f
+                        while (y < size.height) {
+                            drawLine(strokeColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 0.5f)
+                            y += gridSpace
+                        }
+                    }
+                    Canvas(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+                        val drawColor = Color(0xFF93C5FD)
+                        drawCircle(drawColor, radius = 16f, style = Stroke(width = 1.dp.toPx()))
+                        drawLine(drawColor, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), strokeWidth = 1f)
+                        drawLine(drawColor, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), strokeWidth = 1f)
+                    }
+                }
+            }
+            "Serif Editorial" -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFFFAF7F2))
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Aa",
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1C1917)
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f).padding(start = 12.dp, end = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Box(modifier = Modifier.fillMaxWidth(0.9f).height(3.dp).background(Color(0xFF78716C)))
+                            Box(modifier = Modifier.fillMaxWidth().height(3.dp).background(Color(0xFF78716C)))
+                            Box(modifier = Modifier.fillMaxWidth(0.6f).height(3.dp).background(Color(0xFF78716C)))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PresetSpecsTags(preset: StylePreset, isSpaceTerminal: Boolean) {
+    val tagBg = if (isSpaceTerminal) Color(0xFF1E293B).copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    val tagBorderColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+    val tagTextColor = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.onSurfaceVariant
+    val tagShape = RoundedCornerShape(6.dp)
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(tagBg, tagShape)
+                .border(1.dp, tagBorderColor, tagShape)
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+        ) {
+            Text(
+                text = preset.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                color = tagTextColor
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .background(tagBg, tagShape)
+                .border(1.dp, tagBorderColor, tagShape)
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+        ) {
+            Text(
+                text = when (preset.glowIntensity) {
+                    GlowIntensity.OFF -> "No Glow"
+                    GlowIntensity.SUBTLE -> "Subtle"
+                    GlowIntensity.NEON -> "Neon Glow"
+                    GlowIntensity.PULSING -> "Pulse Glow"
+                },
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                color = tagTextColor
+            )
+        }
+
+        if (preset.touchSynesthesia != TouchSynesthesia.OFF) {
+            Box(
+                modifier = Modifier
+                    .background(tagBg, tagShape)
+                    .border(1.dp, tagBorderColor, tagShape)
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = when (preset.touchSynesthesia) {
+                        TouchSynesthesia.SUBTLE -> "Haptics"
+                        TouchSynesthesia.MECHANICAL -> "Mech Tap"
+                        TouchSynesthesia.CASSETTE_CLICK -> "Tape Click"
+                        else -> ""
+                    },
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = tagTextColor
                 )
             }
         }
