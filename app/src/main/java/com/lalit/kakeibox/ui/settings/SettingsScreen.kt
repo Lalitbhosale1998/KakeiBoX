@@ -2,11 +2,25 @@ package com.personal.kakeibox.ui.settings
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -107,11 +121,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -1862,27 +1878,294 @@ fun SettingsTabRow(
     onTabSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val tabs = listOf(
-        "visual" to "Visuals",
-        "preferences" to "Preferences",
-        "security" to "Security",
-        "about" to "About"
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val haptic = LocalHapticFeedback.current
+
+    val tabs = remember {
+        listOf(
+            TabInfo("visual", "Visuals", Icons.Outlined.Palette, Color(0xFF8B5CF6)),      // Violet
+            TabInfo("preferences", "Preferences", Icons.Outlined.Settings, Color(0xFF6EE7B7)), // Fresh Mint / Green
+            TabInfo("security", "Security", Icons.Outlined.Fingerprint, Color(0xFFF43F5E)),    // Rose
+            TabInfo("about", "About", Icons.Outlined.Info, Color(0xFF3B82F6))             // Blue
+        )
+    }
+
+    val selectedIndex = tabs.indexOfFirst { it.key == selectedTab }.coerceAtLeast(0)
+
+    val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
+
+    // Halo ring pulse animation state
+    val haloProgress = remember { Animatable(0f) }
+    LaunchedEffect(selectedTab) {
+        haloProgress.snapTo(0f)
+        haloProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
+        )
+    }
+
+    // ── Morphing Outer Corners ──
+    val outerCornerTopStart by animateIntAsState(
+        targetValue = if (selectedIndex == 0) 41 else 32,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "settings_outer_corner_ts"
     )
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    val outerCornerBottomStart by animateIntAsState(
+        targetValue = if (selectedIndex == 0) 41 else 32,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "settings_outer_corner_bs"
+    )
+    val outerCornerTopEnd by animateIntAsState(
+        targetValue = if (selectedIndex == tabs.lastIndex) 41 else 32,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "settings_outer_corner_te"
+    )
+    val outerCornerBottomEnd by animateIntAsState(
+        targetValue = if (selectedIndex == tabs.lastIndex) 41 else 32,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "settings_outer_corner_be"
+    )
+
+    val outerShape = RoundedCornerShape(
+        topStart = outerCornerTopStart.dp,
+        bottomStart = outerCornerBottomStart.dp,
+        topEnd = outerCornerTopEnd.dp,
+        bottomEnd = outerCornerBottomEnd.dp
+    )
+
+    val containerBg = if (isSpaceTerminal) {
+        Color(0xFF0F172A).copy(alpha = 0.7f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f)
+    }
+
+    val containerBorder = if (isSpaceTerminal) {
+        BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
+    } else {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+    }
+
+    val shadowElevation = if (isSpaceTerminal) 0.dp else 10.dp
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(82.dp),
+        shape = outerShape,
+        color = containerBg,
+        border = containerBorder,
+        shadowElevation = shadowElevation,
+        tonalElevation = 0.dp
     ) {
-        tabs.forEach { (key, label) ->
-            ExpressiveTab(
-                text = label,
-                isSelected = selectedTab == key,
-                selectedColor = MaterialTheme.colorScheme.primary,
-                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                onClick = { onTabSelected(key) }
-            )
+        Box(modifier = Modifier.fillMaxSize()) {
+            // ── Morphing Sliding Background Pill (Jelly effect with RoundedCornerShape(32.dp)) ──
+            if (tabBounds.size == tabs.size) {
+                val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
+                val animatedX by animateFloatAsState(
+                    targetValue = targetBounds.first,
+                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    label = "settings_pill_x"
+                )
+                val animatedWidth by animateFloatAsState(
+                    targetValue = targetBounds.second,
+                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    label = "settings_pill_width"
+                )
+
+                val activeTabColor = tabs[selectedIndex].color
+                val targetColor = if (isSpaceTerminal) {
+                    Color(0xFF46C2B4) // Solid Mecha Green in Space Terminal
+                } else {
+                    activeTabColor // Solid Vibrant theme color in Material 3
+                }
+                val animatedColor by animateColorAsState(targetColor, label = "settings_pill_color")
+
+                val distance = targetBounds.first - animatedX
+                val absDistance = java.lang.Math.abs(distance)
+                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
+                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp) // Matches Row padding
+                        .offset { IntOffset(java.lang.Math.round(animatedX), 0) }
+                        .width(with(LocalDensity.current) { animatedWidth.toDp() })
+                        .fillMaxHeight()
+                        .graphicsLayer {
+                            scaleX = stretchX
+                            scaleY = squashY
+                            transformOrigin = TransformOrigin(0.5f, 0.5f)
+                        }
+                        .background(animatedColor, RoundedCornerShape(32.dp)) // True capsule pill shape
+                )
+            }
+
+            // Tabs Content Row
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .selectableGroup()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                tabs.forEachIndexed { index, tab ->
+                    val isSelected = selectedIndex == index
+
+                    // Adaptive Weight: Selected tab expands slightly to fit label text
+                    val segmentWeight by animateFloatAsState(
+                        targetValue = if (isSelected) 1.5f else 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "settings_weight_anim"
+                    )
+
+                    // Icon Bounce
+                    val iconScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.25f else 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        ),
+                        label = "settings_icon_scale"
+                    )
+
+                    // Icon custom rotations/micro-interactions
+                    val iconRotation by animateFloatAsState(
+                        targetValue = when {
+                            isSelected && tab.key == "visual" -> 15f
+                            isSelected && tab.key == "preferences" -> 360f // rotate preferences settings cog!
+                            else -> 0f
+                        },
+                        animationSpec = spring(
+                            dampingRatio = if (tab.key == "preferences") 0.6f else 0.4f,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "settings_icon_rot_${tab.key}"
+                    )
+
+                    val labelScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.05f else 0.95f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "settings_label_scale_${tab.key}"
+                    )
+
+                    // Selected tab content has high contrast on top of the solid pill
+                    val contentColor by animateColorAsState(
+                        targetValue = if (isSelected) {
+                            if (isSpaceTerminal) Color(0xFF0F172A) // Dark Slate on Mecha Green
+                            else MaterialTheme.colorScheme.onPrimary // High contrast on Material 3 active color
+                        } else {
+                            if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f)
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        label = "settings_content_color_${tab.key}"
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .weight(segmentWeight)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(32.dp))
+                            .onGloballyPositioned { coordinates ->
+                                val parent = coordinates.parentLayoutCoordinates
+                                if (parent != null) {
+                                    val localPos = parent.localPositionOf(coordinates, Offset.Zero)
+                                    val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
+                                    if (index >= tabBounds.size) {
+                                        tabBounds.add(newBounds)
+                                    } else if (tabBounds[index] != newBounds) {
+                                        tabBounds[index] = newBounds
+                                    }
+                                }
+                            }
+                            .selectable(
+                                selected = isSelected,
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onTabSelected(tab.key)
+                                },
+                                role = Role.Tab
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            // Pulsing Halo Ring behind the solid pill
+                            if (isSelected) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .graphicsLayer {
+                                            scaleX = 1.0f + (haloProgress.value * 0.8f)
+                                            scaleY = 1.0f + (haloProgress.value * 0.8f)
+                                            alpha = 1f - haloProgress.value
+                                        }
+                                        .background(
+                                            color = (if (isSpaceTerminal) Color(0xFF46C2B4) else tab.color).copy(alpha = 0.35f),
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
+
+                            Icon(
+                                imageVector = tab.icon,
+                                contentDescription = tab.label,
+                                tint = contentColor,
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .graphicsLayer {
+                                        scaleX = iconScale
+                                        scaleY = iconScale
+                                        rotationZ = iconRotation
+                                    }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        AnimatedVisibility(
+                            visible = isSelected,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
+                        ) {
+                            Text(
+                                text = tab.label,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 0.1.sp
+                                ),
+                                color = contentColor,
+                                maxLines = 1,
+                                modifier = Modifier.graphicsLayer {
+                                    scaleX = labelScale
+                                    scaleY = labelScale
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
+private data class TabInfo(
+    val key: String,
+    val label: String,
+    val icon: ImageVector,
+    val color: Color
+)
+
 
 @Composable
 fun SettingsGroup(
