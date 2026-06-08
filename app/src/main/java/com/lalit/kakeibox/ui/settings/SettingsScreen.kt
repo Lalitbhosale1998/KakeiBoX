@@ -346,19 +346,52 @@ fun SettingsScreen(
                 // Render content depending on activeTab
                 when (activeTab) {
                     "visual" -> {
-                        // Presets
-                        BentoCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            title = "🎭 Quick Look Style Presets",
-                            description = "Instantly transform the visual identity of the app with curated styling combinations.",
-                            icon = Icons.Outlined.Palette
+                        // Redesigned Top-Level Style Presets Section
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp)
                         ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Palette,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "Style Presets",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "Transform the visual identity of the app with one click.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 12.dp)
+                                    .padding(top = 16.dp)
                                     .horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 stylePresets.forEach { preset ->
                                     val isActive = themeSettings.themeStyle == preset.themeStyle &&
@@ -371,16 +404,16 @@ fun SettingsScreen(
                                             themeSettings.useDynamicColor == preset.useDynamicColor
 
                                     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
-                                    val cardShape = if (isSpaceTerminal) RoundedCornerShape(10.dp) else RoundedCornerShape(20.dp)
+                                    val cardShape = if (isSpaceTerminal) RoundedCornerShape(10.dp) else RoundedCornerShape(24.dp)
                                     val glowIntensity = LocalGlowIntensity.current
 
                                     val cardBgColor by animateColorAsState(
                                         targetValue = if (isActive) {
                                             if (isSpaceTerminal) Color(0xFFFF7E6B).copy(alpha = 0.15f)
-                                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
                                         } else {
                                             if (isSpaceTerminal) Color(0xFF0F172A).copy(alpha = 0.5f)
-                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+                                            else MaterialTheme.colorScheme.surfaceContainer
                                         },
                                         label = "preset_card_bg"
                                     )
@@ -396,9 +429,23 @@ fun SettingsScreen(
                                         label = "preset_card_border"
                                     )
 
+                                    val presetScale by animateFloatAsState(
+                                        targetValue = if (isActive) 1.03f else 1.0f,
+                                        animationSpec = spring(
+                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                            stiffness = Spring.StiffnessLow
+                                        ),
+                                        label = "preset_scale"
+                                    )
+
                                     Surface(
                                         modifier = Modifier
-                                            .width(250.dp)
+                                            .width(260.dp)
+                                            .graphicsLayer {
+                                                scaleX = presetScale
+                                                scaleY = presetScale
+                                                transformOrigin = TransformOrigin(0.5f, 0.5f)
+                                            }
                                             .glow(
                                                 color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
                                                 intensity = if (isActive) glowIntensity else GlowIntensity.OFF,
@@ -427,8 +474,8 @@ fun SettingsScreen(
                                         )
                                     ) {
                                         Column(
-                                            modifier = Modifier.padding(14.dp),
-                                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
@@ -2672,9 +2719,9 @@ fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
                         .background(
                             Brush.linearGradient(
                                 colors = listOf(
+                                    Color(0xFFEDE9FE),
                                     Color(0xFFE0E7FF),
-                                    Color(0xFFFEE2E2),
-                                    Color(0xFFEDE9FE)
+                                    Color(0xFFF5F3FF)
                                 )
                             )
                         )
@@ -2684,23 +2731,34 @@ fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .width(70.dp)
-                                .height(24.dp)
-                                .background(Color(0xFF6366F1), RoundedCornerShape(12.dp))
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .background(Color(0xFFF43F5E), CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(6.dp)
-                                .background(Color(0xFF94A3B8).copy(alpha = 0.5f), CircleShape)
-                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFF8B5CF6),
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Palette,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
+                        Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
+                            Box(modifier = Modifier.width(60.dp).height(8.dp).background(Color(0xFF1E1B4B), RoundedCornerShape(4.dp)))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Box(modifier = Modifier.width(40.dp).height(6.dp).background(Color(0xFF1E1B4B).copy(alpha = 0.4f), RoundedCornerShape(3.dp)))
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFD946EF),
+                            modifier = Modifier.width(50.dp).height(18.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("Active", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
             }
@@ -2708,11 +2766,11 @@ fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF020617))
+                        .background(Color(0xFF0C1020))
                 ) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
-                        val strokeColor = Color(0xFF10B981).copy(alpha = 0.15f)
-                        val gridSpace = 16.dp.toPx()
+                        val strokeColor = Color(0xFF46C2B4).copy(alpha = 0.12f)
+                        val gridSpace = 12.dp.toPx()
                         var x = 0f
                         while (x < size.width) {
                             drawLine(strokeColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
@@ -2731,47 +2789,58 @@ fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
                                 Brush.verticalGradient(
                                     colors = listOf(
                                         Color.Transparent,
-                                        Color(0xFF10B981).copy(alpha = 0.1f),
+                                        Color(0xFF46C2B4).copy(alpha = 0.08f),
                                         Color.Transparent
                                     )
                                 )
                             )
                     )
-                    Text(
-                        text = "SYS: OK // LOCK",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF10B981),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "[ MECHA_SYS: OK ]",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF46C2B4)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .background(Color(0xFFFF7E6B), CircleShape)
+                        )
+                    }
                 }
             }
             "Blueprint Modern" -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF1E3A8A))
+                        .background(Color(0xFF0F52BA))
                 ) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
-                        val strokeColor = Color(0xFF60A5FA).copy(alpha = 0.2f)
-                        val gridSpace = 10.dp.toPx()
+                        val strokeColor = Color(0xFF60A5FA).copy(alpha = 0.25f)
+                        val gridSpace = 12.dp.toPx()
                         var x = 0f
                         while (x < size.width) {
-                            drawLine(strokeColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 0.5f)
+                            drawLine(strokeColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 0.7f)
                             x += gridSpace
                         }
                         var y = 0f
                         while (y < size.height) {
-                            drawLine(strokeColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 0.5f)
+                            drawLine(strokeColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 0.7f)
                             y += gridSpace
                         }
                     }
-                    Canvas(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+                    Canvas(modifier = Modifier.fillMaxSize().padding(10.dp)) {
                         val drawColor = Color(0xFF93C5FD)
-                        drawCircle(drawColor, radius = 16f, style = Stroke(width = 1.dp.toPx()))
-                        drawLine(drawColor, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), strokeWidth = 1f)
-                        drawLine(drawColor, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), strokeWidth = 1f)
+                        drawCircle(drawColor, radius = 20f, style = Stroke(width = 1.dp.toPx()))
+                        drawRect(drawColor, topLeft = Offset(size.width / 2 - 24f, size.height / 2 - 12f), size = androidx.compose.ui.geometry.Size(48f, 24f), style = Stroke(width = 1.dp.toPx()))
+                        drawLine(drawColor, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), strokeWidth = 0.8f)
+                        drawLine(drawColor, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), strokeWidth = 0.8f)
                     }
                 }
             }
@@ -2782,24 +2851,24 @@ fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
                         .background(Color(0xFFFAF7F2))
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
                             text = "Aa",
                             fontFamily = FontFamily.Serif,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1C1917)
+                            color = Color(0xFF292524)
                         )
                         Column(
-                            modifier = Modifier.weight(1f).padding(start = 12.dp, end = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Box(modifier = Modifier.fillMaxWidth(0.9f).height(3.dp).background(Color(0xFF78716C)))
-                            Box(modifier = Modifier.fillMaxWidth().height(3.dp).background(Color(0xFF78716C)))
-                            Box(modifier = Modifier.fillMaxWidth(0.6f).height(3.dp).background(Color(0xFF78716C)))
+                            Box(modifier = Modifier.fillMaxWidth(0.9f).height(2.dp).background(Color(0xFF78716C)))
+                            Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(Color(0xFF78716C)))
+                            Box(modifier = Modifier.fillMaxWidth(0.6f).height(2.dp).background(Color(0xFF78716C)))
                         }
                     }
                 }
@@ -2810,10 +2879,22 @@ fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
 
 @Composable
 fun PresetSpecsTags(preset: StylePreset, isSpaceTerminal: Boolean) {
-    val tagBg = if (isSpaceTerminal) Color(0xFF1E293B).copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    val tagBorderColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-    val tagTextColor = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.onSurfaceVariant
-    val tagShape = RoundedCornerShape(6.dp)
+    val tagBg = if (isSpaceTerminal) {
+        Color(0xFF1E293B).copy(alpha = 0.4f)
+    } else {
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+    }
+    val tagBorderColor = if (isSpaceTerminal) {
+        Color(0xFF46C2B4).copy(alpha = 0.2f)
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+    }
+    val tagTextColor = if (isSpaceTerminal) {
+        Color(0xFF46C2B4)
+    } else {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    }
+    val tagShape = RoundedCornerShape(8.dp)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
