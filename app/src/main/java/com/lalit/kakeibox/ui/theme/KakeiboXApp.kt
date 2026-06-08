@@ -225,7 +225,7 @@ fun KakeiboXApp(
                                 } == true
 
                                 val itemWeight by animateFloatAsState(
-                                    targetValue = if (isSelected) 2.0f else 0.8f,
+                                    targetValue = if (isSelected) 1.3f else 1.0f,
                                     animationSpec = spring(stiffness = Spring.StiffnessLow),
                                     label = "full_weight_anim"
                                 )
@@ -348,25 +348,23 @@ fun KakeiboXApp(
                                         )
                                     }
 
-                                    AnimatedVisibility(
-                                        visible = isSelected,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
-                                    ) {
-                                        Text(
-                                            text = stringResource(item.labelRes),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Black,
-                                            color = selectedColor,
-                                            maxLines = 1,
-                                            modifier = Modifier
-                                                .padding(top = 2.dp)
-                                                .graphicsLayer {
-                                                    scaleX = labelScale
-                                                    scaleY = labelScale
-                                                }
-                                        )
-                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+
+                                    Text(
+                                        text = stringResource(item.labelRes),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            letterSpacing = 0.1.sp
+                                        ),
+                                        color = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        modifier = Modifier
+                                            .graphicsLayer {
+                                                scaleX = labelScale
+                                                scaleY = labelScale
+                                            }
+                                    )
                                 }
                             }
                         }
@@ -460,7 +458,7 @@ fun KakeiboXApp(
                     modifier = Modifier
                         .height(82.dp),
                     shape = outerShape,
-                    color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                     tonalElevation = 0.dp,
                     shadowElevation = 10.dp,
                     border = BorderStroke(
@@ -772,7 +770,7 @@ fun KakeiboXApp(
                         .weight(1f)
                         .padding(end = 12.dp),
                     shape = leftOuterShape,
-                    color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                     tonalElevation = 0.dp,
                     shadowElevation = 10.dp,
                     border = BorderStroke(
@@ -1033,7 +1031,7 @@ fun KakeiboXApp(
                                 role = Role.Tab
                             ),
                         shape = rightOuterShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
                         tonalElevation = 0.dp,
                         shadowElevation = 10.dp,
                         border = BorderStroke(

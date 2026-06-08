@@ -79,7 +79,7 @@ fun ExpressiveCollapsingHeader(
                 }
                 Text(
                     text = subtitle,
-                    style = if (animatedProgress >= 0.6f) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                    style = if (animatedProgress >= 0.6f) MaterialTheme.typography.titleLarge else MaterialTheme.typography.displayMedium,
                     fontWeight = FontWeight.Black,
                     color = primaryTextAccent
                 )

@@ -19,6 +19,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -88,6 +89,15 @@ import com.personal.kakeibox.ui.components.ExpressiveSnackbarHost
 import com.personal.kakeibox.ui.components.ExpressiveButton
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.theme.LocalGlowIntensity
+import com.personal.kakeibox.ui.theme.glow
+import com.personal.kakeibox.data.preferences.GlowIntensity
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
@@ -956,6 +966,13 @@ fun ExpressivePeriodIsland(
 
 
 
+data class SpendTabInfo(
+    val category: SpendCategory?,
+    val label: String,
+    val icon: ImageVector,
+    val color: Color
+)
+
 @Composable
 fun ExpressiveCategoryTabs(
     selectedCategory: SpendCategory?,
@@ -963,62 +980,259 @@ fun ExpressiveCategoryTabs(
     onSelectNeed: () -> Unit,
     onSelectWant: () -> Unit
 ) {
-    val allWeight by animateFloatAsState(
-        targetValue = if (selectedCategory == null) 2.0f else 0.8f,
-        animationSpec = spring(
-            dampingRatio = 0.6f,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "all_weight"
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val haptic = LocalHapticFeedback.current
+    val glowIntensity = LocalGlowIntensity.current
+
+    val tabs = remember {
+        listOf(
+            SpendTabInfo(null, "All", Icons.Outlined.ShoppingBag, Color(0xFF6366F1)),
+            SpendTabInfo(SpendCategory.NEED, "Needs", Icons.Outlined.Home, Color(0xFF10B981)),
+            SpendTabInfo(SpendCategory.WANT, "Wants", Icons.Outlined.FavoriteBorder, Color(0xFFF43F5E))
+        )
+    }
+
+    val selectedIndex = tabs.indexOfFirst { it.category == selectedCategory }.coerceAtLeast(0)
+    val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
+
+    // Morphing Outer Corners based on selection
+    val outerCornerTopStart by animateIntAsState(
+        targetValue = if (selectedIndex == 0) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "spend_outer_corner_ts"
     )
-    val needWeight by animateFloatAsState(
-        targetValue = if (selectedCategory == SpendCategory.NEED) 2.0f else 0.8f,
-        animationSpec = spring(
-            dampingRatio = 0.6f,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "need_weight"
+    val outerCornerBottomStart by animateIntAsState(
+        targetValue = if (selectedIndex == 0) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "spend_outer_corner_bs"
     )
-    val wantWeight by animateFloatAsState(
-        targetValue = if (selectedCategory == SpendCategory.WANT) 2.0f else 0.8f,
-        animationSpec = spring(
-            dampingRatio = 0.6f,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "want_weight"
+    val outerCornerTopEnd by animateIntAsState(
+        targetValue = if (selectedIndex == tabs.lastIndex) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "spend_outer_corner_te"
+    )
+    val outerCornerBottomEnd by animateIntAsState(
+        targetValue = if (selectedIndex == tabs.lastIndex) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "spend_outer_corner_be"
     )
 
-    Row(
-        modifier = Modifier.fillMaxWidth().height(56.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    val outerShape = RoundedCornerShape(
+        topStart = outerCornerTopStart.dp,
+        bottomStart = outerCornerBottomStart.dp,
+        topEnd = outerCornerTopEnd.dp,
+        bottomEnd = outerCornerBottomEnd.dp
+    )
+
+    val containerBg = if (isSpaceTerminal) {
+        Color(0xFF0F172A).copy(alpha = 0.7f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f)
+    }
+
+    val containerBorder = if (isSpaceTerminal) {
+        BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
+    } else {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+    }
+
+    val shadowElevation = if (isSpaceTerminal) 0.dp else 6.dp
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(72.dp),
+        shape = outerShape,
+        color = containerBg,
+        border = containerBorder,
+        shadowElevation = shadowElevation,
+        tonalElevation = 0.dp
     ) {
-        ExpressiveTab(
-            text = "All",
-            isSelected = selectedCategory == null,
-            selectedColor = Color(0xFF94A3B8).copy(alpha = 0.15f), // Slate
-            selectedTextColor = Color(0xFF94A3B8),
-            shapeType = "arch",
-            modifier = Modifier.weight(allWeight),
-            onClick = onSelectAll
-        )
-        ExpressiveTab(
-            text = "Needs",
-            isSelected = selectedCategory == SpendCategory.NEED,
-            selectedColor = Color(0xFF6EE7B7).copy(alpha = 0.15f), // Mint
-            selectedTextColor = Color(0xFF6EE7B7),
-            shapeType = "slanted",
-            modifier = Modifier.weight(needWeight),
-            onClick = onSelectNeed
-        )
-        ExpressiveTab(
-            text = "Wants",
-            isSelected = selectedCategory == SpendCategory.WANT,
-            selectedColor = Color(0xFFF43F5E).copy(alpha = 0.15f), // Rose
-            selectedTextColor = Color(0xFFF43F5E),
-            shapeType = "clamshell",
-            modifier = Modifier.weight(wantWeight),
-            onClick = onSelectWant
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Sliding background pill
+            if (tabBounds.size == tabs.size) {
+                val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
+                val animatedX by animateFloatAsState(
+                    targetValue = targetBounds.first,
+                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    label = "spend_pill_x"
+                )
+                val animatedWidth by animateFloatAsState(
+                    targetValue = targetBounds.second,
+                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    label = "spend_pill_width"
+                )
+
+                val activeTabColor = tabs[selectedIndex].color
+                val targetColor = if (isSpaceTerminal) {
+                    Color(0xFF46C2B4)
+                } else {
+                    activeTabColor
+                }
+                val animatedColor by animateColorAsState(targetColor, label = "spend_pill_color")
+
+                val distance = targetBounds.first - animatedX
+                val absDistance = kotlin.math.abs(distance)
+                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
+                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+
+                val pillShape = RoundedCornerShape(26.dp)
+
+                Box(
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .offset { IntOffset(kotlin.math.round(animatedX).toInt(), 0) }
+                        .width(with(LocalDensity.current) { animatedWidth.toDp() })
+                        .fillMaxHeight()
+                        .graphicsLayer {
+                            scaleX = stretchX
+                            scaleY = squashY
+                            transformOrigin = TransformOrigin(0.5f, 0.5f)
+                        }
+                        .then(
+                            if (glowIntensity != GlowIntensity.OFF && isSpaceTerminal) {
+                                Modifier.glow(
+                                    color = targetColor,
+                                    radius = 8.dp,
+                                    intensity = glowIntensity,
+                                    shape = pillShape
+                                )
+                            } else Modifier
+                        )
+                        .background(animatedColor, pillShape)
+                )
+            }
+
+            // Tabs Content Row
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .selectableGroup()
+                    .padding(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                tabs.forEachIndexed { index, tab ->
+                    val isSelected = selectedIndex == index
+
+                    val segmentWeight by animateFloatAsState(
+                        targetValue = if (isSelected) 1.5f else 1.0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "spend_segment_weight"
+                    )
+
+                    val iconScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.2f else 1.0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        ),
+                        label = "spend_icon_scale"
+                    )
+
+                    val iconRotation by animateFloatAsState(
+                        targetValue = if (isSelected) {
+                            when (tab.category) {
+                                SpendCategory.WANT -> 12f
+                                null -> -10f
+                                else -> 0f
+                            }
+                        } else 0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "spend_icon_rotation"
+                    )
+
+                    val iconTranslationY by animateFloatAsState(
+                        targetValue = if (isSelected) -8f else 0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "spend_icon_translation"
+                    )
+
+                    val contentColor by animateColorAsState(
+                        targetValue = if (isSelected) {
+                            if (isSpaceTerminal) Color(0xFF0F172A)
+                            else MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f)
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        label = "spend_content_color"
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .weight(segmentWeight)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(26.dp))
+                            .onGloballyPositioned { coordinates ->
+                                val parent = coordinates.parentLayoutCoordinates
+                                if (parent != null) {
+                                    val localPos = parent.localPositionOf(coordinates, Offset.Zero)
+                                    val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
+                                    if (index >= tabBounds.size) {
+                                        tabBounds.add(newBounds)
+                                    } else if (tabBounds[index] != newBounds) {
+                                        tabBounds[index] = newBounds
+                                    }
+                                }
+                            }
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                when (tab.category) {
+                                    null -> onSelectAll()
+                                    SpendCategory.NEED -> onSelectNeed()
+                                    SpendCategory.WANT -> onSelectWant()
+                                }
+                            },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = tab.label,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale
+                                    scaleY = iconScale
+                                    rotationZ = iconRotation
+                                    translationY = iconTranslationY
+                                    transformOrigin = TransformOrigin(0.5f, 0.5f)
+                                },
+                            tint = contentColor
+                        )
+                        
+                        AnimatedVisibility(
+                            visible = isSelected,
+                            enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+                        ) {
+                            Text(
+                                text = tab.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = contentColor,
+                                modifier = Modifier.padding(top = 2.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

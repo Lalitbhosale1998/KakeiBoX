@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -17,6 +18,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -31,6 +33,7 @@ import com.personal.kakeibox.ui.salary.SalaryViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.animation.animateColorAsState
@@ -89,10 +92,283 @@ import com.personal.kakeibox.util.CurrencyUtils
 import com.personal.kakeibox.util.DateUtils
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
+import com.personal.kakeibox.ui.theme.LocalGlowIntensity
+import com.personal.kakeibox.ui.theme.glow
+import com.personal.kakeibox.data.preferences.GlowIntensity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.graphics.TransformOrigin
 import kotlin.math.cos
 import kotlin.math.sin
+
+data class SalaryTabInfo(
+    val filter: SalaryFilter,
+    val label: String,
+    val icon: ImageVector,
+    val color: Color
+)
+
+@Composable
+fun SalaryFilterTabRow(
+    selectedFilter: SalaryFilter,
+    onFilterSelected: (SalaryFilter) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val haptic = LocalHapticFeedback.current
+    val glowIntensity = LocalGlowIntensity.current
+
+    val tabs = remember {
+        listOf(
+            SalaryTabInfo(SalaryFilter.ALL, "All Time", Icons.Outlined.History, Color(0xFF3B82F6)),
+            SalaryTabInfo(SalaryFilter.THIS_YEAR, "This Year", Icons.Outlined.CalendarMonth, Color(0xFF10B981)),
+            SalaryTabInfo(SalaryFilter.HIGH_SAVINGS, "High Savings", Icons.AutoMirrored.Outlined.TrendingUp, Color(0xFF8B5CF6))
+        )
+    }
+
+    val selectedIndex = tabs.indexOfFirst { it.filter == selectedFilter }.coerceAtLeast(0)
+    val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
+
+    // Morphing Outer Corners based on selection
+    val outerCornerTopStart by animateIntAsState(
+        targetValue = if (selectedIndex == 0) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "salary_outer_corner_ts"
+    )
+    val outerCornerBottomStart by animateIntAsState(
+        targetValue = if (selectedIndex == 0) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "salary_outer_corner_bs"
+    )
+    val outerCornerTopEnd by animateIntAsState(
+        targetValue = if (selectedIndex == tabs.lastIndex) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "salary_outer_corner_te"
+    )
+    val outerCornerBottomEnd by animateIntAsState(
+        targetValue = if (selectedIndex == tabs.lastIndex) 36 else 28,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "salary_outer_corner_be"
+    )
+
+    val outerShape = RoundedCornerShape(
+        topStart = outerCornerTopStart.dp,
+        bottomStart = outerCornerBottomStart.dp,
+        topEnd = outerCornerTopEnd.dp,
+        bottomEnd = outerCornerBottomEnd.dp
+    )
+
+    val containerBg = if (isSpaceTerminal) {
+        Color(0xFF0F172A).copy(alpha = 0.7f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f)
+    }
+
+    val containerBorder = if (isSpaceTerminal) {
+        BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
+    } else {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+    }
+
+    val shadowElevation = if (isSpaceTerminal) 0.dp else 6.dp
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(72.dp),
+        shape = outerShape,
+        color = containerBg,
+        border = containerBorder,
+        shadowElevation = shadowElevation,
+        tonalElevation = 0.dp
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Sliding background pill
+            if (tabBounds.size == tabs.size) {
+                val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
+                val animatedX by animateFloatAsState(
+                    targetValue = targetBounds.first,
+                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    label = "salary_pill_x"
+                )
+                val animatedWidth by animateFloatAsState(
+                    targetValue = targetBounds.second,
+                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    label = "salary_pill_width"
+                )
+
+                val activeTabColor = tabs[selectedIndex].color
+                val targetColor = if (isSpaceTerminal) {
+                    Color(0xFF46C2B4)
+                } else {
+                    activeTabColor
+                }
+                val animatedColor by animateColorAsState(targetColor, label = "salary_pill_color")
+
+                val distance = targetBounds.first - animatedX
+                val absDistance = kotlin.math.abs(distance)
+                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
+                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+
+                val pillShape = RoundedCornerShape(26.dp)
+
+                Box(
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .offset { IntOffset(kotlin.math.round(animatedX).toInt(), 0) }
+                        .width(with(LocalDensity.current) { animatedWidth.toDp() })
+                        .fillMaxHeight()
+                        .graphicsLayer {
+                            scaleX = stretchX
+                            scaleY = squashY
+                            transformOrigin = TransformOrigin(0.5f, 0.5f)
+                        }
+                        .then(
+                            if (glowIntensity != GlowIntensity.OFF && isSpaceTerminal) {
+                                Modifier.glow(
+                                    color = targetColor,
+                                    radius = 8.dp,
+                                    intensity = glowIntensity,
+                                    shape = pillShape
+                                )
+                            } else Modifier
+                        )
+                        .background(animatedColor, pillShape)
+                )
+            }
+
+            // Tabs Content Row
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .selectableGroup()
+                    .padding(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                tabs.forEachIndexed { index, tab ->
+                    val isSelected = selectedIndex == index
+
+                    val segmentWeight by animateFloatAsState(
+                        targetValue = if (isSelected) 1.5f else 1.0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "salary_segment_weight"
+                    )
+
+                    val iconScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.2f else 1.0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        ),
+                        label = "salary_icon_scale"
+                    )
+
+                    val iconRotation by animateFloatAsState(
+                        targetValue = if (isSelected) {
+                            when (tab.filter) {
+                                SalaryFilter.HIGH_SAVINGS -> -15f
+                                SalaryFilter.THIS_YEAR -> 10f
+                                else -> 0f
+                            }
+                        } else 0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "salary_icon_rotation"
+                    )
+
+                    val iconTranslationY by animateFloatAsState(
+                        targetValue = if (isSelected) -8f else 0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "salary_icon_translation"
+                    )
+
+                    val contentColor by animateColorAsState(
+                        targetValue = if (isSelected) {
+                            if (isSpaceTerminal) Color(0xFF0F172A)
+                            else MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f)
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        label = "salary_content_color"
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .weight(segmentWeight)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(26.dp))
+                            .onGloballyPositioned { coordinates ->
+                                val parent = coordinates.parentLayoutCoordinates
+                                if (parent != null) {
+                                    val localPos = parent.localPositionOf(coordinates, Offset.Zero)
+                                    val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
+                                    if (index >= tabBounds.size) {
+                                        tabBounds.add(newBounds)
+                                    } else if (tabBounds[index] != newBounds) {
+                                        tabBounds[index] = newBounds
+                                    }
+                                }
+                            }
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onFilterSelected(tab.filter)
+                            },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = tab.label,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale
+                                    scaleY = iconScale
+                                    rotationZ = iconRotation
+                                    translationY = iconTranslationY
+                                    transformOrigin = TransformOrigin(0.5f, 0.5f)
+                                },
+                            tint = contentColor
+                        )
+                        
+                        AnimatedVisibility(
+                            visible = isSelected,
+                            enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+                        ) {
+                            Text(
+                                text = tab.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = contentColor,
+                                modifier = Modifier.padding(top = 2.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -330,60 +606,11 @@ fun SalaryScreen(
                                 }
                             }
                             
-                            // Contextual Chip Filtering (Material 3 Expressive Animated Weights)
-                            val allWeight by animateFloatAsState(
-                                targetValue = if (uiState.currentFilter == SalaryFilter.ALL) 1.6f else 0.8f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.6f,
-                                    stiffness = Spring.StiffnessLow
-                                ),
-                                label = "all_weight"
+                            SalaryFilterTabRow(
+                                selectedFilter = uiState.currentFilter,
+                                onFilterSelected = { viewModel.setFilter(it) },
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
                             )
-                            val yearWeight by animateFloatAsState(
-                                targetValue = if (uiState.currentFilter == SalaryFilter.THIS_YEAR) 1.6f else 0.8f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.6f,
-                                    stiffness = Spring.StiffnessLow
-                                ),
-                                label = "year_weight"
-                            )
-                            val savingsWeight by animateFloatAsState(
-                                targetValue = if (uiState.currentFilter == SalaryFilter.HIGH_SAVINGS) 1.6f else 0.8f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.6f,
-                                    stiffness = Spring.StiffnessLow
-                                ),
-                                label = "savings_weight"
-                            )
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp, horizontal = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                ExpressiveChip(
-                                    text = "All Time",
-                                    isSelected = uiState.currentFilter == SalaryFilter.ALL,
-                                    onClick = { viewModel.setFilter(SalaryFilter.ALL) },
-                                    shapeType = "arch",
-                                    modifier = Modifier.weight(allWeight)
-                                )
-                                ExpressiveChip(
-                                    text = "This Year",
-                                    isSelected = uiState.currentFilter == SalaryFilter.THIS_YEAR,
-                                    onClick = { viewModel.setFilter(SalaryFilter.THIS_YEAR) },
-                                    shapeType = "slanted",
-                                    modifier = Modifier.weight(yearWeight)
-                                )
-                                ExpressiveChip(
-                                    text = "High Savings",
-                                    isSelected = uiState.currentFilter == SalaryFilter.HIGH_SAVINGS,
-                                    onClick = { viewModel.setFilter(SalaryFilter.HIGH_SAVINGS) },
-                                    shapeType = "clamshell",
-                                    modifier = Modifier.weight(savingsWeight)
-                                )
-                            }
                         }
                     }
                 }
@@ -697,12 +924,33 @@ fun ExpressiveHeroCard(
                         themeSettings = themeSettings
                     )
 
-                    Text(
-                        text = "Cumulative Net Income",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Surface(
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Cumulative Net Income",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                    }
                     
                     if (currentEntry != null) {
                         Spacer(modifier = Modifier.height(16.dp))

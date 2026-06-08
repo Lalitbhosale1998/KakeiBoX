@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -495,7 +496,8 @@ fun SettingsScreen(
                                     ThemeStyle.RETRO_SPACE -> "Retro Space"
                                 },
                                 options = listOf(ThemeStyle.M3_EXPRESSIVE to "M3 Expressive", ThemeStyle.RETRO_SPACE to "Retro Space"),
-                                onOptionSelected = { viewModel.setThemeStyle(it) }
+                                onOptionSelected = { viewModel.setThemeStyle(it) },
+                                accentColor = Color(0xFF8B5CF6)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
@@ -504,7 +506,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.DarkMode,
                                 selectedValueLabel = themeSettings.darkThemePreference.name.lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(DarkThemePreference.SYSTEM to "System", DarkThemePreference.LIGHT to "Light", DarkThemePreference.DARK to "Dark"),
-                                onOptionSelected = { viewModel.setDarkThemePreference(it) }
+                                onOptionSelected = { viewModel.setDarkThemePreference(it) },
+                                accentColor = Color(0xFF3B82F6)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsToggleRow(
@@ -512,7 +515,8 @@ fun SettingsScreen(
                                 description = "Extract accent colors from device wallpaper (M3 mode only).",
                                 icon = Icons.Outlined.Palette,
                                 checked = themeSettings.useDynamicColor,
-                                onCheckedChange = { viewModel.setUseDynamicColor(it) }
+                                onCheckedChange = { viewModel.setUseDynamicColor(it) },
+                                accentColor = Color(0xFFD946EF)
                             )
                         }
 
@@ -530,7 +534,8 @@ fun SettingsScreen(
                                     AppFont.OUTFIT to "Outfit",
                                     AppFont.PLAYFAIR to "Playfair"
                                 ),
-                                onOptionSelected = { viewModel.setAppFont(it) }
+                                onOptionSelected = { viewModel.setAppFont(it) },
+                                accentColor = Color(0xFFF59E0B)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
@@ -539,7 +544,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.Dock,
                                 selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
-                                onOptionSelected = { viewModel.setTopAppBarBackground(it) }
+                                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
+                                accentColor = Color(0xFF0D9488)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
@@ -552,7 +558,8 @@ fun SettingsScreen(
                                     NavBarStyle.SPLIT -> "Split-Dock"
                                 },
                                 options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock"),
-                                onOptionSelected = { viewModel.setNavBarStyle(it) }
+                                onOptionSelected = { viewModel.setNavBarStyle(it) },
+                                accentColor = Color(0xFF06B6D4)
                             )
                         }
 
@@ -574,7 +581,8 @@ fun SettingsScreen(
                                     BackdropPattern.BLUEPRINT_GRID to "Blueprint Grid",
                                     BackdropPattern.COCKPIT_STRIPES to "Mecha Stripes"
                                 ),
-                                onOptionSelected = { viewModel.setBackdropPattern(it) }
+                                onOptionSelected = { viewModel.setBackdropPattern(it) },
+                                accentColor = Color(0xFF2563EB)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
@@ -593,7 +601,8 @@ fun SettingsScreen(
                                     GlowIntensity.NEON to "Neon Glow",
                                     GlowIntensity.PULSING to "Pulsing Aura"
                                 ),
-                                onOptionSelected = { viewModel.setGlowIntensity(it) }
+                                onOptionSelected = { viewModel.setGlowIntensity(it) },
+                                accentColor = Color(0xFFE11D48)
                             )
                             if (themeSettings.themeStyle == ThemeStyle.RETRO_SPACE) {
                                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
@@ -602,7 +611,8 @@ fun SettingsScreen(
                                     description = "Retro scanlines and hardware screen curvature vignette overlay.",
                                     icon = Icons.Outlined.Palette,
                                     checked = themeSettings.crtFilterEnabled,
-                                    onCheckedChange = { viewModel.setCrtFilterEnabled(it) }
+                                    onCheckedChange = { viewModel.setCrtFilterEnabled(it) },
+                                    accentColor = Color(0xFFEA580C)
                                 )
                             }
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
@@ -622,7 +632,8 @@ fun SettingsScreen(
                                     TouchSynesthesia.CASSETTE_CLICK to "Cassette click",
                                     TouchSynesthesia.MECHANICAL to "Cherry Switch"
                                 ),
-                                onOptionSelected = { viewModel.setTouchSynesthesia(it) }
+                                onOptionSelected = { viewModel.setTouchSynesthesia(it) },
+                                accentColor = Color(0xFFDB2777)
                             )
                         }
                     }
@@ -634,7 +645,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.Language,
                                 selectedValueLabel = themeSettings.appLanguage.name.lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(AppLanguage.ENGLISH to "English", AppLanguage.JAPANESE to "Japanese"),
-                                onOptionSelected = { viewModel.setAppLanguage(it) }
+                                onOptionSelected = { viewModel.setAppLanguage(it) },
+                                accentColor = Color(0xFF10B981)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
@@ -643,7 +655,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.Payments,
                                 selectedValueLabel = themeSettings.currencySymbol,
                                 options = listOf("₹" to "₹ (Rupee)", "¥" to "¥ (Yen)", "$" to "$ (Dollar)", "€" to "€ (Euro)"),
-                                onOptionSelected = { viewModel.setCurrencySymbol(it) }
+                                onOptionSelected = { viewModel.setCurrencySymbol(it) },
+                                accentColor = Color(0xFF059669)
                             )
                         }
 
@@ -653,7 +666,8 @@ fun SettingsScreen(
                                 description = "Manage and drag routes inside bottom layout navbar.",
                                 icon = Icons.Outlined.Reorder,
                                 actionLabel = "Manage",
-                                onClick = { showTabOrderSheet = true }
+                                onClick = { showTabOrderSheet = true },
+                                accentColor = Color(0xFF06B6D4)
                             )
                         }
                     }
@@ -664,7 +678,8 @@ fun SettingsScreen(
                                 description = "Mask sensitive financial totals with dots on dashboard.",
                                 icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                 checked = themeSettings.privacyModeEnabled,
-                                onCheckedChange = { viewModel.setPrivacyModeEnabled(it) }
+                                onCheckedChange = { viewModel.setPrivacyModeEnabled(it) },
+                                accentColor = Color(0xFF64748B)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsToggleRow(
@@ -672,7 +687,8 @@ fun SettingsScreen(
                                 description = "Protect account information with fingerprint lock.",
                                 icon = Icons.Outlined.Fingerprint,
                                 checked = themeSettings.biometricEnabled,
-                                onCheckedChange = { viewModel.setBiometricEnabled(it) }
+                                onCheckedChange = { viewModel.setBiometricEnabled(it) },
+                                accentColor = Color(0xFFE11D48)
                             )
                         }
 
@@ -685,7 +701,8 @@ fun SettingsScreen(
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     backupLauncher.launch("kakeibox_backup.db")
-                                }
+                                },
+                                accentColor = Color(0xFF4F46E5)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsActionRow(
@@ -696,7 +713,8 @@ fun SettingsScreen(
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     restoreLauncher.launch(arrayOf("*/*"))
-                                }
+                                },
+                                accentColor = Color(0xFF7C3AED)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsActionRow(
@@ -715,7 +733,8 @@ fun SettingsScreen(
                                             context.startActivity(android.content.Intent.createChooser(intent, "Export Data"))
                                         }
                                     }
-                                }
+                                },
+                                accentColor = Color(0xFF10B981)
                             )
                         }
                     }
@@ -725,14 +744,16 @@ fun SettingsScreen(
                                 title = stringResource(R.string.about_version),
                                 description = stringResource(R.string.about_version_desc),
                                 icon = Icons.Outlined.Info,
-                                onClick = {}
+                                onClick = {},
+                                accentColor = Color(0xFF475569)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsActionRow(
                                 title = stringResource(R.string.about_developer),
                                 description = stringResource(R.string.about_developer_desc),
                                 icon = Icons.Outlined.Code,
-                                onClick = {}
+                                onClick = {},
+                                accentColor = Color(0xFFF59E0B)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsActionRow(
@@ -742,7 +763,8 @@ fun SettingsScreen(
                                 onClick = {
                                     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/Lalitbhosale1998/KakeiBoX"))
                                     context.startActivity(intent)
-                                }
+                                },
+                                accentColor = Color(0xFF0284C7)
                             )
                         }
                     }
@@ -772,7 +794,8 @@ fun SettingsScreen(
                                     ThemeStyle.RETRO_SPACE -> "Retro Space"
                                 },
                                 options = listOf(ThemeStyle.M3_EXPRESSIVE to "M3 Expressive", ThemeStyle.RETRO_SPACE to "Retro Space"),
-                                onOptionSelected = { viewModel.setThemeStyle(it) }
+                                onOptionSelected = { viewModel.setThemeStyle(it) },
+                                accentColor = Color(0xFF8B5CF6)
                             )
                         }
                         if (shouldShow("App Theme", keywords = listOf("dark", "light", "mode"))) {
@@ -782,7 +805,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.DarkMode,
                                 selectedValueLabel = themeSettings.darkThemePreference.name.lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(DarkThemePreference.SYSTEM to "System", DarkThemePreference.LIGHT to "Light", DarkThemePreference.DARK to "Dark"),
-                                onOptionSelected = { viewModel.setDarkThemePreference(it) }
+                                onOptionSelected = { viewModel.setDarkThemePreference(it) },
+                                accentColor = Color(0xFF3B82F6)
                             )
                         }
                         if (shouldShow("Dynamic Color", keywords = listOf("wallpaper", "color"))) {
@@ -791,7 +815,8 @@ fun SettingsScreen(
                                 description = "Tint the application based on your device background.",
                                 icon = Icons.Outlined.Palette,
                                 checked = themeSettings.useDynamicColor,
-                                onCheckedChange = { viewModel.setUseDynamicColor(it) }
+                                onCheckedChange = { viewModel.setUseDynamicColor(it) },
+                                accentColor = Color(0xFFD946EF)
                             )
                         }
                         if (shouldShow("App Font Face", keywords = listOf("font", "typeface", "text", "style"))) {
@@ -807,7 +832,8 @@ fun SettingsScreen(
                                     AppFont.OUTFIT to "Outfit",
                                     AppFont.PLAYFAIR to "Playfair"
                                 ),
-                                onOptionSelected = { viewModel.setAppFont(it) }
+                                onOptionSelected = { viewModel.setAppFont(it) },
+                                accentColor = Color(0xFFF59E0B)
                             )
                         }
                         if (shouldShow("Top App Bar Background", keywords = listOf("header", "navigation"))) {
@@ -817,7 +843,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.Dock,
                                 selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
-                                onOptionSelected = { viewModel.setTopAppBarBackground(it) }
+                                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
+                                accentColor = Color(0xFF0D9488)
                             )
                         }
                         if (shouldShow("Navigation Layout", keywords = listOf("floating", "bar"))) {
@@ -831,7 +858,8 @@ fun SettingsScreen(
                                     NavBarStyle.SPLIT -> "Split-Dock"
                                 },
                                 options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock"),
-                                onOptionSelected = { viewModel.setNavBarStyle(it) }
+                                onOptionSelected = { viewModel.setNavBarStyle(it) },
+                                accentColor = Color(0xFF06B6D4)
                             )
                         }
                         if (shouldShow("Backdrop Pattern", keywords = listOf("background", "grid", "stripe", "pattern"))) {
@@ -851,7 +879,8 @@ fun SettingsScreen(
                                     BackdropPattern.BLUEPRINT_GRID to "Blueprint Grid",
                                     BackdropPattern.COCKPIT_STRIPES to "Mecha Stripes"
                                 ),
-                                onOptionSelected = { viewModel.setBackdropPattern(it) }
+                                onOptionSelected = { viewModel.setBackdropPattern(it) },
+                                accentColor = Color(0xFF2563EB)
                             )
                         }
                         if (shouldShow("Accent Glow", keywords = listOf("glow", "shadow", "aura", "intensity"))) {
@@ -871,7 +900,8 @@ fun SettingsScreen(
                                     GlowIntensity.NEON to "Neon Glow",
                                     GlowIntensity.PULSING to "Pulsing Aura"
                                 ),
-                                onOptionSelected = { viewModel.setGlowIntensity(it) }
+                                onOptionSelected = { viewModel.setGlowIntensity(it) },
+                                accentColor = Color(0xFFE11D48)
                             )
                         }
                         if (themeSettings.themeStyle == ThemeStyle.RETRO_SPACE && shouldShow("CRT", keywords = listOf("crt", "distortion", "scanline", "curve"))) {
@@ -880,7 +910,8 @@ fun SettingsScreen(
                                 description = "Retro scanlines and screen curvature vignette overlay.",
                                 icon = Icons.Outlined.Palette,
                                 checked = themeSettings.crtFilterEnabled,
-                                onCheckedChange = { viewModel.setCrtFilterEnabled(it) }
+                                onCheckedChange = { viewModel.setCrtFilterEnabled(it) },
+                                accentColor = Color(0xFFEA580C)
                             )
                         }
                         if (shouldShow("Touch Synesthesia", keywords = listOf("sound", "haptic", "click", "feedback", "audio"))) {
@@ -900,7 +931,8 @@ fun SettingsScreen(
                                     TouchSynesthesia.CASSETTE_CLICK to "Cassette click",
                                     TouchSynesthesia.MECHANICAL to "Cherry Switch"
                                 ),
-                                onOptionSelected = { viewModel.setTouchSynesthesia(it) }
+                                onOptionSelected = { viewModel.setTouchSynesthesia(it) },
+                                accentColor = Color(0xFFDB2777)
                             )
                         }
                     }
@@ -911,7 +943,7 @@ fun SettingsScreen(
                         shouldShow("Tab Order", keywords = listOf("navigation", "reorder"))
                         
                 if (hasPreferencesMatches) {
-                    SettingsGroup("⚙️ Preferences") {
+                     SettingsGroup("⚙️ Preferences") {
                         if (shouldShow("Language", keywords = listOf("locale", "regional"))) {
                             SettingsSelectorRow(
                                 title = "App Language",
@@ -919,7 +951,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.Language,
                                 selectedValueLabel = themeSettings.appLanguage.name.lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(AppLanguage.ENGLISH to "English", AppLanguage.JAPANESE to "Japanese"),
-                                onOptionSelected = { viewModel.setAppLanguage(it) }
+                                onOptionSelected = { viewModel.setAppLanguage(it) },
+                                accentColor = Color(0xFF10B981)
                             )
                         }
                         if (shouldShow("Currency", keywords = listOf("money", "symbol"))) {
@@ -929,7 +962,8 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.Payments,
                                 selectedValueLabel = themeSettings.currencySymbol,
                                 options = listOf("₹" to "₹ (Rupee)", "¥" to "¥ (Yen)", "$" to "$ (Dollar)", "€" to "€ (Euro)"),
-                                onOptionSelected = { viewModel.setCurrencySymbol(it) }
+                                onOptionSelected = { viewModel.setCurrencySymbol(it) },
+                                accentColor = Color(0xFF059669)
                             )
                         }
                         if (shouldShow("Tab Order", keywords = listOf("navigation", "reorder"))) {
@@ -938,7 +972,8 @@ fun SettingsScreen(
                                 description = "Arrange the hierarchy order of home screen tabs.",
                                 icon = Icons.Outlined.Reorder,
                                 actionLabel = "Manage",
-                                onClick = { showTabOrderSheet = true }
+                                onClick = { showTabOrderSheet = true },
+                                accentColor = Color(0xFF06B6D4)
                             )
                         }
                     }
@@ -957,7 +992,8 @@ fun SettingsScreen(
                                 description = "Redact/mask sensitive financial figures with dots.",
                                 icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                 checked = themeSettings.privacyModeEnabled,
-                                onCheckedChange = { viewModel.setPrivacyModeEnabled(it) }
+                                onCheckedChange = { viewModel.setPrivacyModeEnabled(it) },
+                                accentColor = Color(0xFF64748B)
                             )
                         }
                         if (shouldShow("Security", keywords = listOf("fingerprint", "lock"))) {
@@ -966,7 +1002,8 @@ fun SettingsScreen(
                                 description = "Require fingerprint authentication to access details.",
                                 icon = Icons.Outlined.Fingerprint,
                                 checked = themeSettings.biometricEnabled,
-                                onCheckedChange = { viewModel.setBiometricEnabled(it) }
+                                onCheckedChange = { viewModel.setBiometricEnabled(it) },
+                                accentColor = Color(0xFFE11D48)
                             )
                         }
                         if (shouldShow("Data Health", keywords = listOf("sync", "cloud"))) {
@@ -985,7 +1022,8 @@ fun SettingsScreen(
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     isSyncing = true
-                                }
+                                },
+                                accentColor = Color(0xFF4F46E5)
                             )
                         }
                         if (shouldShow("Export Data", keywords = listOf("download", "csv"))) {
@@ -1006,7 +1044,8 @@ fun SettingsScreen(
                                             context.startActivity(android.content.Intent.createChooser(intent, "Export Data"))
                                         }
                                     }
-                                }
+                                },
+                                accentColor = Color(0xFF10B981)
                             )
                         }
                     }
@@ -1020,7 +1059,8 @@ fun SettingsScreen(
                                 title = stringResource(R.string.about_version),
                                 description = stringResource(R.string.about_version_desc),
                                 icon = Icons.Outlined.Info,
-                                onClick = {}
+                                onClick = {},
+                                accentColor = Color(0xFF475569)
                             )
                         }
                         if (shouldShow("Developer")) {
@@ -1031,7 +1071,8 @@ fun SettingsScreen(
                                 title = stringResource(R.string.about_developer),
                                 description = stringResource(R.string.about_developer_desc),
                                 icon = Icons.Outlined.Code,
-                                onClick = {}
+                                onClick = {},
+                                accentColor = Color(0xFFF59E0B)
                             )
                         }
                         if (shouldShow("GitHub")) {
@@ -1045,7 +1086,8 @@ fun SettingsScreen(
                                 onClick = {
                                     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/Lalitbhosale1998/KakeiBoX"))
                                     context.startActivity(intent)
-                                }
+                                },
+                                accentColor = Color(0xFF0284C7)
                             )
                         }
                     }
@@ -2283,12 +2325,13 @@ fun SettingsToggleRow(
     icon: ImageVector,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    accentColor: Color? = null
 ) {
     val haptic = LocalHapticFeedback.current
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
-    val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
-    val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else (accentColor ?: MaterialTheme.colorScheme.primary)
+    val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else (accentColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
 
     Row(
         modifier = modifier
@@ -2341,6 +2384,7 @@ fun SettingsToggleRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> SettingsSelectorRow(
     title: String,
@@ -2349,12 +2393,14 @@ fun <T> SettingsSelectorRow(
     selectedValueLabel: String,
     options: List<Pair<T, String>>,
     onOptionSelected: (T) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    accentColor: Color? = null
 ) {
     val haptic = LocalHapticFeedback.current
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
-    val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
-    val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    val glowIntensity = LocalGlowIntensity.current
+    val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else (accentColor ?: MaterialTheme.colorScheme.primary)
+    val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else (accentColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
     var expanded by remember { mutableStateOf(false) }
 
     Row(
@@ -2427,30 +2473,99 @@ fun <T> SettingsSelectorRow(
                 }
             }
 
-            val menuBgColor = if (isSpaceTerminal) Color(0xFF0F172A) else MaterialTheme.colorScheme.surfaceContainerHigh
+            if (expanded) {
+                val sheetBgColor = if (isSpaceTerminal) Color(0xFF0C1020) else MaterialTheme.colorScheme.surfaceContainerHigh
+                val sheetShape = if (isSpaceTerminal) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp) else RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .background(menuBgColor, shape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp))
-                    .then(if (isSpaceTerminal) Modifier.background(menuBgColor) else Modifier)
-            ) {
-                options.forEach { (value, label) ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = if (isSpaceTerminal) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.onSurface
-                            )
-                        },
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onOptionSelected(value)
-                            expanded = false
+                ModalBottomSheet(
+                    onDismissRequest = { expanded = false },
+                    containerColor = sheetBgColor,
+                    shape = sheetShape,
+                    dragHandle = {
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 12.dp)
+                                .width(36.dp)
+                                .height(4.dp)
+                                .background(
+                                    color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .navigationBarsPadding()
+                    ) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = if (isSpaceTerminal) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                        )
+
+                        options.forEach { (value, label) ->
+                            val isSelected = selectedValueLabel == label
+                            val optionBg = if (isSelected) {
+                                if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer
+                            } else Color.Transparent
+
+                            val optionTextColor = if (isSelected) {
+                                if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
+                            } else {
+                                if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurface
+                            }
+
+                            val itemShape = RoundedCornerShape(16.dp)
+
+                            Surface(
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onOptionSelected(value)
+                                    expanded = false
+                                },
+                                shape = itemShape,
+                                color = optionBg,
+                                border = if (isSelected && isSpaceTerminal) BorderStroke(1.dp, Color(0xFF46C2B4)) else null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = optionTextColor
+                                    )
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Check,
+                                            contentDescription = "Selected",
+                                            tint = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
-                    )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
@@ -2464,12 +2579,13 @@ fun SettingsActionRow(
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    actionLabel: String? = null
+    actionLabel: String? = null,
+    accentColor: Color? = null
 ) {
     val haptic = LocalHapticFeedback.current
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
-    val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
-    val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else (accentColor ?: MaterialTheme.colorScheme.primary)
+    val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else (accentColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
 
     Row(
         modifier = modifier

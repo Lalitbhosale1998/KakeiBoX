@@ -694,12 +694,6 @@ fun ExpressiveEmptyState(
             textAlign = TextAlign.Center,
             color = color
         )
-        Text(
-            text = "Tap or flick the emoji above! Time to add something new.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = color.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
     }
 }
 
@@ -966,14 +960,27 @@ fun ExpressiveChip(
     modifier: Modifier = Modifier,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
     selectedTextColor: Color = MaterialTheme.colorScheme.onPrimary,
-    unselectedColor: Color = Color.Transparent,
+    unselectedColor: Color = Color.Unspecified,
     unselectedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    shapeType: String = "pill"
+    shapeType: String = "pill",
+    leadingIcon: ImageVector? = null
 ) {
     val haptic = LocalHapticFeedback.current
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val glowIntensity = LocalGlowIntensity.current
+    
+    val resolvedUnselectedColor = if (unselectedColor == Color.Transparent || unselectedColor == Color.Unspecified) {
+        if (isSpaceTerminal) {
+            Color(0xFF0F1424).copy(alpha = 0.5f)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+        }
+    } else {
+        unselectedColor
+    }
     
     val bgColor by animateColorAsState(
-        targetValue = if (isSelected) selectedColor else unselectedColor,
+        targetValue = if (isSelected) selectedColor else resolvedUnselectedColor,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "chip_bg_color"
     )
@@ -1015,24 +1022,68 @@ fun ExpressiveChip(
         else -> RoundedCornerShape(cornerRadius.dp) // Pill
     }
 
+    val borderStroke = if (!isSelected) {
+        val strokeColor = if (isSpaceTerminal) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.30f)
+        } else {
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+        }
+        BorderStroke(1.dp, strokeColor)
+    } else {
+        null
+    }
+
+    val chipModifier = modifier
+        .height(38.dp)
+        .elasticClick(
+            hapticType = HapticFeedbackType.TextHandleMove,
+            onClick = onClick
+        )
+        .graphicsLayer(scaleX = scale, scaleY = scale)
+        .then(
+            if (isSelected && glowIntensity != GlowIntensity.OFF && isSpaceTerminal) {
+                Modifier.glow(
+                    color = selectedColor,
+                    radius = 8.dp,
+                    intensity = glowIntensity,
+                    shape = shape
+                )
+            } else Modifier
+        )
+
     Surface(
-        modifier = modifier
-            .height(38.dp)
-            .elasticClick(
-                hapticType = HapticFeedbackType.TextHandleMove,
-                onClick = onClick
-            )
-            .graphicsLayer(scaleX = scale, scaleY = scale),
+        modifier = chipModifier,
         shape = shape,
         color = bgColor,
         contentColor = txtColor,
-        border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)) else null
+        border = borderStroke
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            if (leadingIcon != null) {
+                val iconScale by animateFloatAsState(
+                    targetValue = if (isSelected) 1f else 0f,
+                    animationSpec = spring(
+                        dampingRatio = 0.6f,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    label = "chip_icon_scale"
+                )
+                if (iconScale > 0.01f) {
+                    Icon(
+                        imageVector = leadingIcon,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .graphicsLayer(scaleX = iconScale, scaleY = iconScale)
+                            .size((18 * iconScale).dp)
+                            .padding(end = (6 * iconScale).dp),
+                        tint = txtColor
+                    )
+                }
+            }
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
