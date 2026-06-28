@@ -262,7 +262,7 @@ fun SettingsScreen(
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
-            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
         },
         label = "top_app_bar_container_color"
     )
@@ -272,7 +272,11 @@ fun SettingsScreen(
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surfaceContainer
             TopAppBarBackground.PRIMARY_CONTAINER -> {
                 androidx.compose.ui.graphics.lerp(
-                    MaterialTheme.colorScheme.primaryContainer,
+                    androidx.compose.ui.graphics.lerp(
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.primaryContainer,
+                        0.35f
+                    ),
                     MaterialTheme.colorScheme.primary,
                     0.08f // 8% tint overlay (simulating 4.dp elevation tint)
                 )
@@ -361,191 +365,7 @@ fun SettingsScreen(
                 // Render content depending on activeTab
                 when (activeTab) {
                     "visual" -> {
-                        // Redesigned Top-Level Style Presets Section
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
-                            ) {
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                                    modifier = Modifier.size(40.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Palette,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column {
-                                    Text(
-                                        text = "Style Presets",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Black,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "Transform the visual identity of the app with one click.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp)
-                                    .horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                stylePresets.forEach { preset ->
-                                    val isActive = themeSettings.themeStyle == preset.themeStyle &&
-                                            themeSettings.appFont == preset.appFont &&
-                                            themeSettings.backdropPattern == preset.backdropPattern &&
-                                            themeSettings.glowIntensity == preset.glowIntensity &&
-                                            themeSettings.crtFilterEnabled == preset.crtFilterEnabled &&
-                                            themeSettings.touchSynesthesia == preset.touchSynesthesia &&
-                                            themeSettings.darkThemePreference == preset.darkThemePreference &&
-                                            themeSettings.useDynamicColor == preset.useDynamicColor
-
-                                    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
-                                    val cardShape = if (isSpaceTerminal) RoundedCornerShape(10.dp) else RoundedCornerShape(24.dp)
-                                    val glowIntensity = LocalGlowIntensity.current
-
-                                    val cardBgColor by animateColorAsState(
-                                        targetValue = if (isActive) {
-                                            if (isSpaceTerminal) Color(0xFFFF7E6B).copy(alpha = 0.15f)
-                                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-                                        } else {
-                                            if (isSpaceTerminal) Color(0xFF0F172A).copy(alpha = 0.5f)
-                                            else MaterialTheme.colorScheme.surfaceContainer
-                                        },
-                                        label = "preset_card_bg"
-                                    )
-
-                                    val cardBorderColor by animateColorAsState(
-                                        targetValue = if (isActive) {
-                                            if (isSpaceTerminal) Color(0xFFFF7E6B)
-                                            else MaterialTheme.colorScheme.primary
-                                        } else {
-                                            if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.3f)
-                                            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                                        },
-                                        label = "preset_card_border"
-                                    )
-
-                                    val presetScale by animateFloatAsState(
-                                        targetValue = if (isActive) 1.03f else 1.0f,
-                                        animationSpec = spring(
-                                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                                            stiffness = Spring.StiffnessLow
-                                        ),
-                                        label = "preset_scale"
-                                    )
-
-                                    Surface(
-                                        modifier = Modifier
-                                            .width(260.dp)
-                                            .graphicsLayer {
-                                                scaleX = presetScale
-                                                scaleY = presetScale
-                                                transformOrigin = TransformOrigin(0.5f, 0.5f)
-                                            }
-                                            .glow(
-                                                color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
-                                                intensity = if (isActive) glowIntensity else GlowIntensity.OFF,
-                                                shape = cardShape
-                                            )
-                                            .elasticClick(
-                                                onClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    viewModel.applyStylePreset(
-                                                        themeStyle = preset.themeStyle,
-                                                        appFont = preset.appFont,
-                                                        backdropPattern = preset.backdropPattern,
-                                                        glowIntensity = preset.glowIntensity,
-                                                        crtFilterEnabled = preset.crtFilterEnabled,
-                                                        touchSynesthesia = preset.touchSynesthesia,
-                                                        darkThemePreference = preset.darkThemePreference,
-                                                        useDynamicColor = preset.useDynamicColor
-                                                    )
-                                                }
-                                            ),
-                                        color = cardBgColor,
-                                        shape = cardShape,
-                                        border = BorderStroke(
-                                            width = if (isActive) 2.dp else 1.dp,
-                                            color = cardBorderColor
-                                        )
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.padding(16.dp),
-                                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                ) {
-                                                    Text(
-                                                        text = preset.emoji,
-                                                        style = MaterialTheme.typography.titleLarge
-                                                    )
-                                                    Text(
-                                                        text = preset.name,
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        fontWeight = FontWeight.Black,
-                                                        color = if (isActive) {
-                                                            if (isSpaceTerminal) Color(0xFFFF7E6B)
-                                                            else MaterialTheme.colorScheme.primary
-                                                        } else {
-                                                            if (isSpaceTerminal) Color(0xFF46C2B4)
-                                                            else MaterialTheme.colorScheme.onSurface
-                                                        }
-                                                    )
-                                                }
-                                                if (isActive) {
-                                                    Icon(
-                                                        imageVector = Icons.Outlined.Check,
-                                                        contentDescription = "Active",
-                                                        tint = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                }
-                                            }
-
-                                            PresetVisualPreview(preset = preset, isSpaceTerminal = isSpaceTerminal)
-
-                                            Text(
-                                                text = preset.description,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                maxLines = 2,
-                                                minLines = 2,
-                                                lineHeight = 14.sp,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-
-                                            PresetSpecsTags(preset = preset, isSpaceTerminal = isSpaceTerminal)
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        
 
                         // Theme & Color Group
                         SettingsGroup(title = "Theme & Color Settings") {
@@ -568,30 +388,7 @@ fun SettingsScreen(
                                 onCheckedChange = { viewModel.setUseDynamicColor(it) },
                                 accentColor = Color(0xFFD946EF)
                             )
-                            if (themeSettings.useDynamicColor) {
-                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                                SettingsSelectorRow(
-                                    title = "Dynamic Color Style",
-                                    description = "Determine how the color scheme is algorithmically interpreted.",
-                                    icon = Icons.Outlined.Palette,
-                                    selectedValueLabel = when(themeSettings.dynamicTonalStyle) {
-                                        DynamicTonalStyle.TONAL_SPOT -> "Tonal Spot"
-                                        DynamicTonalStyle.VIBRANT -> "Vibrant"
-                                        DynamicTonalStyle.EXPRESSIVE -> "Expressive"
-                                        DynamicTonalStyle.FRUIT_SALAD -> "Fruit Salad"
-                                        DynamicTonalStyle.RAINBOW -> "Rainbow"
-                                    },
-                                    options = listOf(
-                                        DynamicTonalStyle.TONAL_SPOT to "Tonal Spot",
-                                        DynamicTonalStyle.VIBRANT to "Vibrant",
-                                        DynamicTonalStyle.EXPRESSIVE to "Expressive",
-                                        DynamicTonalStyle.FRUIT_SALAD to "Fruit Salad",
-                                        DynamicTonalStyle.RAINBOW to "Rainbow"
-                                    ),
-                                    onOptionSelected = { viewModel.setDynamicTonalStyle(it) },
-                                    accentColor = Color(0xFFD946EF)
-                                )
-                            }
+                            
                         }
 
                         // Typography & Layout Group
@@ -637,69 +434,7 @@ fun SettingsScreen(
                             )
                         }
 
-                        // Effects & Synesthesia Group
-                        SettingsGroup(title = "Accent & Display Effects") {
-                            SettingsSelectorRow(
-                                title = "Backdrop Grid Pattern",
-                                description = "Render architectural gridlines and designs behind app views.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = when(themeSettings.backdropPattern) {
-                                    BackdropPattern.NONE -> "None"
-                                    BackdropPattern.RADAR_DOTS -> "Radar Dots"
-                                    BackdropPattern.BLUEPRINT_GRID -> "Blueprint Grid"
-                                    BackdropPattern.COCKPIT_STRIPES -> "Mecha Stripes"
-                                },
-                                options = listOf(
-                                    BackdropPattern.NONE to "None",
-                                    BackdropPattern.RADAR_DOTS to "Radar Dots",
-                                    BackdropPattern.BLUEPRINT_GRID to "Blueprint Grid",
-                                    BackdropPattern.COCKPIT_STRIPES to "Mecha Stripes"
-                                ),
-                                onOptionSelected = { viewModel.setBackdropPattern(it) },
-                                accentColor = Color(0xFF2563EB)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Accent Glow Intensity",
-                                description = "Configure Glassmorphic glow aura shadow depths.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = when(themeSettings.glowIntensity) {
-                                    GlowIntensity.OFF -> "Off"
-                                    GlowIntensity.SUBTLE -> "Subtle"
-                                    GlowIntensity.NEON -> "Neon Glow"
-                                    GlowIntensity.PULSING -> "Pulsing Aura"
-                                },
-                                options = listOf(
-                                    GlowIntensity.OFF to "Off",
-                                    GlowIntensity.SUBTLE to "Subtle",
-                                    GlowIntensity.NEON to "Neon Glow",
-                                    GlowIntensity.PULSING to "Pulsing Aura"
-                                ),
-                                onOptionSelected = { viewModel.setGlowIntensity(it) },
-                                accentColor = Color(0xFFE11D48)
-                            )
-
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Haptic Click Synesthesia",
-                                description = "Synthesize programmatic audio clicks on key tappings.",
-                                icon = Icons.Outlined.NotificationsActive,
-                                selectedValueLabel = when(themeSettings.touchSynesthesia) {
-                                    TouchSynesthesia.OFF -> "Off"
-                                    TouchSynesthesia.SUBTLE -> "Subtle"
-                                    TouchSynesthesia.CASSETTE_CLICK -> "Cassette click"
-                                    TouchSynesthesia.MECHANICAL -> "Cherry Switch"
-                                },
-                                options = listOf(
-                                    TouchSynesthesia.OFF to "Off",
-                                    TouchSynesthesia.SUBTLE to "Subtle",
-                                    TouchSynesthesia.CASSETTE_CLICK to "Cassette click",
-                                    TouchSynesthesia.MECHANICAL to "Cherry Switch"
-                                ),
-                                onOptionSelected = { viewModel.setTouchSynesthesia(it) },
-                                accentColor = Color(0xFFDB2777)
-                            )
-                        }
+                        
                     }
                     "preferences" -> {
                         SettingsGroup(title = "Regional & Locale Options") {
@@ -837,10 +572,7 @@ fun SettingsScreen(
                 // If search query is not empty, display search results
                 val hasVisualMatches = shouldShow("Interface Aesthetic", keywords = listOf("style", "visual", "retro", "expressive", "aesthetic")) ||
                         shouldShow("App Font Face", keywords = listOf("font", "typeface", "text", "style")) ||
-                        shouldShow("Backdrop Pattern", keywords = listOf("background", "grid", "stripe", "pattern")) ||
-                        shouldShow("Accent Glow", keywords = listOf("glow", "shadow", "aura", "intensity")) ||
                         shouldShow("CRT", keywords = listOf("crt", "distortion", "scanline", "curve")) ||
-                        shouldShow("Touch Synesthesia", keywords = listOf("sound", "haptic", "click", "feedback", "audio")) ||
                         shouldShow("App Theme", keywords = listOf("dark", "light", "mode")) ||
                         shouldShow("Dynamic", keywords = listOf("wallpaper", "color")) ||
                         shouldShow("Background Style", keywords = listOf("header", "navigation", "surface", "container")) ||
@@ -913,70 +645,10 @@ fun SettingsScreen(
                                 accentColor = Color(0xFF06B6D4)
                             )
                         }
-                        if (shouldShow("Backdrop Pattern", keywords = listOf("background", "grid", "stripe", "pattern"))) {
-                            SettingsSelectorRow(
-                                title = "Backdrop Grid Pattern",
-                                description = "Render architectural gridlines and designs behind app views.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = when(themeSettings.backdropPattern) {
-                                    BackdropPattern.NONE -> "None"
-                                    BackdropPattern.RADAR_DOTS -> "Radar Dots"
-                                    BackdropPattern.BLUEPRINT_GRID -> "Blueprint Grid"
-                                    BackdropPattern.COCKPIT_STRIPES -> "Mecha Stripes"
-                                },
-                                options = listOf(
-                                    BackdropPattern.NONE to "None",
-                                    BackdropPattern.RADAR_DOTS to "Radar Dots",
-                                    BackdropPattern.BLUEPRINT_GRID to "Blueprint Grid",
-                                    BackdropPattern.COCKPIT_STRIPES to "Mecha Stripes"
-                                ),
-                                onOptionSelected = { viewModel.setBackdropPattern(it) },
-                                accentColor = Color(0xFF2563EB)
-                            )
-                        }
-                        if (shouldShow("Accent Glow", keywords = listOf("glow", "shadow", "aura", "intensity"))) {
-                            SettingsSelectorRow(
-                                title = "Accent Glow Intensity",
-                                description = "Glassmorphic blur shadow depth configuration.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = when(themeSettings.glowIntensity) {
-                                    GlowIntensity.OFF -> "Off"
-                                    GlowIntensity.SUBTLE -> "Subtle"
-                                    GlowIntensity.NEON -> "Neon Glow"
-                                    GlowIntensity.PULSING -> "Pulsing Aura"
-                                },
-                                options = listOf(
-                                    GlowIntensity.OFF to "Off",
-                                    GlowIntensity.SUBTLE to "Subtle",
-                                    GlowIntensity.NEON to "Neon Glow",
-                                    GlowIntensity.PULSING to "Pulsing Aura"
-                                ),
-                                onOptionSelected = { viewModel.setGlowIntensity(it) },
-                                accentColor = Color(0xFFE11D48)
-                            )
-                        }
+                        
+                        
 
-                        if (shouldShow("Touch Synesthesia", keywords = listOf("sound", "haptic", "click", "feedback", "audio"))) {
-                            SettingsSelectorRow(
-                                title = "Touch Sound Synesthesia",
-                                description = "Programmatic click sound synthesis on interaction taps.",
-                                icon = Icons.Outlined.NotificationsActive,
-                                selectedValueLabel = when(themeSettings.touchSynesthesia) {
-                                    TouchSynesthesia.OFF -> "Off"
-                                    TouchSynesthesia.SUBTLE -> "Subtle"
-                                    TouchSynesthesia.CASSETTE_CLICK -> "Cassette click"
-                                    TouchSynesthesia.MECHANICAL -> "Cherry Switch"
-                                },
-                                options = listOf(
-                                    TouchSynesthesia.OFF to "Off",
-                                    TouchSynesthesia.SUBTLE to "Subtle",
-                                    TouchSynesthesia.CASSETTE_CLICK to "Cassette click",
-                                    TouchSynesthesia.MECHANICAL to "Cherry Switch"
-                                ),
-                                onOptionSelected = { viewModel.setTouchSynesthesia(it) },
-                                accentColor = Color(0xFFDB2777)
-                            )
-                        }
+                        
                     }
                 }
                 

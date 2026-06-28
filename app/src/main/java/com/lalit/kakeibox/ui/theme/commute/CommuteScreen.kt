@@ -52,6 +52,9 @@ import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveButton
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.theme.expressiveBackground
+import com.personal.kakeibox.data.preferences.BackdropPattern
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.personal.kakeibox.ui.components.ExpressiveEmptyState
 import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
 import com.personal.kakeibox.data.preferences.ThemeSettings
@@ -136,12 +139,56 @@ fun CommuteScreen(
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
-            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
         },
         label = "top_app_bar_container_color"
     )
 
-    val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
+    val bentoIdleColor by animateColorAsState(
+        targetValue = if (isPrimaryContainer) {
+            androidx.compose.ui.graphics.lerp(
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.primaryContainer,
+                0.20f // 20% tint overlay for soft blending
+            )
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        label = "bento_idle_color"
+    )
+
+    val currentColorScheme = MaterialTheme.colorScheme
+    val sheetColorScheme = if (isPrimaryContainer) {
+        val blendedSurface = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surface,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerHigh,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLow,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLowest,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        currentColorScheme.copy(
+            surface = blendedSurface,
+            surfaceContainer = blendedSurface,
+            surfaceContainerHigh = blendedSurfaceHigh,
+            surfaceContainerLow = blendedSurfaceLow,
+            surfaceContainerLowest = blendedSurfaceLowest
+        )
+    } else {
+        currentColorScheme
+    }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -173,10 +220,20 @@ fun CommuteScreen(
         showHistory = true
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .expressiveBackground(
+                isDark = isSystemInDarkTheme(),
+                isPrimaryContainer = isPrimaryContainer,
+                primaryColor = MaterialTheme.colorScheme.primary,
+                containerColor = topAppBarContainerColor,
+                pattern = themeSettings.backdropPattern
+            )
+    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = topAppBarContainerColor,
+            containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {},
             floatingActionButton = {
@@ -372,19 +429,21 @@ fun CommuteScreen(
     if (uiState.showAddSheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeAddSheet() },
-            containerColor = bentoIdleColor,
+            containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
-            CommuteAddEditSheet(
-                uiState = uiState,
-                themeSettings = themeSettings,
-                onFareChange = viewModel::updateFare,
-                onHolidaysChange = viewModel::updateHolidays,
-                onWfhChange = viewModel::updateWfhDays,
-                onSave = viewModel::saveEntry,
-                onDismiss = viewModel::closeAddSheet
-            )
+            MaterialTheme(colorScheme = sheetColorScheme) {
+                CommuteAddEditSheet(
+                    uiState = uiState,
+                    themeSettings = themeSettings,
+                    onFareChange = viewModel::updateFare,
+                    onHolidaysChange = viewModel::updateHolidays,
+                    onWfhChange = viewModel::updateWfhDays,
+                    onSave = viewModel::saveEntry,
+                    onDismiss = viewModel::closeAddSheet
+                )
+            }
         }
     }
 
@@ -398,16 +457,18 @@ fun CommuteScreen(
     if (uiState.showHistorySheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistory() },
-            containerColor = bentoIdleColor,
+            containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
-            CommuteHistoryBottomSheet(
-                entries = uiState.history,
-                isPrivacyMode = themeSettings.privacyModeEnabled,
-                onDelete = { viewModel.openDeleteDialog(it) },
-                themeSettings = themeSettings
-            )
+            MaterialTheme(colorScheme = sheetColorScheme) {
+                CommuteHistoryBottomSheet(
+                    entries = uiState.history,
+                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                    onDelete = { viewModel.openDeleteDialog(it) },
+                    themeSettings = themeSettings
+                )
+            }
         }
     }
 }

@@ -53,6 +53,9 @@ import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
+import com.personal.kakeibox.ui.theme.expressiveBackground
+import com.personal.kakeibox.data.preferences.BackdropPattern
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.personal.kakeibox.ui.components.*
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import kotlinx.coroutines.delay
@@ -123,19 +126,73 @@ fun ExerciseScreen(
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
-            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
         },
         label = "top_app_bar_container_color"
     )
 
-    val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
+    val bentoIdleColor by animateColorAsState(
+        targetValue = if (isPrimaryContainer) {
+            androidx.compose.ui.graphics.lerp(
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.primaryContainer,
+                0.20f // 20% tint overlay for soft blending
+            )
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        label = "bento_idle_color"
+    )
+
+    val currentColorScheme = MaterialTheme.colorScheme
+    val sheetColorScheme = if (isPrimaryContainer) {
+        val blendedSurface = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surface,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerHigh,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLow,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLowest,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        currentColorScheme.copy(
+            surface = blendedSurface,
+            surfaceContainer = blendedSurface,
+            surfaceContainerHigh = blendedSurfaceHigh,
+            surfaceContainerLow = blendedSurfaceLow,
+            surfaceContainerLowest = blendedSurfaceLowest
+        )
+    } else {
+        currentColorScheme
+    }
 
     val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .expressiveBackground(
+                isDark = isSystemInDarkTheme(),
+                isPrimaryContainer = isPrimaryContainer,
+                primaryColor = MaterialTheme.colorScheme.primary,
+                containerColor = topAppBarContainerColor,
+                pattern = themeSettings.backdropPattern
+            )
+    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = topAppBarContainerColor,
+            containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {},
             floatingActionButton = {
@@ -363,7 +420,7 @@ fun ExerciseScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isRest) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainer
+                            containerColor = if (isRest) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f) else bentoIdleColor
                         ),
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -490,18 +547,20 @@ fun ExerciseScreen(
     if (uiState.showAddEditSheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeAddEditSheet() },
-            containerColor = bentoIdleColor,
+            containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
-            ExerciseAddEditSheet(
-                exercise = uiState.selectedExercise,
-                selectedDay = uiState.selectedDay,
-                onSave = { name, sets, reps, description, day ->
-                    viewModel.saveExercise(name, sets, reps, description, day)
-                },
-                onDismiss = { viewModel.closeAddEditSheet() }
-            )
+            MaterialTheme(colorScheme = sheetColorScheme) {
+                ExerciseAddEditSheet(
+                    exercise = uiState.selectedExercise,
+                    selectedDay = uiState.selectedDay,
+                    onSave = { name, sets, reps, description, day ->
+                        viewModel.saveExercise(name, sets, reps, description, day)
+                    },
+                    onDismiss = { viewModel.closeAddEditSheet() }
+                )
+            }
         }
     }
 }

@@ -91,6 +91,9 @@ import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.ui.theme.LocalGlowIntensity
 import com.personal.kakeibox.ui.theme.glow
+import com.personal.kakeibox.ui.theme.expressiveBackground
+import com.personal.kakeibox.data.preferences.BackdropPattern
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.personal.kakeibox.data.preferences.GlowIntensity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -184,12 +187,56 @@ fun SpendScreen(
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
     val primaryTextAccent = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
-    val bentoIdleColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
+    val bentoIdleColor by animateColorAsState(
+        targetValue = if (isPrimaryContainer) {
+            androidx.compose.ui.graphics.lerp(
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.primaryContainer,
+                0.20f // 20% tint overlay for soft blending
+            )
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        label = "bento_idle_color"
+    )
+
+    val currentColorScheme = MaterialTheme.colorScheme
+    val sheetColorScheme = if (isPrimaryContainer) {
+        val blendedSurface = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surface,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerHigh,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLow,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLowest,
+            currentColorScheme.primaryContainer,
+            0.20f
+        )
+        currentColorScheme.copy(
+            surface = blendedSurface,
+            surfaceContainer = blendedSurface,
+            surfaceContainerHigh = blendedSurfaceHigh,
+            surfaceContainerLow = blendedSurfaceLow,
+            surfaceContainerLowest = blendedSurfaceLowest
+        )
+    } else {
+        currentColorScheme
+    }
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
-            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
         },
         label = "top_app_bar_container_color"
     )
@@ -225,10 +272,20 @@ fun SpendScreen(
         showHistory = true
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .expressiveBackground(
+                isDark = isSystemInDarkTheme(),
+                isPrimaryContainer = isPrimaryContainer,
+                primaryColor = MaterialTheme.colorScheme.primary,
+                containerColor = topAppBarContainerColor,
+                pattern = themeSettings.backdropPattern
+            )
+    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = topAppBarContainerColor,
+            containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {},
             floatingActionButton = {
@@ -499,22 +556,24 @@ fun SpendScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeSheet() },
             sheetState = bottomSheetState,
-            containerColor = bentoIdleColor,
+            containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
-            SpendAddEditSheet(
-                uiState = uiState,
-                themeSettings = themeSettings,
-                onDescriptionChange = viewModel::updateDescription,
-                onAmountChange = viewModel::updateAmount,
-                onCategoryChange = viewModel::updateCategory,
-                onNoteChange = viewModel::updateNote,
-                onMonthChange = viewModel::updateMonth,
-                onYearChange = viewModel::updateYear,
-                onSave = viewModel::saveEntry,
-                onDismiss = viewModel::closeSheet
-            )
+            MaterialTheme(colorScheme = sheetColorScheme) {
+                SpendAddEditSheet(
+                    uiState = uiState,
+                    themeSettings = themeSettings,
+                    onDescriptionChange = viewModel::updateDescription,
+                    onAmountChange = viewModel::updateAmount,
+                    onCategoryChange = viewModel::updateCategory,
+                    onNoteChange = viewModel::updateNote,
+                    onMonthChange = viewModel::updateMonth,
+                    onYearChange = viewModel::updateYear,
+                    onSave = viewModel::saveEntry,
+                    onDismiss = viewModel::closeSheet
+                )
+            }
         }
     }
 
@@ -526,16 +585,18 @@ fun SpendScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = historyBottomSheetState,
-            containerColor = bentoIdleColor,
+            containerColor = sheetColorScheme.surfaceContainer,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
         ) {
-            SpendHistoryBottomSheet(
-                entries = allEntries,
-                isPrivacyMode = themeSettings.privacyModeEnabled,
-                onEdit = viewModel::openEditSheet,
-                onDelete = viewModel::openDeleteDialog,
-                themeSettings = themeSettings
-            )
+            MaterialTheme(colorScheme = sheetColorScheme) {
+                SpendHistoryBottomSheet(
+                    entries = allEntries,
+                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                    onEdit = viewModel::openEditSheet,
+                    onDelete = viewModel::openDeleteDialog,
+                    themeSettings = themeSettings
+                )
+            }
         }
     }
 
@@ -1214,21 +1275,31 @@ fun ExpressiveCategoryTabs(
                             tint = contentColor
                         )
                         
-                        AnimatedVisibility(
-                            visible = isSelected,
-                            enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-                            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
-                        ) {
-                            Text(
-                                text = tab.label,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = contentColor,
-                                modifier = Modifier.padding(top = 2.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        val textScale by animateFloatAsState(
+                            targetValue = if (isSelected) 1f else 0.82f,
+                            label = "spend_text_scale"
+                        )
+                        val textAlpha by animateFloatAsState(
+                            targetValue = if (isSelected) 1f else 0.7f,
+                            label = "spend_text_alpha"
+                        )
+
+                        Text(
+                            text = tab.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                            color = contentColor,
+                            modifier = Modifier
+                                .padding(top = 2.dp)
+                                .graphicsLayer {
+                                    scaleX = textScale
+                                    scaleY = textScale
+                                    alpha = textAlpha
+                                    transformOrigin = TransformOrigin(0.5f, 0f)
+                                },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }

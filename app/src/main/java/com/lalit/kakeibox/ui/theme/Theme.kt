@@ -212,6 +212,95 @@ fun Modifier.glow(
     }
 }
 
+fun Modifier.expressiveBackground(
+    isDark: Boolean,
+    isPrimaryContainer: Boolean,
+    primaryColor: Color,
+    containerColor: Color,
+    pattern: BackdropPattern
+): Modifier = this.drawBehind {
+    if (isPrimaryContainer) {
+        if (isDark) {
+            // Draw premium dark mode gradient: deep primary accent fading to dark background
+            val gradientBrush = androidx.compose.ui.graphics.Brush.radialGradient(
+                colors = listOf(
+                    primaryColor.copy(alpha = 0.12f), // soft glowing accent
+                    containerColor // dark surface
+                ),
+                center = Offset(size.width * 0.75f, size.height * 0.15f), // top-right glow
+                radius = size.width * 1.3f
+            )
+            drawRect(brush = gradientBrush)
+        } else {
+            // Light mode: solid primaryContainer color
+            drawRect(color = containerColor)
+        }
+    } else {
+        // Standard style: solid surface color
+        drawRect(color = containerColor)
+    }
+
+    // Now draw the patterns on top of the background!
+    when (pattern) {
+        BackdropPattern.NONE -> {}
+        BackdropPattern.RADAR_DOTS -> {
+            val dotColor = if (isDark) {
+                primaryColor.copy(alpha = 0.12f) // glow dots matching the primary color!
+            } else {
+                Color(0xFF46C2B4).copy(alpha = 0.07f)
+            }
+            val spacing = 24.dp.toPx()
+            var x = 0f
+            while (x < size.width) {
+                var y = 0f
+                while (y < size.height) {
+                    drawCircle(color = dotColor, radius = 1.5f.dp.toPx(), center = Offset(x, y))
+                    y += spacing
+                }
+                x += spacing
+            }
+        }
+        BackdropPattern.BLUEPRINT_GRID -> {
+            val gridColor = if (isDark) {
+                primaryColor.copy(alpha = 0.07f) // matching grid line glow!
+            } else {
+                Color(0xFF3B82F6).copy(alpha = 0.05f)
+            }
+            val spacing = 32.dp.toPx()
+            var x = 0f
+            while (x < size.width) {
+                drawLine(gridColor, Offset(x, 0f), Offset(x, size.height), 1f)
+                x += spacing
+            }
+            var y = 0f
+            while (y < size.height) {
+                drawLine(gridColor, Offset(0f, y), Offset(size.width, y), 1f)
+                y += spacing
+            }
+        }
+        BackdropPattern.COCKPIT_STRIPES -> {
+            val stripeColor = if (isDark) {
+                primaryColor.copy(alpha = 0.05f)
+            } else {
+                Color(0xFFFFB359).copy(alpha = 0.035f)
+            }
+            val stripeWidth = 15.dp.toPx()
+            val stripeGap = 30.dp.toPx()
+            val path = Path()
+            var xOffset = -size.height
+            while (xOffset < size.width) {
+                path.moveTo(xOffset, 0f)
+                path.lineTo(xOffset + stripeWidth, 0f)
+                path.lineTo(xOffset + stripeWidth + size.height, size.height)
+                path.lineTo(xOffset + size.height, size.height)
+                path.close()
+                xOffset += stripeGap
+            }
+            drawPath(path = path, color = stripeColor)
+        }
+    }
+}
+
 fun Modifier.backdropPattern(pattern: BackdropPattern): Modifier = this.drawBehind {
     when (pattern) {
         BackdropPattern.NONE -> {}
@@ -305,6 +394,33 @@ private fun com.google.android.material.color.utilities.DynamicScheme.toComposeC
     )
 }
 
+private fun getWallpaperSeedColor(context: android.content.Context, fallbackColor: Color): Int {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        try {
+            val systemAccentResId = context.resources.getIdentifier("system_accent1_500", "color", "android")
+            if (systemAccentResId != 0) {
+                return context.getColor(systemAccentResId)
+            }
+        } catch (e: Exception) {
+            // Fallback
+        }
+    }
+    
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        try {
+            val wallpaperManager = context.getSystemService(android.content.Context.WALLPAPER_SERVICE) as? android.app.WallpaperManager
+            val wallpaperColors = wallpaperManager?.getWallpaperColors(android.app.WallpaperManager.FLAG_SYSTEM)
+            if (wallpaperColors != null) {
+                return wallpaperColors.primaryColor.toArgb()
+            }
+        } catch (e: Exception) {
+            // Fallback
+        }
+    }
+    
+    return fallbackColor.toArgb()
+}
+
 @Composable
 fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -319,27 +435,8 @@ fun KakeiboXTheme(
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            val baseScheme = if (darkTheme) dynamicDarkColorScheme(context)
+            if (darkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
-            
-            if (dynamicTonalStyle == DynamicTonalStyle.TONAL_SPOT) {
-                baseScheme
-            } else {
-                try {
-                    val seedColor = baseScheme.primary.toArgb()
-                    val hct = com.google.android.material.color.utilities.Hct.fromInt(seedColor)
-                    val dynamicScheme = when (dynamicTonalStyle) {
-                        DynamicTonalStyle.VIBRANT -> com.google.android.material.color.utilities.SchemeVibrant(hct, darkTheme, 0.0)
-                        DynamicTonalStyle.EXPRESSIVE -> com.google.android.material.color.utilities.SchemeExpressive(hct, darkTheme, 0.0)
-                        DynamicTonalStyle.FRUIT_SALAD -> com.google.android.material.color.utilities.SchemeFruitSalad(hct, darkTheme, 0.0)
-                        DynamicTonalStyle.RAINBOW -> com.google.android.material.color.utilities.SchemeRainbow(hct, darkTheme, 0.0)
-                        else -> com.google.android.material.color.utilities.SchemeTonalSpot(hct, darkTheme, 0.0)
-                    }
-                    dynamicScheme.toComposeColorScheme()
-                } catch (e: Exception) {
-                    baseScheme
-                }
-            }
         }
         darkTheme -> DarkColors
         else -> LightColors

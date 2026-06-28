@@ -13,7 +13,7 @@ data class ThemeSettings(
     val dateFormat: String = "MMM dd, yyyy",
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
     val biometricEnabled: Boolean = false,
-    val tabOrder: List<String> = listOf("salary", "spend", "exercise", "settings"),
+    val tabOrder: List<String> = listOf("salary", "exercise", "settings"),
     val restDays: List<String> = listOf("Saturday", "Sunday"),
     val privacyModeEnabled: Boolean = false,
     val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.SURFACE,

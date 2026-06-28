@@ -73,7 +73,6 @@ import com.personal.kakeibox.ui.navigation.NavRoutes
 import com.personal.kakeibox.ui.salary.SalaryScreen
 import com.personal.kakeibox.ui.settings.SettingsScreen
 import com.personal.kakeibox.ui.settings.ThemeViewModel
-import com.personal.kakeibox.ui.spend.SpendScreen
 import com.personal.kakeibox.ui.exercise.ExerciseScreen
 import com.personal.kakeibox.ui.components.ExpressiveAnimatedIcon
 import androidx.activity.ComponentActivity
@@ -95,6 +94,19 @@ fun KakeiboXApp(
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
+
+    val navBarColor by animateColorAsState(
+        targetValue = if (themeSettings.topAppBarBackground == com.personal.kakeibox.data.preferences.TopAppBarBackground.PRIMARY_CONTAINER) {
+            androidx.compose.ui.graphics.lerp(
+                MaterialTheme.colorScheme.surfaceContainer,
+                MaterialTheme.colorScheme.primaryContainer,
+                0.20f // 20% tint overlay for soft blending
+            )
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        label = "nav_bar_container_color"
+    )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -122,12 +134,6 @@ fun KakeiboXApp(
                 labelRes = R.string.tab_salary,
                 icon = Icons.Outlined.Wallet,
                 selectedIcon = Icons.Filled.Wallet
-            )
-            NavRoutes.Spend.route -> BottomNavItem(
-                route = NavRoutes.Spend.route,
-                labelRes = R.string.tab_spend,
-                icon = Icons.Outlined.ShoppingCart,
-                selectedIcon = Icons.Filled.ShoppingCart
             )
             NavRoutes.Exercise.route -> BottomNavItem(
                 route = NavRoutes.Exercise.route,
@@ -161,7 +167,7 @@ fun KakeiboXApp(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    color = navBarColor,
                     tonalElevation = 0.dp
                 ) {
                     Box(
@@ -183,13 +189,7 @@ fun KakeiboXApp(
                                 animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
                                 label = "full_pill_width"
                             )
-                            val targetColor = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
-                                NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
-                                NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
-                                NavRoutes.Exercise.route -> Color(0xFF10B981).copy(alpha = 0.15f)
-                                NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f)
-                                else -> Color.Transparent
-                            }
+                            val targetColor = MaterialTheme.colorScheme.secondaryContainer
                             val animatedColor by animateColorAsState(targetColor, label = "full_pill_color")
 
                             val distance = targetBounds.first - animatedX
@@ -272,13 +272,7 @@ fun KakeiboXApp(
                                     label = "full_icon_rot_${item.route}"
                                 )
 
-                                val selectedColor = when (item.route) {
-                                    NavRoutes.Salary.route -> Color(0xFFFFD700)
-                                    NavRoutes.Spend.route -> Color(0xFFF43F5E)
-                                    NavRoutes.Exercise.route -> Color(0xFF10B981)
-                                    NavRoutes.Settings.route -> Color(0xFF8B5CF6)
-                                    else -> MaterialTheme.colorScheme.primary
-                                }
+                                val selectedColor = MaterialTheme.colorScheme.onSecondaryContainer
 
                                 Column(
                                     modifier = Modifier
@@ -402,9 +396,6 @@ fun KakeiboXApp(
             composable(NavRoutes.Salary.route) {
                 SalaryScreen()
             }
-            composable(NavRoutes.Spend.route) {
-                SpendScreen()
-            }
             composable(NavRoutes.Exercise.route) {
                 ExerciseScreen()
             }
@@ -461,7 +452,7 @@ fun KakeiboXApp(
                     modifier = Modifier
                         .height(82.dp),
                     shape = outerShape,
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    color = navBarColor,
                     tonalElevation = 0.dp,
                     shadowElevation = 0.dp,
                     border = BorderStroke(
@@ -483,13 +474,7 @@ fun KakeiboXApp(
                                 animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
                                 label = "pill_width"
                             )
-                            val targetColor = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
-                                NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
-                                NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
-                                NavRoutes.Exercise.route -> Color(0xFF10B981).copy(alpha = 0.15f)
-                                NavRoutes.Settings.route -> Color(0xFF8B5CF6).copy(alpha = 0.15f)
-                                else -> Color.Transparent
-                            }
+                            val targetColor = MaterialTheme.colorScheme.secondaryContainer
                             val animatedColor by animateColorAsState(targetColor, label = "pill_color")
 
                             val distance = targetBounds.first - animatedX
@@ -560,7 +545,6 @@ fun KakeiboXApp(
                                 )
                                 val iconRotation by animateFloatAsState(
                                     targetValue = when {
-                                        isSelected && item.route == NavRoutes.Spend.route -> 15f
                                         isSelected && item.route == NavRoutes.Settings.route -> 360f
                                         else -> 0f
                                     },
@@ -584,7 +568,6 @@ fun KakeiboXApp(
                                     targetValue = if (isSelected) {
                                         when (item.route) {
                                             NavRoutes.Salary.route -> Color(0xFFFFD700) // Vibrant Gold
-                                            NavRoutes.Spend.route -> Color(0xFFF43F5E)  // Vibrant Rose
                                             NavRoutes.Exercise.route -> Color(0xFF10B981) // Emerald Green
                                             NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Vibrant Violet
                                             else -> MaterialTheme.colorScheme.onSurface
@@ -775,7 +758,7 @@ fun KakeiboXApp(
                         .weight(1f)
                         .padding(end = 12.dp),
                     shape = leftOuterShape,
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    color = navBarColor,
                     tonalElevation = 0.dp,
                     shadowElevation = 0.dp,
                     border = BorderStroke(
@@ -799,7 +782,6 @@ fun KakeiboXApp(
                             )
                             val targetColor = when (leftItems.getOrNull(leftSelectedIndex)?.route) {
                                 NavRoutes.Salary.route -> Color(0xFFFFD700).copy(alpha = 0.15f)
-                                NavRoutes.Spend.route -> Color(0xFFF43F5E).copy(alpha = 0.15f)
                                 NavRoutes.Exercise.route -> Color(0xFF10B981).copy(alpha = 0.15f)
                                 else -> Color.Transparent
                             }
@@ -867,7 +849,7 @@ fun KakeiboXApp(
                                     label = "left_icon_x_${item.route}"
                                 )
                                 val iconRotation by animateFloatAsState(
-                                    targetValue = if (isSelected && item.route == NavRoutes.Spend.route) 15f else 0f,
+                                    targetValue = 0f,
                                     animationSpec = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessLow),
                                     label = "left_icon_rot_${item.route}"
                                 )
@@ -885,7 +867,6 @@ fun KakeiboXApp(
                                     targetValue = if (isSelected) {
                                         when (item.route) {
                                             NavRoutes.Salary.route -> Color(0xFFFFD700)
-                                            NavRoutes.Spend.route -> Color(0xFFF43F5E)
                                             NavRoutes.Exercise.route -> Color(0xFF10B981)
                                             else -> MaterialTheme.colorScheme.onSurface
                                         }
@@ -1038,7 +1019,7 @@ fun KakeiboXApp(
                                 role = Role.Tab
                             ),
                         shape = rightOuterShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        color = navBarColor,
                         tonalElevation = 0.dp,
                         shadowElevation = 0.dp,
                         border = BorderStroke(
