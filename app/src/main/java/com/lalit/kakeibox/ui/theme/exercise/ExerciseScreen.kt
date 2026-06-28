@@ -637,7 +637,7 @@ fun WorkoutItem(
     containerColor: Color
 ) {
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
 
     val nameLower = exercise.name.lowercase()
     val (categoryName, categoryColor, categoryEmoji) = remember(nameLower) {

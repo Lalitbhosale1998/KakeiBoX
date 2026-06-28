@@ -75,6 +75,7 @@ import com.personal.kakeibox.ui.settings.SettingsScreen
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.spend.SpendScreen
 import com.personal.kakeibox.ui.exercise.ExerciseScreen
+import com.personal.kakeibox.ui.components.ExpressiveAnimatedIcon
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Offset
@@ -334,10 +335,12 @@ fun KakeiboXApp(
                                             )
                                         }
 
-                                        Icon(
-                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                            contentDescription = stringResource(item.labelRes),
-                                            tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        ExpressiveAnimatedIcon(
+                                            icon = item.icon,
+                                            selectedIcon = item.selectedIcon,
+                                            isSelected = isSelected,
+                                            tint = selectedColor,
+                                            unselectedTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(22.dp).graphicsLayer {
                                                 scaleX = iconScale
                                                 scaleY = iconScale
@@ -460,10 +463,10 @@ fun KakeiboXApp(
                     shape = outerShape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     tonalElevation = 0.dp,
-                    shadowElevation = 10.dp,
+                    shadowElevation = 0.dp,
                     border = BorderStroke(
                         width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -645,10 +648,12 @@ fun KakeiboXApp(
                                             )
                                         }
 
-                                        Icon(
-                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                            contentDescription = stringResource(item.labelRes),
+                                        ExpressiveAnimatedIcon(
+                                            icon = item.icon,
+                                            selectedIcon = item.selectedIcon,
+                                            isSelected = isSelected,
                                             tint = contentColor,
+                                            unselectedTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(24.dp).graphicsLayer {
                                                 scaleX = iconScale
                                                 scaleY = iconScale
@@ -772,10 +777,10 @@ fun KakeiboXApp(
                     shape = leftOuterShape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     tonalElevation = 0.dp,
-                    shadowElevation = 10.dp,
+                    shadowElevation = 0.dp,
                     border = BorderStroke(
                         width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -942,10 +947,12 @@ fun KakeiboXApp(
                                             )
                                         }
 
-                                        Icon(
-                                            imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                            contentDescription = stringResource(item.labelRes),
+                                        ExpressiveAnimatedIcon(
+                                            icon = item.icon,
+                                            selectedIcon = item.selectedIcon,
+                                            isSelected = isSelected,
                                             tint = contentColor,
+                                            unselectedTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(24.dp).graphicsLayer {
                                                 scaleX = iconScale
                                                 scaleY = iconScale
@@ -1033,10 +1040,10 @@ fun KakeiboXApp(
                         shape = rightOuterShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
                         tonalElevation = 0.dp,
-                        shadowElevation = 10.dp,
+                        shadowElevation = 0.dp,
                         border = BorderStroke(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
                         )
                     ) {
                         Box(
@@ -1071,10 +1078,12 @@ fun KakeiboXApp(
                                         )
                                     }
 
-                                    Icon(
-                                        imageVector = if (isSelected) item.selectedIcon else item.icon,
-                                        contentDescription = stringResource(item.labelRes),
+                                    ExpressiveAnimatedIcon(
+                                        icon = item.icon,
+                                        selectedIcon = item.selectedIcon,
+                                        isSelected = isSelected,
                                         tint = contentColor,
+                                        unselectedTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(24.dp).graphicsLayer {
                                             scaleX = rightIconScale
                                             scaleY = rightIconScale

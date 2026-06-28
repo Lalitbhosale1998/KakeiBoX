@@ -29,6 +29,7 @@ private object Keys {
     val GLOW_INTENSITY = stringPreferencesKey("glow_intensity")
     val CRT_FILTER_ENABLED = booleanPreferencesKey("crt_filter_enabled")
     val TOUCH_SYNESTHESIA = stringPreferencesKey("touch_synesthesia")
+    val DYNAMIC_TONAL_STYLE = stringPreferencesKey("dynamic_tonal_style")
 }
 
 @Singleton
@@ -71,7 +72,8 @@ class UserPreferencesRepository @Inject constructor(
             backdropPattern = BackdropPattern.fromStorage(prefs[Keys.BACKDROP_PATTERN]),
             glowIntensity = GlowIntensity.fromStorage(prefs[Keys.GLOW_INTENSITY]),
             crtFilterEnabled = prefs[Keys.CRT_FILTER_ENABLED] ?: false,
-            touchSynesthesia = TouchSynesthesia.fromStorage(prefs[Keys.TOUCH_SYNESTHESIA])
+            touchSynesthesia = TouchSynesthesia.fromStorage(prefs[Keys.TOUCH_SYNESTHESIA]),
+            dynamicTonalStyle = DynamicTonalStyle.fromStorage(prefs[Keys.DYNAMIC_TONAL_STYLE])
         )
     }
 
@@ -141,6 +143,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setTouchSynesthesia(synesthesia: TouchSynesthesia) {
         dataStore.edit { it[Keys.TOUCH_SYNESTHESIA] = synesthesia.name }
+    }
+
+    suspend fun setDynamicTonalStyle(style: DynamicTonalStyle) {
+        dataStore.edit { it[Keys.DYNAMIC_TONAL_STYLE] = style.name }
     }
 
     suspend fun applyStylePreset(

@@ -386,7 +386,7 @@ fun ExpressiveTab(
         label = "scale"
     )
 
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val targetRadius = if (isSpaceTerminal) {
         if (isSelected) 12 else 8
     } else {
@@ -784,7 +784,7 @@ fun BentoCard(
         label = "icon_scale"
     )
 
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val cardShape = if (isSpaceTerminal) RoundedCornerShape(12.dp) else RoundedCornerShape(32.dp)
     val cardBorder = if (isSpaceTerminal) {
         BorderStroke(1.5.dp, if (isActive) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
@@ -966,7 +966,7 @@ fun ExpressiveChip(
     leadingIcon: ImageVector? = null
 ) {
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val glowIntensity = LocalGlowIntensity.current
     
     val resolvedUnselectedColor = if (unselectedColor == Color.Transparent || unselectedColor == Color.Unspecified) {
@@ -1103,7 +1103,7 @@ fun ExpressiveButton(
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
     content: @Composable RowScope.() -> Unit
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     if (isSpaceTerminal) {
         Surface(
             modifier = modifier
@@ -1149,7 +1149,7 @@ fun RetroProgressIndicator(
     color: Color = MaterialTheme.colorScheme.primary,
     trackColor: Color = MaterialTheme.colorScheme.primaryContainer
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     if (isSpaceTerminal) {
         val infiniteTransition = rememberInfiniteTransition(label = "retro_progress_inf")
         val progressPercent by infiniteTransition.animateFloat(
@@ -1188,6 +1188,77 @@ fun RetroProgressIndicator(
             modifier = modifier,
             color = color,
             trackColor = trackColor
+        )
+    }
+}
+
+@Composable
+fun ExpressiveAnimatedIcon(
+    icon: ImageVector,
+    selectedIcon: ImageVector,
+    isSelected: Boolean,
+    tint: Color,
+    unselectedTint: Color,
+    modifier: Modifier = Modifier
+) {
+    val progress by animateFloatAsState(
+        targetValue = if (isSelected) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "icon_fill_progress"
+    )
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        // Draw outlined (unselected) icon with fading out when selected
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = unselectedTint.copy(alpha = (1f - progress).coerceIn(0f, 1f)),
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // Draw filled (selected) icon with clipping circle reveal and scaling
+        Icon(
+            imageVector = selectedIcon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    scaleX = 0.6f + progress * 0.4f
+                    scaleY = 0.6f + progress * 0.4f
+                    alpha = progress
+                    
+                    // Circular reveal clip from center
+                    clip = true
+                    shape = object : Shape {
+                        override fun createOutline(
+                            size: androidx.compose.ui.geometry.Size,
+                            layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+                            density: androidx.compose.ui.unit.Density
+                        ): androidx.compose.ui.graphics.Outline {
+                            val path = androidx.compose.ui.graphics.Path().apply {
+                                val centerX = size.width / 2f
+                                val centerY = size.height / 2f
+                                val r = (size.width * 0.8f) * progress
+                                addOval(
+                                    androidx.compose.ui.geometry.Rect(
+                                        left = centerX - r,
+                                        top = centerY - r,
+                                        right = centerX + r,
+                                        bottom = centerY + r
+                                    )
+                                )
+                            }
+                            return androidx.compose.ui.graphics.Outline.Generic(path)
+                        }
+                    }
+                }
         )
     }
 }

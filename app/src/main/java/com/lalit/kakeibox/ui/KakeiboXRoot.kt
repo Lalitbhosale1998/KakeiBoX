@@ -50,16 +50,14 @@ fun KakeiboXAppRoot() {
         themeStyle = themeSettings.themeStyle,
         appFont = themeSettings.appFont,
         touchSynesthesia = themeSettings.touchSynesthesia,
-        glowIntensity = themeSettings.glowIntensity
+        glowIntensity = themeSettings.glowIntensity,
+        dynamicTonalStyle = themeSettings.dynamicTonalStyle
     ) {
-        val isSpaceTerminal = themeSettings.themeStyle == ThemeStyle.RETRO_SPACE
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .backdropPattern(themeSettings.backdropPattern)
-                .terminalGridBackground()
-                .crtScreenFilter(isSpaceTerminal && themeSettings.crtFilterEnabled)
         ) {
             if (!themeSettings.biometricEnabled || isAuthenticated) {
                 KakeiboXApp()

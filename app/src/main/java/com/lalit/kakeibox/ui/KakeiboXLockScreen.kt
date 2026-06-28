@@ -40,8 +40,6 @@ fun KakeiboXLockScreen(
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = themeSettings.themeStyle == ThemeStyle.RETRO_SPACE
-    
     // Ambient breathing animation for the lock icon/halo
     val infiniteTransition = rememberInfiniteTransition(label = "lock_breathing")
     val pulseScale by infiniteTransition.animateFloat(
@@ -108,31 +106,19 @@ fun KakeiboXLockScreen(
                             alpha = pulseAlpha
                         }
                         .background(
-                            color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                             shape = CircleShape
                         )
                 )
 
-                // Glow behind the icon if Retro Space style is active
-                val glowModifier = if (isSpaceTerminal) {
-                    Modifier.glow(
-                        color = Color(0xFF46C2B4),
-                        radius = 12.dp,
-                        intensity = themeSettings.glowIntensity,
-                        shape = CircleShape
-                    )
-                } else Modifier
-
                 // Central Lock/Fingerprint Circle
                 Surface(
                     shape = CircleShape,
-                    color = if (isSpaceTerminal) Color(0xFF13182E) else MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier
-                        .size(90.dp)
-                        .then(glowModifier),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(90.dp),
                     tonalElevation = 6.dp,
-                    shadowElevation = if (isSpaceTerminal) 0.dp else 4.dp
+                    shadowElevation = 4.dp
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -149,88 +135,47 @@ fun KakeiboXLockScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Stylized cyber-grid text warnings / standard description text
-            if (isSpaceTerminal) {
-                Text(
-                    text = "SYSTEM SECURED",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Black,
-                    color = Color(0xFFFF7E6B),
-                    letterSpacing = 2.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "DECRYPTION AUTHENTICATION REQUIRED",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF46C2B4).copy(alpha = 0.7f),
-                    letterSpacing = 1.sp,
-                    textAlign = TextAlign.Center
-                )
-            } else {
-                Text(
-                    text = "App Locked",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Verify your identity using biometrics to access your financial data.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+            Text(
+                text = "App Locked",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Verify your identity using biometrics to access your financial data.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Stylized buttons
-            if (isSpaceTerminal) {
-                Button(
-                    onClick = { triggerUnlock() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues(0.dp),
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(56.dp)
-                        .terminalButton(enabled = true, backgroundColor = Color(0xFFFF7E6B))
-                ) {
-                    Text(
-                        text = "[ START DECRYPTION ]",
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0C1020),
-                        fontSize = 14.sp
-                    )
-                }
-            } else {
-                Button(
-                    onClick = { triggerUnlock() },
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(56.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Fingerprint,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Unlock App",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+            Button(
+                onClick = { triggerUnlock() },
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(56.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Fingerprint,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Unlock App",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }

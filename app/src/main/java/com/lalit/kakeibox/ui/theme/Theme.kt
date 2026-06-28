@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.AppFont
+import com.personal.kakeibox.data.preferences.DynamicTonalStyle
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Modifier
@@ -107,46 +109,6 @@ val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle.M3_EXPRESSIVE }
 val LocalTouchSynesthesia = staticCompositionLocalOf { TouchSynesthesia.SUBTLE }
 val LocalGlowIntensity = staticCompositionLocalOf { GlowIntensity.SUBTLE }
 
-private val RetroSpaceColors = darkColorScheme(
-    primary = Color(0xFFFF7E6B),       // Electric Coral
-    onPrimary = Color(0xFF0C1020),     // Deep navy text
-    primaryContainer = Color(0xFF1D264A),
-    onPrimaryContainer = Color(0xFFFF7E6B),
-    secondary = Color(0xFF46C2B4),     // Neon Cyan
-    onSecondary = Color(0xFF0C1020),
-    secondaryContainer = Color(0xFF142B34),
-    onSecondaryContainer = Color(0xFF46C2B4),
-    tertiary = Color(0xFFFFB359),      // Warm Amber
-    onTertiary = Color(0xFF0C1020),
-    tertiaryContainer = Color(0xFF2C2415),
-    onTertiaryContainer = Color(0xFFFFB359),
-    error = Color(0xFFFFB4AB),
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
-    background = Color(0xFF0C1020),    // Dark Space Navy
-    surface = Color(0xFF0C1020),
-    onBackground = Color(0xFFE2E7FF),  // Cool Ice Blue
-    onSurface = Color(0xFFE2E7FF),
-    surfaceVariant = Color(0xFF13182E), // Deep Mecha Card Blue
-    onSurfaceVariant = Color(0xFF8898C8), // Muted Blue-Gray
-    outline = Color(0xFF46C2B4),       // Cyan outline
-    outlineVariant = Color(0xFFFF7E6B),
-    surfaceDim = Color(0xFF090C19),
-    surfaceBright = Color(0xFF1C223E),
-    surfaceContainerLowest = Color(0xFF060811),
-    surfaceContainerLow = Color(0xFF101427),
-    surfaceContainer = Color(0xFF13182E),
-    surfaceContainerHigh = Color(0xFF171D3A),
-    surfaceContainerHighest = Color(0xFF1B2246),
-)
-
-private val RetroSpaceShapes = Shapes(
-    extraSmall = RoundedCornerShape(2.dp),
-    small = RoundedCornerShape(4.dp),
-    medium = RoundedCornerShape(8.dp),
-    large = RoundedCornerShape(12.dp),
-    extraLarge = RoundedCornerShape(16.dp)
-)
 
 private fun getTypography(appFont: AppFont): androidx.compose.material3.Typography {
     val fontFamily = when (appFont) {
@@ -175,158 +137,14 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
     )
 }
 
-fun Modifier.terminalScanlines(): Modifier = composed {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
-    if (!isSpaceTerminal) return@composed this
-    
-    this.drawWithContent {
-        drawContent()
-        
-        // Draw horizontal CRT scanlines
-        val scanlineSpacing = 6.dp.toPx()
-        var y = 0f
-        while (y < size.height) {
-            drawLine(
-                color = Color(0xFF46C2B4).copy(alpha = 0.05f),
-                start = Offset(0f, y),
-                end = Offset(size.width, y),
-                strokeWidth = 1.dp.toPx()
-            )
-            y += scanlineSpacing
-        }
-        
-        // Draw tactical corner bracket outlines
-        val bracketSize = 8.dp.toPx()
-        val bracketColor = Color(0xFF46C2B4).copy(alpha = 0.4f)
-        val stroke = 1.dp.toPx()
-        
-        // Top-left
-        drawLine(bracketColor, Offset(0f, 0f), Offset(bracketSize, 0f), stroke)
-        drawLine(bracketColor, Offset(0f, 0f), Offset(0f, bracketSize), stroke)
-        
-        // Top-right
-        drawLine(bracketColor, Offset(size.width, 0f), Offset(size.width - bracketSize, 0f), stroke)
-        drawLine(bracketColor, Offset(size.width, 0f), Offset(size.width, bracketSize), stroke)
-        
-        // Bottom-left
-        drawLine(bracketColor, Offset(0f, size.height), Offset(bracketSize, size.height), stroke)
-        drawLine(bracketColor, Offset(0f, size.height), Offset(0f, size.height - bracketSize), stroke)
-        
-        // Bottom-right
-        drawLine(bracketColor, Offset(size.width, size.height), Offset(size.width - bracketSize, size.height), stroke)
-        drawLine(bracketColor, Offset(size.width, size.height), Offset(size.width, size.height - bracketSize), stroke)
-    }
-}
+fun Modifier.terminalScanlines(): Modifier = this
 
-fun Modifier.terminalGridBackground(): Modifier = composed {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
-    if (!isSpaceTerminal) return@composed this
-    this.drawBehind {
-        val gridSpacing = 32.dp.toPx()
-        val lineColor = Color(0xFF46C2B4).copy(alpha = 0.04f)
-        
-        // Vertical lines
-        var x = 0f
-        while (x < size.width) {
-            drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), 1f)
-            x += gridSpacing
-        }
-        
-        // Horizontal lines
-        var y = 0f
-        while (y < size.height) {
-            drawLine(lineColor, Offset(0f, y), Offset(size.width, y), 1f)
-            y += gridSpacing
-        }
-    }
-}
+fun Modifier.terminalGridBackground(): Modifier = this
 
 fun Modifier.terminalButton(
     enabled: Boolean = true,
-    backgroundColor: Color = Color(0xFFFF7E6B) // Electric Coral
-): Modifier = composed {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
-    if (!isSpaceTerminal) return@composed this
-    
-    this.drawBehind {
-        // Draw mecha main fill
-        val fillBrush = if (enabled) {
-            Brush.verticalGradient(
-                colors = listOf(
-                    backgroundColor,
-                    backgroundColor.copy(alpha = 0.85f)
-                )
-            )
-        } else {
-            Brush.verticalGradient(
-                colors = listOf(
-                    backgroundColor.copy(alpha = 0.3f),
-                    backgroundColor.copy(alpha = 0.2f)
-                )
-            )
-        }
-        
-        drawRoundRect(
-            brush = fillBrush,
-            size = size,
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(10.dp.toPx())
-        )
-        
-        if (enabled) {
-            // 1. Draw horizontal speed lines in the background
-            val lineCount = 4
-            val startY = size.height * 0.5f
-            val lineSpacing = 3.dp.toPx()
-            for (i in 0 until lineCount) {
-                val y = startY + i * lineSpacing
-                val alpha = 0.15f + (i * 0.05f)
-                drawLine(
-                    color = Color(0xFF0C1020).copy(alpha = alpha), // Dark lines
-                    start = Offset(6.dp.toPx(), y),
-                    end = Offset(size.width - 6.dp.toPx(), y),
-                    strokeWidth = 1.5.dp.toPx()
-                )
-            }
-            
-            // 2. Draw glowing neon stripe at the top edge
-            drawLine(
-                color = Color(0xFFFFB359), // Warm Amber top stripe
-                start = Offset(12.dp.toPx(), 4.dp.toPx()),
-                end = Offset(size.width - 12.dp.toPx(), 4.dp.toPx()),
-                strokeWidth = 2.dp.toPx()
-            )
-            
-            // 3. Draw vertical mecha tactical side stripes
-            val sideStripeColor = Color(0xFF46C2B4) // Neon Cyan side bars
-            // Left
-            drawLine(
-                color = sideStripeColor,
-                start = Offset(1.dp.toPx(), size.height * 0.2f),
-                end = Offset(1.dp.toPx(), size.height * 0.8f),
-                strokeWidth = 3.dp.toPx()
-            )
-            // Right
-            drawLine(
-                color = sideStripeColor,
-                start = Offset(size.width - 1.dp.toPx(), size.height * 0.2f),
-                end = Offset(size.width - 1.dp.toPx(), size.height * 0.8f),
-                strokeWidth = 3.dp.toPx()
-            )
-        }
-    }
-    .drawWithContent {
-        drawContent()
-        if (enabled) {
-            // Double border line
-            drawRoundRect(
-                color = Color(0xFF0C1020).copy(alpha = 0.25f),
-                size = size,
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(10.dp.toPx()),
-                style = Stroke(width = 1.dp.toPx())
-            )
-        }
-    }
-}
+    backgroundColor: Color = Color(0xFFFF7E6B)
+): Modifier = this
 
 fun Modifier.glow(
     color: Color,
@@ -443,37 +261,48 @@ fun Modifier.backdropPattern(pattern: BackdropPattern): Modifier = this.drawBehi
     }
 }
 
-fun Modifier.crtScreenFilter(enabled: Boolean): Modifier = this.drawWithContent {
-    drawContent()
-    if (!enabled) return@drawWithContent
-    
-    // 1. Phosphor Vignette
-    val colors = arrayOf(
-        0.0f to Color.Transparent,
-        0.82f to Color.Transparent,
-        1.0f to Color.Black.copy(alpha = 0.45f)
+fun Modifier.crtScreenFilter(enabled: Boolean): Modifier = this
+
+private fun com.google.android.material.color.utilities.DynamicScheme.toComposeColorScheme(): ColorScheme {
+    val colors = com.google.android.material.color.utilities.MaterialDynamicColors()
+    return ColorScheme(
+        primary = Color(colors.primary().getArgb(this)),
+        onPrimary = Color(colors.onPrimary().getArgb(this)),
+        primaryContainer = Color(colors.primaryContainer().getArgb(this)),
+        onPrimaryContainer = Color(colors.onPrimaryContainer().getArgb(this)),
+        inversePrimary = Color(colors.inversePrimary().getArgb(this)),
+        secondary = Color(colors.secondary().getArgb(this)),
+        onSecondary = Color(colors.onSecondary().getArgb(this)),
+        secondaryContainer = Color(colors.secondaryContainer().getArgb(this)),
+        onSecondaryContainer = Color(colors.onSecondaryContainer().getArgb(this)),
+        tertiary = Color(colors.tertiary().getArgb(this)),
+        onTertiary = Color(colors.onTertiary().getArgb(this)),
+        tertiaryContainer = Color(colors.tertiaryContainer().getArgb(this)),
+        onTertiaryContainer = Color(colors.onTertiaryContainer().getArgb(this)),
+        background = Color(colors.background().getArgb(this)),
+        onBackground = Color(colors.onBackground().getArgb(this)),
+        surface = Color(colors.surface().getArgb(this)),
+        onSurface = Color(colors.onSurface().getArgb(this)),
+        surfaceVariant = Color(colors.surfaceVariant().getArgb(this)),
+        onSurfaceVariant = Color(colors.onSurfaceVariant().getArgb(this)),
+        surfaceTint = Color(colors.primary().getArgb(this)),
+        outline = Color(colors.outline().getArgb(this)),
+        outlineVariant = Color(colors.outlineVariant().getArgb(this)),
+        scrim = Color(colors.scrim().getArgb(this)),
+        error = Color(colors.error().getArgb(this)),
+        onError = Color(colors.onError().getArgb(this)),
+        errorContainer = Color(colors.errorContainer().getArgb(this)),
+        onErrorContainer = Color(colors.onErrorContainer().getArgb(this)),
+        inverseSurface = Color(colors.inverseSurface().getArgb(this)),
+        inverseOnSurface = Color(colors.inverseOnSurface().getArgb(this)),
+        surfaceBright = Color(colors.surfaceBright().getArgb(this)),
+        surfaceDim = Color(colors.surfaceDim().getArgb(this)),
+        surfaceContainerLowest = Color(colors.surfaceContainerLowest().getArgb(this)),
+        surfaceContainerLow = Color(colors.surfaceContainerLow().getArgb(this)),
+        surfaceContainer = Color(colors.surfaceContainer().getArgb(this)),
+        surfaceContainerHigh = Color(colors.surfaceContainerHigh().getArgb(this)),
+        surfaceContainerHighest = Color(colors.surfaceContainerHighest().getArgb(this)),
     )
-    drawRect(
-        brush = Brush.radialGradient(
-            colorStops = colors,
-            center = Offset(size.width / 2, size.height / 2),
-            radius = size.width.coerceAtLeast(size.height) / 1.3f
-        )
-    )
-    
-    // 2. Horizontal Scanlines
-    val scanlineColor = Color.Black.copy(alpha = 0.08f)
-    val lineSpacing = 6.dp.toPx()
-    var y = 0f
-    while (y < size.height) {
-        drawLine(
-            color = scanlineColor,
-            start = Offset(0f, y),
-            end = Offset(size.width, y),
-            strokeWidth = 1.25.dp.toPx()
-        )
-        y += lineSpacing
-    }
 }
 
 @Composable
@@ -484,23 +313,40 @@ fun KakeiboXTheme(
     appFont: AppFont = AppFont.NUNITO,
     touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
     glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
+    dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
     content: @Composable () -> Unit
 ) {
-    val isRetroSpace = themeStyle == ThemeStyle.RETRO_SPACE
-    
     val colorScheme = when {
-        isRetroSpace -> RetroSpaceColors
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context)
+            val baseScheme = if (darkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
+            
+            if (dynamicTonalStyle == DynamicTonalStyle.TONAL_SPOT) {
+                baseScheme
+            } else {
+                try {
+                    val seedColor = baseScheme.primary.toArgb()
+                    val hct = com.google.android.material.color.utilities.Hct.fromInt(seedColor)
+                    val dynamicScheme = when (dynamicTonalStyle) {
+                        DynamicTonalStyle.VIBRANT -> com.google.android.material.color.utilities.SchemeVibrant(hct, darkTheme, 0.0)
+                        DynamicTonalStyle.EXPRESSIVE -> com.google.android.material.color.utilities.SchemeExpressive(hct, darkTheme, 0.0)
+                        DynamicTonalStyle.FRUIT_SALAD -> com.google.android.material.color.utilities.SchemeFruitSalad(hct, darkTheme, 0.0)
+                        DynamicTonalStyle.RAINBOW -> com.google.android.material.color.utilities.SchemeRainbow(hct, darkTheme, 0.0)
+                        else -> com.google.android.material.color.utilities.SchemeTonalSpot(hct, darkTheme, 0.0)
+                    }
+                    dynamicScheme.toComposeColorScheme()
+                } catch (e: Exception) {
+                    baseScheme
+                }
+            }
         }
         darkTheme -> DarkColors
         else -> LightColors
     }
 
-    val shapes = if (isRetroSpace) RetroSpaceShapes else KakeiboXShapes
-    val selectedFont = if (isRetroSpace && appFont == AppFont.NUNITO) AppFont.MONOSPACE else appFont
+    val shapes = KakeiboXShapes
+    val selectedFont = appFont
     val typography = getTypography(selectedFont)
 
     CompositionLocalProvider(

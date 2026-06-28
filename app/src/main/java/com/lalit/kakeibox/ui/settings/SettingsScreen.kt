@@ -160,6 +160,7 @@ import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.data.preferences.DynamicTonalStyle
 import com.personal.kakeibox.data.preferences.AppFont
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.terminalScanlines
@@ -266,6 +267,20 @@ fun SettingsScreen(
         label = "top_app_bar_container_color"
     )
 
+    val scrolledContainerColor by animateColorAsState(
+        targetValue = when (themeSettings.topAppBarBackground) {
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surfaceContainer
+            TopAppBarBackground.PRIMARY_CONTAINER -> {
+                androidx.compose.ui.graphics.lerp(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    MaterialTheme.colorScheme.primary,
+                    0.08f // 8% tint overlay (simulating 4.dp elevation tint)
+                )
+            }
+        },
+        label = "settings_top_bar_scrolled_color"
+    )
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = topAppBarContainerColor,
@@ -281,7 +296,7 @@ fun SettingsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = topAppBarContainerColor,
-                    scrolledContainerColor = topAppBarContainerColor,
+                    scrolledContainerColor = scrolledContainerColor
                 ),
                 scrollBehavior = scrollBehavior
             )
@@ -403,7 +418,7 @@ fun SettingsScreen(
                                             themeSettings.darkThemePreference == preset.darkThemePreference &&
                                             themeSettings.useDynamicColor == preset.useDynamicColor
 
-                                    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+                                    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
                                     val cardShape = if (isSpaceTerminal) RoundedCornerShape(10.dp) else RoundedCornerShape(24.dp)
                                     val glowIntensity = LocalGlowIntensity.current
 
@@ -534,19 +549,7 @@ fun SettingsScreen(
 
                         // Theme & Color Group
                         SettingsGroup(title = "Theme & Color Settings") {
-                            SettingsSelectorRow(
-                                title = "Interface Style",
-                                description = "Switch between modern Material 3 and retro mecha terminal aesthetics.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = when(themeSettings.themeStyle) {
-                                    ThemeStyle.M3_EXPRESSIVE -> "M3 Expressive"
-                                    ThemeStyle.RETRO_SPACE -> "Retro Space"
-                                },
-                                options = listOf(ThemeStyle.M3_EXPRESSIVE to "M3 Expressive", ThemeStyle.RETRO_SPACE to "Retro Space"),
-                                onOptionSelected = { viewModel.setThemeStyle(it) },
-                                accentColor = Color(0xFF8B5CF6)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+
                             SettingsSelectorRow(
                                 title = "App Dark Theme",
                                 description = "Light, dark, or system-adaptive dark mode preference.",
@@ -565,6 +568,30 @@ fun SettingsScreen(
                                 onCheckedChange = { viewModel.setUseDynamicColor(it) },
                                 accentColor = Color(0xFFD946EF)
                             )
+                            if (themeSettings.useDynamicColor) {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                SettingsSelectorRow(
+                                    title = "Dynamic Color Style",
+                                    description = "Determine how the color scheme is algorithmically interpreted.",
+                                    icon = Icons.Outlined.Palette,
+                                    selectedValueLabel = when(themeSettings.dynamicTonalStyle) {
+                                        DynamicTonalStyle.TONAL_SPOT -> "Tonal Spot"
+                                        DynamicTonalStyle.VIBRANT -> "Vibrant"
+                                        DynamicTonalStyle.EXPRESSIVE -> "Expressive"
+                                        DynamicTonalStyle.FRUIT_SALAD -> "Fruit Salad"
+                                        DynamicTonalStyle.RAINBOW -> "Rainbow"
+                                    },
+                                    options = listOf(
+                                        DynamicTonalStyle.TONAL_SPOT to "Tonal Spot",
+                                        DynamicTonalStyle.VIBRANT to "Vibrant",
+                                        DynamicTonalStyle.EXPRESSIVE to "Expressive",
+                                        DynamicTonalStyle.FRUIT_SALAD to "Fruit Salad",
+                                        DynamicTonalStyle.RAINBOW to "Rainbow"
+                                    ),
+                                    onOptionSelected = { viewModel.setDynamicTonalStyle(it) },
+                                    accentColor = Color(0xFFD946EF)
+                                )
+                            }
                         }
 
                         // Typography & Layout Group
@@ -586,8 +613,8 @@ fun SettingsScreen(
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
-                                title = "Top App Bar Style",
-                                description = "Choose background style for top navigation header.",
+                                title = "Background Style",
+                                description = "Choose background style for screen canvas backdrop.",
                                 icon = Icons.Outlined.Dock,
                                 selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
@@ -651,17 +678,7 @@ fun SettingsScreen(
                                 onOptionSelected = { viewModel.setGlowIntensity(it) },
                                 accentColor = Color(0xFFE11D48)
                             )
-                            if (themeSettings.themeStyle == ThemeStyle.RETRO_SPACE) {
-                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                                SettingsToggleRow(
-                                    title = "CRT Screen Distortion Vignette",
-                                    description = "Retro scanlines and hardware screen curvature vignette overlay.",
-                                    icon = Icons.Outlined.Palette,
-                                    checked = themeSettings.crtFilterEnabled,
-                                    onCheckedChange = { viewModel.setCrtFilterEnabled(it) },
-                                    accentColor = Color(0xFFEA580C)
-                                )
-                            }
+
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
                                 title = "Haptic Click Synesthesia",
@@ -826,25 +843,12 @@ fun SettingsScreen(
                         shouldShow("Touch Synesthesia", keywords = listOf("sound", "haptic", "click", "feedback", "audio")) ||
                         shouldShow("App Theme", keywords = listOf("dark", "light", "mode")) ||
                         shouldShow("Dynamic", keywords = listOf("wallpaper", "color")) ||
-                        shouldShow("Top App Bar Background", keywords = listOf("header", "navigation")) ||
+                        shouldShow("Background Style", keywords = listOf("header", "navigation", "surface", "container")) ||
                         shouldShow("Navigation Layout", keywords = listOf("floating", "bar"))
                         
                 if (hasVisualMatches) {
                     SettingsGroup("🎨 Visual Style") {
-                        if (shouldShow("Interface Aesthetic", keywords = listOf("style", "visual", "retro", "expressive", "aesthetic"))) {
-                            SettingsSelectorRow(
-                                title = "Interface Style",
-                                description = "Switch between modern M3 and retro mecha terminal space cockpit styling.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = when(themeSettings.themeStyle) {
-                                    ThemeStyle.M3_EXPRESSIVE -> "M3 Expressive"
-                                    ThemeStyle.RETRO_SPACE -> "Retro Space"
-                                },
-                                options = listOf(ThemeStyle.M3_EXPRESSIVE to "M3 Expressive", ThemeStyle.RETRO_SPACE to "Retro Space"),
-                                onOptionSelected = { viewModel.setThemeStyle(it) },
-                                accentColor = Color(0xFF8B5CF6)
-                            )
-                        }
+
                         if (shouldShow("App Theme", keywords = listOf("dark", "light", "mode"))) {
                             SettingsSelectorRow(
                                 title = "App Dark Theme",
@@ -883,10 +887,10 @@ fun SettingsScreen(
                                 accentColor = Color(0xFFF59E0B)
                             )
                         }
-                        if (shouldShow("Top App Bar Background", keywords = listOf("header", "navigation"))) {
+                        if (shouldShow("Background Style", keywords = listOf("header", "navigation", "surface", "container"))) {
                             SettingsSelectorRow(
-                                title = "Top App Bar Background",
-                                description = "Set background color of top navigation header.",
+                                title = "Background Style",
+                                description = "Choose background style for screen canvas backdrop.",
                                 icon = Icons.Outlined.Dock,
                                 selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
@@ -951,16 +955,7 @@ fun SettingsScreen(
                                 accentColor = Color(0xFFE11D48)
                             )
                         }
-                        if (themeSettings.themeStyle == ThemeStyle.RETRO_SPACE && shouldShow("CRT", keywords = listOf("crt", "distortion", "scanline", "curve"))) {
-                            SettingsToggleRow(
-                                title = "CRT Screen Distortion Vignette",
-                                description = "Retro scanlines and screen curvature vignette overlay.",
-                                icon = Icons.Outlined.Palette,
-                                checked = themeSettings.crtFilterEnabled,
-                                onCheckedChange = { viewModel.setCrtFilterEnabled(it) },
-                                accentColor = Color(0xFFEA580C)
-                            )
-                        }
+
                         if (shouldShow("Touch Synesthesia", keywords = listOf("sound", "haptic", "click", "feedback", "audio"))) {
                             SettingsSelectorRow(
                                 title = "Touch Sound Synesthesia",
@@ -1144,7 +1139,7 @@ fun SettingsScreen(
     }
 
     if (showTabOrderSheet) {
-        val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+        val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
         val sheetBgColor = if (isSpaceTerminal) Color(0xFF0F172A) else MaterialTheme.colorScheme.surfaceContainerHigh
         val sheetShape = if (isSpaceTerminal) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp) else RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
@@ -1318,7 +1313,7 @@ fun SettingsCategoryCard(
     )
     val contentColor = MaterialTheme.colorScheme.onSurface
 
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val cardShape = if (isSpaceTerminal) RoundedCornerShape(12.dp) else RoundedCornerShape(28.dp)
     val cardBorder = if (isSpaceTerminal) {
         BorderStroke(1.5.dp, if (isExpanded) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
@@ -1938,7 +1933,7 @@ fun FontOptionCard(
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     
     val shape = if (isSpaceTerminal) {
         RoundedCornerShape(6.dp)
@@ -2035,7 +2030,7 @@ fun SettingsTabRow(
     onTabSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val haptic = LocalHapticFeedback.current
 
     val tabs = remember {
@@ -2091,18 +2086,18 @@ fun SettingsTabRow(
     )
 
     val containerBg = if (isSpaceTerminal) {
-        Color(0xFF0F172A).copy(alpha = 0.7f)
+        Color(0xFF0F172A)
     } else {
-        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f)
+        MaterialTheme.colorScheme.surfaceContainer
     }
 
     val containerBorder = if (isSpaceTerminal) {
         BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
     } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
     }
 
-    val shadowElevation = if (isSpaceTerminal) 0.dp else 10.dp
+    val shadowElevation = 0.dp
 
     Surface(
         modifier = modifier
@@ -2330,7 +2325,7 @@ fun SettingsGroup(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val cardShape = if (isSpaceTerminal) RoundedCornerShape(10.dp) else RoundedCornerShape(24.dp)
     val cardBg = if (isSpaceTerminal) Color(0xFF0F172A).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerLow
     val cardBorder = if (isSpaceTerminal) {
@@ -2376,7 +2371,7 @@ fun SettingsToggleRow(
     accentColor: Color? = null
 ) {
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else (accentColor ?: MaterialTheme.colorScheme.primary)
     val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else (accentColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
 
@@ -2444,7 +2439,7 @@ fun <T> SettingsSelectorRow(
     accentColor: Color? = null
 ) {
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val glowIntensity = LocalGlowIntensity.current
     val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else (accentColor ?: MaterialTheme.colorScheme.primary)
     val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else (accentColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
@@ -2630,7 +2625,7 @@ fun SettingsActionRow(
     accentColor: Color? = null
 ) {
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val iconColor = if (isSpaceTerminal) Color(0xFF46C2B4) else (accentColor ?: MaterialTheme.colorScheme.primary)
     val iconBgColor = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.1f) else (accentColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
 
@@ -2984,19 +2979,7 @@ val stylePresets = listOf(
         darkThemePreference = DarkThemePreference.SYSTEM,
         useDynamicColor = true
     ),
-    StylePreset(
-        emoji = "🛸",
-        name = "Tactical Cockpit",
-        description = "Retro mecha terminal with Monospace typeface, Radar Dots, high Neon intensity, CRT scanlines, and Cassette click.",
-        themeStyle = ThemeStyle.RETRO_SPACE,
-        appFont = AppFont.MONOSPACE,
-        backdropPattern = BackdropPattern.COCKPIT_STRIPES,
-        glowIntensity = GlowIntensity.NEON,
-        crtFilterEnabled = true,
-        touchSynesthesia = TouchSynesthesia.CASSETTE_CLICK,
-        darkThemePreference = DarkThemePreference.DARK,
-        useDynamicColor = false
-    ),
+
     StylePreset(
         emoji = "📐",
         name = "Blueprint Modern",

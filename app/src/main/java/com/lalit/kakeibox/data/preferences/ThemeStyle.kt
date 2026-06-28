@@ -1,8 +1,7 @@
 package com.personal.kakeibox.data.preferences
 
 enum class ThemeStyle {
-    M3_EXPRESSIVE,
-    RETRO_SPACE;
+    M3_EXPRESSIVE;
 
     companion object {
         fun fromStorage(value: String?): ThemeStyle {

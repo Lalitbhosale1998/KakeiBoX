@@ -22,5 +22,6 @@ data class ThemeSettings(
     val backdropPattern: BackdropPattern = BackdropPattern.NONE,
     val glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
     val crtFilterEnabled: Boolean = false,
-    val touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE
+    val touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
+    val dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT
 )

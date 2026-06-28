@@ -118,7 +118,7 @@ fun SalaryFilterTabRow(
     onFilterSelected: (SalaryFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val haptic = LocalHapticFeedback.current
     val glowIntensity = LocalGlowIntensity.current
 
@@ -163,18 +163,18 @@ fun SalaryFilterTabRow(
     )
 
     val containerBg = if (isSpaceTerminal) {
-        Color(0xFF0F172A).copy(alpha = 0.7f)
+        Color(0xFF0F172A)
     } else {
-        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f)
+        MaterialTheme.colorScheme.surfaceContainer
     }
 
     val containerBorder = if (isSpaceTerminal) {
         BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
     } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
     }
 
-    val shadowElevation = if (isSpaceTerminal) 0.dp else 6.dp
+    val shadowElevation = 0.dp
 
     Surface(
         modifier = modifier
@@ -1005,7 +1005,7 @@ fun ExpressiveHeroCard(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.size(donutSize).padding(4.dp)
                     ) {
-                        val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.RETRO_SPACE
+                        val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
                         val trackColor = if (isSpaceTerminal) {
                             MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
                         } else {
