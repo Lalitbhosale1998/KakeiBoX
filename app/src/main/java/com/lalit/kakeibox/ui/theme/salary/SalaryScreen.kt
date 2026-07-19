@@ -950,27 +950,59 @@ fun ExpressiveHeroCard(
             uniform half3 uColor1;
             uniform half3 uColor2;
 
+            // Smooth minimum for blending fluid metaballs
+            float smin(float a, float b, float k) {
+                float h = max(k - abs(a - b), 0.0) / k;
+                return min(a, b) - h * h * h * k * (1.0 / 6.0);
+            }
+
             half4 main(in float2 fragCoord) {
                 float2 uv = fragCoord / uSize;
+                float aspectRatio = uSize.x / uSize.y;
+                float2 uvAspect = float2(uv.x * aspectRatio, uv.y);
                 
-                // Slow organic mesh warping waves
-                float t = uTime * 0.25;
+                // Slow down time for premium, relaxing motion
+                float t = uTime * 0.35;
+                
+                // Blob 1: Morphing circle drifting on the left side
+                float2 center1 = float2(0.35 * aspectRatio + sin(t) * 0.12, 0.5 + cos(t * 0.8) * 0.12);
+                float dist1 = length(uvAspect - center1) - (0.28 + sin(t * 1.5) * 0.03);
+                
+                // Blob 2: Morphing circle drifting on the right side
+                float2 center2 = float2(0.75 * aspectRatio + cos(t * 1.1) * 0.12, 0.4 + sin(t * 0.9) * 0.12);
+                float dist2 = length(uvAspect - center2) - (0.24 + cos(t * 1.3) * 0.03);
+                
+                // Blob 3: Backdrop organic shape morphing near the top-center
+                float2 center3 = float2(0.55 * aspectRatio + sin(t * 0.7) * 0.15, 0.6 + cos(t * 1.2) * 0.1);
+                float dist3 = length(uvAspect - center3) - 0.32;
+
+                // Blend the shapes smoothly together
+                float d = smin(dist1, dist2, 0.2);
+                d = smin(d, dist3, 0.25);
+                
+                // Apply a tight smoothstep for a crisp, clean, anti-aliased vector edge
+                float shapeIntensity = 1.0 - smoothstep(-0.008, 0.008, d);
+                
+                // Base organic gradient background
                 float2 warp = float2(
-                    sin(uv.y * 3.0 + t) * 0.12,
-                    cos(uv.x * 3.0 - t * 0.8) * 0.12
+                    sin(uv.y * 3.0 + t) * 0.08,
+                    cos(uv.x * 3.0 - t * 0.8) * 0.08
                 );
                 float2 warpedUv = uv + warp;
-                
-                // Mix ratio for color interpolation
                 float mixRatio = clamp(warpedUv.x * warpedUv.y * 1.6, 0.0, 1.0);
+                half3 backdropColor = mix(uColor2, uColor1, mixRatio);
                 
-                half3 baseColor = mix(uColor2, uColor1, mixRatio);
+                // Subtle hue highlight for shapes (shifting slightly towards cyan/emerald highlights)
+                half3 shapeColor = uColor1 * 1.2 + half3(0.02, 0.05, 0.05);
                 
-                // High-frequency animated chromatic grain noise
+                // Mix shapes and background
+                half3 finalColor = mix(backdropColor, shapeColor, shapeIntensity * 0.45);
+                
+                // High-frequency animated chromatic film grain
                 float noise = fract(sin(dot(fragCoord.xy + t * 0.05, float2(12.9898, 78.233))) * 43758.5453);
-                baseColor += (noise - 0.5) * 0.03;
+                finalColor += (noise - 0.5) * 0.03;
                 
-                return half4(baseColor, 1.0);
+                return half4(finalColor, 1.0);
             }
         """.trimIndent()
         
@@ -1027,8 +1059,9 @@ fun ExpressiveHeroCard(
         Box(
             modifier = Modifier
                 .background(backgroundBrush)
-                .padding(24.dp)
+                .padding(vertical = 36.dp, horizontal = 24.dp)
                 .fillMaxWidth()
+                .heightIn(min = 180.dp)
         ) {
             val isBack = rotation > 90f
             Box(
