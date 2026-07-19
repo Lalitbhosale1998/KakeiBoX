@@ -30,6 +30,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -55,6 +58,15 @@ class ThemeViewModel @Inject constructor(
 
     private val _isAuthenticated = mutableStateOf(false)
     val isAuthenticated: State<Boolean> = _isAuthenticated
+
+    private val _onAddActionButtonClicked = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val onAddActionButtonClicked: SharedFlow<String> = _onAddActionButtonClicked.asSharedFlow()
+
+    fun triggerAddActionButton(route: String) {
+        viewModelScope.launch {
+            _onAddActionButtonClicked.emit(route)
+        }
+    }
 
     val themeSettings: StateFlow<ThemeSettings> = preferencesRepository.themeSettings
         .stateIn(

@@ -1,6 +1,9 @@
 package com.personal.kakeibox.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -153,6 +156,56 @@ fun KakeiboXApp(
 
     // navBackStackEntry and currentDestination defined above
 
+    val isActionEnabled = currentRoute == NavRoutes.Salary.route ||
+            currentRoute == NavRoutes.Exercise.route ||
+            currentRoute == NavRoutes.Spend.route ||
+            currentRoute == "commute"
+
+    val actionButtonScale by animateFloatAsState(
+        targetValue = if (isActionEnabled) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "action_button_scale"
+    )
+
+    val actionButtonWeight by animateFloatAsState(
+        targetValue = if (isActionEnabled) 1f else 0.001f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "action_button_weight"
+    )
+
+    val actionColorStart by animateColorAsState(
+        targetValue = when (currentRoute) {
+            NavRoutes.Salary.route -> Color(0xFFFFD700)
+            NavRoutes.Exercise.route -> Color(0xFF10B981)
+            NavRoutes.Spend.route -> Color(0xFF0D9488)
+            "commute" -> Color(0xFF0284C7)
+            else -> MaterialTheme.colorScheme.primary
+        },
+        label = "action_color_start"
+    )
+
+    val actionColorEnd by animateColorAsState(
+        targetValue = when (currentRoute) {
+            NavRoutes.Salary.route -> Color(0xFFF59E0B)
+            NavRoutes.Exercise.route -> Color(0xFF059669)
+            NavRoutes.Spend.route -> Color(0xFF0F766E)
+            "commute" -> Color(0xFF0369A1)
+            else -> MaterialTheme.colorScheme.secondary
+        },
+        label = "action_color_end"
+    )
+
+    val actionIconColor by animateColorAsState(
+        targetValue = when (currentRoute) {
+            NavRoutes.Salary.route -> Color(0xFF1E293B)
+            else -> Color.White
+        },
+        label = "action_icon_color"
+    )
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
@@ -220,7 +273,19 @@ fun KakeiboXApp(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            val midIndex = (bottomNavItems.size + 1) / 2
                             bottomNavItems.forEachIndexed { index, item ->
+                                if (index == midIndex) {
+                                    CentralActionButton(
+                                        currentRoute = currentRoute,
+                                        themeViewModel = viewModel,
+                                        haptic = haptic,
+                                        scale = actionButtonScale,
+                                        weight = actionButtonWeight,
+                                        brush = Brush.linearGradient(listOf(actionColorStart, actionColorEnd)),
+                                        iconColor = actionIconColor
+                                    )
+                                }
                                 val isSelected = currentDestination?.hierarchy?.any {
                                     it.route == item.route
                                 } == true
@@ -240,14 +305,17 @@ fun KakeiboXApp(
                                     label = "full_icon_scale_${item.route}"
                                 )
 
-                                val labelScale by animateFloatAsState(
-                                    targetValue = if (isSelected) 1.05f else 0.95f,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    ),
-                                    label = "full_label_scale_${item.route}"
-                                )
+                                // Pulsing halo config
+                                val haloProgress = remember { Animatable(0f) }
+                                LaunchedEffect(isSelected) {
+                                    if (isSelected) {
+                                        haloProgress.snapTo(0f)
+                                        haloProgress.animateTo(
+                                            targetValue = 1f,
+                                            animationSpec = tween(durationMillis = 650, easing = LinearOutSlowInEasing)
+                                        )
+                                    }
+                                }
 
                                 val iconTranslationY by animateFloatAsState(
                                     targetValue = if (isSelected && item.route == NavRoutes.Salary.route) -5f else 0f,
@@ -270,6 +338,14 @@ fun KakeiboXApp(
                                         stiffness = Spring.StiffnessLow
                                     ),
                                     label = "full_icon_rot_${item.route}"
+                                )
+                                val labelScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.05f else 0.95f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    label = "full_label_scale_${item.route}"
                                 )
 
                                 val selectedColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -297,6 +373,7 @@ fun KakeiboXApp(
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 navController.navigate(item.route) {
                                                     popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
                                                         saveState = true
                                                     }
                                                     launchSingleTop = true
@@ -505,7 +582,19 @@ fun KakeiboXApp(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            val midIndex = (bottomNavItems.size + 1) / 2
                             bottomNavItems.forEachIndexed { index, item ->
+                                if (index == midIndex) {
+                                    CentralActionButton(
+                                        currentRoute = currentRoute,
+                                        themeViewModel = viewModel,
+                                        haptic = haptic,
+                                        scale = actionButtonScale,
+                                        weight = actionButtonWeight,
+                                        brush = Brush.linearGradient(listOf(actionColorStart, actionColorEnd)),
+                                        iconColor = actionIconColor
+                                    )
+                                }
                                 val isSelected = currentDestination?.hierarchy?.any {
                                     it.route == item.route
                                 } == true
@@ -668,6 +757,7 @@ fun KakeiboXApp(
                         }
                     }
                 }
+
             }
         }
 
@@ -966,6 +1056,49 @@ fun KakeiboXApp(
                     }
                 }
 
+                // Central Action Button (floating capsule)
+                if (actionButtonScale > 0.01f) {
+                    val splitActionBrush = Brush.linearGradient(listOf(actionColorStart, actionColorEnd))
+                    Surface(
+                        onClick = {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            currentRoute?.let { viewModel.triggerAddActionButton(it) }
+                        },
+                        modifier = Modifier
+                            .height(82.dp)
+                            .width(94.dp)
+                            .padding(end = 12.dp)
+                            .graphicsLayer {
+                                scaleX = actionButtonScale
+                                scaleY = actionButtonScale
+                            },
+                        shape = RoundedCornerShape(32.dp),
+                        color = navBarColor,
+                        tonalElevation = 0.dp,
+                        shadowElevation = 0.dp,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(32.dp))
+                                .background(splitActionBrush),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add",
+                                tint = actionIconColor,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
+
                 // ── Right Dock Pill (Settings Capsule) ──
                 rightItems.firstOrNull()?.let { item ->
                     val isSelected = currentDestination?.hierarchy?.any {
@@ -1097,4 +1230,96 @@ fun KakeiboXApp(
         }
     }
 }
+}
+
+@Composable
+fun RowScope.CentralActionButton(
+    currentRoute: String?,
+    themeViewModel: ThemeViewModel,
+    haptic: androidx.compose.ui.hapticfeedback.HapticFeedback,
+    scale: Float,
+    weight: Float,
+    brush: Brush,
+    iconColor: Color
+) {
+    if (weight > 0.01f) {
+        val scaleAnim = remember { Animatable(1f) }
+        LaunchedEffect(currentRoute) {
+            if (currentRoute != null) {
+                scaleAnim.animateTo(
+                    targetValue = 0.8f,
+                    animationSpec = tween(durationMillis = 80, easing = FastOutLinearInEasing)
+                )
+                scaleAnim.animateTo(
+                    targetValue = 1.15f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+                )
+                scaleAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)
+                )
+            }
+        }
+
+        val rotationAnim by animateFloatAsState(
+            targetValue = when (currentRoute) {
+                NavRoutes.Salary.route -> 0f
+                NavRoutes.Exercise.route -> 180f
+                NavRoutes.Spend.route -> 360f
+                "commute" -> 540f
+                else -> 0f
+            },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium
+            ),
+            label = "fab_rotation"
+        )
+
+        val combinedScale = scale * scaleAnim.value
+
+        Box(
+            modifier = Modifier
+                .weight(weight)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (combinedScale > 0.01f) {
+                Surface(
+                    onClick = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        currentRoute?.let { themeViewModel.triggerAddActionButton(it) }
+                    },
+                    modifier = Modifier
+                        .size(56.dp)
+                        .graphicsLayer {
+                            scaleX = combinedScale
+                            scaleY = combinedScale
+                        },
+                    shape = CircleShape,
+                    color = Color.Transparent,
+                    contentColor = iconColor,
+                    shadowElevation = 8.dp
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(brush, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add",
+                            modifier = Modifier
+                                .size(32.dp)
+                                .graphicsLayer {
+                                    rotationZ = rotationAnim
+                                },
+                            tint = iconColor
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

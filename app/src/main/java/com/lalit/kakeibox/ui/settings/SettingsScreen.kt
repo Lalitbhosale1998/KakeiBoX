@@ -261,7 +261,7 @@ fun SettingsScreen(
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
-            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
             TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
         },
         label = "top_app_bar_container_color"

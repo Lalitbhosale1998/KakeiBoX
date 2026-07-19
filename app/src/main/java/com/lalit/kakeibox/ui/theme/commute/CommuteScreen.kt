@@ -94,43 +94,15 @@ fun CommuteScreen(
         }
     }
 
-    val isFloatingNav = themeSettings.navBarStyle == NavBarStyle.FLOATING || themeSettings.navBarStyle == NavBarStyle.SPLIT
-    val fabPadding by animateDpAsState(
-        targetValue = if (isFloatingNav) 100.dp else 0.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "fab_padding"
-    )
-
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    var isExpanded by remember { mutableStateOf(true) }
-    var lastScrollIndex by remember { mutableStateOf(0) }
-    var lastScrollOffset by remember { mutableStateOf(0) }
-
-    LaunchedEffect(lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset) {
-        val currentIndex = lazyListState.firstVisibleItemIndex
-        val currentOffset = lazyListState.firstVisibleItemScrollOffset
-        
-        if (currentIndex == 0 && currentOffset == 0) {
-            isExpanded = true
-        } else if (currentIndex > lastScrollIndex || (currentIndex == lastScrollIndex && currentOffset > lastScrollOffset)) {
-            isExpanded = false
-        } else if (currentIndex < lastScrollIndex || (currentIndex == lastScrollIndex && currentOffset < lastScrollOffset)) {
-            isExpanded = true
+    LaunchedEffect(Unit) {
+        themeViewModel.onAddActionButtonClicked.collect { route ->
+            if (route == "commute") {
+                viewModel.openAddSheet()
+            }
         }
-        
-        lastScrollIndex = currentIndex
-        lastScrollOffset = currentOffset
     }
 
-    val fabWidth by animateDpAsState(
-        targetValue = if (isExpanded) 154.dp else 64.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "fab_width"
-    )
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
@@ -138,7 +110,7 @@ fun CommuteScreen(
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
-            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.surface
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
             TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
         },
         label = "top_app_bar_container_color"
@@ -236,54 +208,6 @@ fun CommuteScreen(
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {},
-            floatingActionButton = {
-                Surface(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.openAddSheet()
-                    },
-                    modifier = Modifier
-                        .padding(bottom = fabPadding)
-                        .size(width = fabWidth, height = 64.dp),
-                    shape = RoundedCornerShape(32.dp),
-                    color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onTertiaryContainer,
-                    shadowElevation = 8.dp
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        ) {
-                            Icon(
-                                Icons.Filled.Add,
-                                contentDescription = "Add Commute",
-                                modifier = Modifier.size(28.dp)
-                            )
-                            AnimatedVisibility(
-                                visible = isExpanded,
-                                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                        expandHorizontally(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy), expandFrom = Alignment.Start),
-                                exit = fadeOut(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                       shrinkHorizontally(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy), shrinkTowards = Alignment.Start)
-                            ) {
-                                Text(
-                                    text = "Add Commute",
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    modifier = Modifier.padding(start = 8.dp),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Clip
-                                )
-                            }
-                        }
-                    }
-                }
-            },
             snackbarHost = { ExpressiveSnackbarHost(snackbarHostState) }
         ) { innerPadding ->
             LazyColumn(
