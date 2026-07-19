@@ -38,6 +38,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -116,6 +117,15 @@ import com.personal.kakeibox.ui.theme.LocalGlowIntensity
 import com.personal.kakeibox.ui.theme.glow
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.data.preferences.BackdropPattern
+import com.personal.kakeibox.ui.components.RoundedPolygonShape
+import com.personal.kakeibox.ui.components.CookieShape
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Easing
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.personal.kakeibox.data.preferences.GlowIntensity
 import androidx.compose.ui.geometry.Offset
@@ -931,6 +941,85 @@ fun ExpressiveHeroCard(
         label = "salary_hero_donut_size"
     )
 
+    val infiniteTransition = rememberInfiniteTransition(label = "floating_shapes")
+    val SineInOutEasing = Easing { fraction -> -(kotlin.math.cos(Math.PI * fraction).toFloat() - 1f) / 2f }
+
+    val rotation1 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(28000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shape_rot_1"
+    )
+    val rotation2 by infiniteTransition.animateFloat(
+        initialValue = 360f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(34000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shape_rot_2"
+    )
+
+    val offsetX1 by infiniteTransition.animateFloat(
+        initialValue = -15f,
+        targetValue = 15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8000, easing = SineInOutEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shape_x_1"
+    )
+    val offsetY1 by infiniteTransition.animateFloat(
+        initialValue = -10f,
+        targetValue = 20f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(9500, easing = SineInOutEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shape_y_1"
+    )
+
+    val offsetX2 by infiniteTransition.animateFloat(
+        initialValue = 20f,
+        targetValue = -10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(11000, easing = SineInOutEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shape_x_2"
+    )
+    val offsetY2 by infiniteTransition.animateFloat(
+        initialValue = -15f,
+        targetValue = 15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8500, easing = SineInOutEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shape_y_2"
+    )
+
+    val offsetX3 by infiniteTransition.animateFloat(
+        initialValue = -10f,
+        targetValue = 10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(12000, easing = SineInOutEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shape_x_3"
+    )
+    val offsetY3 by infiniteTransition.animateFloat(
+        initialValue = 15f,
+        targetValue = -15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(10000, easing = SineInOutEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shape_y_3"
+    )
+
     var shaderTime by remember { mutableStateOf(0f) }
     LaunchedEffect(Unit) {
         val startTime = withInfiniteAnimationFrameMillis { it }
@@ -1063,6 +1152,79 @@ fun ExpressiveHeroCard(
                 .fillMaxWidth()
                 .heightIn(min = 180.dp)
         ) {
+            // Floating Decorative Shapes (Android 17 M3 style)
+            // Shape 1: Pill (Top-Right)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 10.dp, end = 40.dp)
+                    .size(70.dp, 35.dp)
+                    .graphicsLayer {
+                        translationX = offsetX1
+                        translationY = offsetY1
+                        rotationZ = rotation1
+                    }
+                    .background(
+                        color = Color.White.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(50)
+                    )
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(50))
+            )
+
+            // Shape 2: Pentagon (Bottom-Left)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 15.dp, start = 30.dp)
+                    .size(50.dp)
+                    .graphicsLayer {
+                        translationX = offsetX2
+                        translationY = offsetY2
+                        rotationZ = rotation2
+                    }
+                    .background(
+                        color = Color.White.copy(alpha = 0.05f),
+                        shape = RoundedPolygonShape(sides = 5)
+                    )
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedPolygonShape(sides = 5))
+            )
+
+            // Shape 3: 6-Sided Cookie (Bottom-Center/Right)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp, start = 90.dp)
+                    .size(55.dp)
+                    .graphicsLayer {
+                        translationX = offsetX3
+                        translationY = offsetY3
+                        rotationZ = rotation1 * -0.7f
+                    }
+                    .background(
+                        color = Color.White.copy(alpha = 0.05f),
+                        shape = CookieShape(petals = 6)
+                    )
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), CookieShape(petals = 6))
+            )
+
+            // Shape 4: 7-Sided Cookie (Top-Left/Center)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 15.dp, start = 90.dp)
+                    .size(60.dp)
+                    .graphicsLayer {
+                        translationX = offsetX2 * -0.8f
+                        translationY = offsetY1 * -0.9f
+                        rotationZ = rotation2 * 1.2f
+                    }
+                    .background(
+                        color = Color.White.copy(alpha = 0.05f),
+                        shape = CookieShape(petals = 7)
+                    )
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), CookieShape(petals = 7))
+            )
+
             val isBack = rotation > 90f
             Box(
                 modifier = Modifier.graphicsLayer {
