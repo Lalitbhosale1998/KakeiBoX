@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -573,6 +574,43 @@ fun SalaryScreen(
                     }
                 }
 
+                // ── Interactive Analytics (Bar Chart Selector) ──
+                item {
+                    AnimatedVisibility(
+                        visible = showStats,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                    ) {
+                        InteractiveAnalyticsChart(
+                            entries = allEntries,
+                            isPrivacyMode = themeSettings.privacyModeEnabled,
+                            themeSettings = themeSettings,
+                            onMonthSelected = { entry ->
+                                viewModel.openEditDialog(entry)
+                            }
+                        )
+                    }
+                }
+
+                // ── Salary Projection Sandbox ──
+                item {
+                    val averageSalary = remember(allEntries) {
+                        if (allEntries.isNotEmpty()) allEntries.map { it.salaryAmount }.average().toLong() else 0L
+                    }
+                    if (averageSalary > 0) {
+                        AnimatedVisibility(
+                            visible = showStats,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            SalaryProjectionSandbox(
+                                averageSalary = averageSalary,
+                                themeSettings = themeSettings
+                            )
+                        }
+                    }
+                }
+
                 // ── History Header & Filters ──
                 item {
                     AnimatedVisibility(
@@ -605,7 +643,7 @@ fun SalaryScreen(
                     }
                 }
 
-                // ── History List (Organic Bento Flow) ──
+                // ── History List (Animate Item Transitions) ──
                 val filteredEntries = when (uiState.currentFilter) {
                     SalaryFilter.ALL -> allEntries
                     SalaryFilter.THIS_YEAR -> allEntries.filter { it.year == DateUtils.getCurrentYear() }
@@ -616,67 +654,26 @@ fun SalaryScreen(
 
                 if (filteredEntries.isEmpty()) {
                     item {
-                        AnimatedVisibility(
-                            visible = showHistory,
-                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
-                        ) {
-                            ExpressiveEmptyState(
-                                message = "No records found",
-                                icon = "🔍",
-                                color = onContainerColor
-                            )
-                        }
+                        ExpressiveEmptyState(
+                            message = "No records found",
+                            icon = "🔍",
+                            color = onContainerColor
+                        )
                     }
                 } else {
-                    val historyEntries = filteredEntries.take(6)
-                    
-                    item {
-                        AnimatedVisibility(
-                            visible = showHistory,
-                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                // Organic Bento Flow Logic
-                                // 1. First item is prominent
-                                historyEntries.firstOrNull()?.let { first ->
-                                    ExpressiveHistoryBentoBox(
-                                        entry = first,
-                                        isPrivacyMode = themeSettings.privacyModeEnabled,
-                                        onEdit = { viewModel.openEditDialog(first) },
-                                        modifier = Modifier.fillMaxWidth().height(140.dp),
-                                        themeSettings = themeSettings,
-                                        isLarge = true
-                                    )
-                                }
-                                
-                                // 2. Remaining items in pairs
-                                val remaining = historyEntries.drop(1)
-                                remaining.chunked(2).forEach { rowEntries ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
-                                        rowEntries.forEach { entry ->
-                                            ExpressiveHistoryBentoBox(
-                                                entry = entry,
-                                                isPrivacyMode = themeSettings.privacyModeEnabled,
-                                                onEdit = { viewModel.openEditDialog(entry) },
-                                                modifier = Modifier.weight(1f),
-                                                themeSettings = themeSettings
-                                            )
-                                        }
-                                        if (rowEntries.size == 1) {
-                                            Spacer(modifier = Modifier.weight(1f))
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    items(
+                        items = filteredEntries.take(6),
+                        key = { it.id }
+                    ) { entry ->
+                        ExpressiveHistoryBentoBox(
+                            entry = entry,
+                            isPrivacyMode = themeSettings.privacyModeEnabled,
+                            onEdit = { viewModel.openEditDialog(entry) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateItem(),
+                            themeSettings = themeSettings
+                        )
                     }
                 }
             }
@@ -850,296 +847,358 @@ fun ExpressiveHeroCard(
     isHighSavingsActive: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
+    var isFlipped by remember { mutableStateOf(false) }
+
+    val rotation by animateFloatAsState(
+        targetValue = if (isFlipped) 180f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "hero_card_flip"
+    )
+
+    val animatedWeight by animateIntAsState(
+        targetValue = if (rotation < 90f) 900 else 400,
+        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "ticker_weight"
+    )
+    val tickerFontWeight = FontWeight(animatedWeight)
 
     val leftWeight by animateFloatAsState(
         targetValue = if (isHighSavingsActive) 0.001f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 300f
-        ),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "salary_hero_left_weight"
     )
 
     val rightWeight by animateFloatAsState(
         targetValue = if (isHighSavingsActive) 2.0f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 300f
-        ),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "salary_hero_right_weight"
     )
 
     val donutSize by animateDpAsState(
         targetValue = if (isHighSavingsActive) 150.dp else 100.dp,
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 300f
-        ),
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
         label = "salary_hero_donut_size"
     )
-    
+
+    val backgroundBrush = if (isSystemInDarkTheme()) {
+        Brush.verticalGradient(listOf(Color(0xFF1E293B), Color(0xFF0F172A)))
+    } else {
+        Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer))
+    }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                rotationY = rotation
+                cameraDistance = 12f * density
+            }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                isFlipped = !isFlipped
+            },
         shape = RoundedCornerShape(32.dp),
-        color = if (isPrimaryContainer) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary,
-        contentColor = if (isPrimaryContainer) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onPrimary,
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.15f), Color.Transparent))),
         tonalElevation = 8.dp
     ) {
-        Row(
+        Box(
             modifier = Modifier
+                .background(backgroundBrush)
                 .padding(24.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxWidth()
         ) {
+            val isBack = rotation > 90f
             Box(
-                modifier = Modifier
-                    .weight(leftWeight.coerceAtLeast(0.001f))
-                    .graphicsLayer {
-                        alpha = ((leftWeight - 0.1f) / 0.9f).coerceIn(0f, 1f)
-                        scaleX = (leftWeight / 1.0f).coerceIn(0f, 1f)
-                        scaleY = (leftWeight / 1.0f).coerceIn(0f, 1f)
-                    }
-            ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "TOTAL EARNINGS",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    ExpressiveTotalEarningsTicker(
-                        totalSalary = totalSalary,
-                        isPrivacyMode = isPrivacyMode,
-                        themeSettings = themeSettings
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Surface(
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "Cumulative Net Income",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
-                                maxLines = 1,
-                                softWrap = false
-                            )
-                        }
-                    }
-                    
-                    if (currentEntry != null) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        FilledTonalButton(
-                            onClick = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onEdit() 
-                            },
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Edit ${DateUtils.getShortMonthName(currentEntry.month)} Record", fontWeight = FontWeight.Bold)
-                        }
-                    }
+                modifier = Modifier.graphicsLayer {
+                    if (isBack) rotationY = 180f
                 }
-            }
-
-            // ── Interactive Donut Engagement ─────────────────────
-            val savingsRatio = if (totalSalary > 0) 
-                (totalSavings.toFloat() / totalSalary).coerceIn(0f, 1f)
-            else 0f
-            
-            val animatedProgress by animateFloatAsState(
-                targetValue = savingsRatio,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                label = "savings_progress"
-            )
-
-            Box(
-                modifier = Modifier
-                    .weight(rightWeight.coerceAtLeast(0.001f)),
-                contentAlignment = Alignment.Center
             ) {
-                Surface(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onDonutClick()
-                    },
-                    color = Color.Transparent,
-                    shape = CircleShape
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(donutSize).padding(4.dp)
+                if (!isBack) {
+                    // Front Content
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
-                        val trackColor = if (isSpaceTerminal) {
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
-                        } else {
-                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
-                        }
-                        val progressColor = if (isSpaceTerminal) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onPrimary
-                        }
-                        val spaceRadarColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
-                        val spaceSatelliteGlow = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)
-                        val spaceSatelliteCore = MaterialTheme.colorScheme.tertiary
-                        
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            val stroke = if (isSpaceTerminal) 4.dp.toPx() else 10.dp.toPx()
-                            
-                            if (isSpaceTerminal) {
-                                // Draw concentric space radar orbit rings
-                                val center = Offset(size.width / 2, size.height / 2)
-                                val radiusFraction1 = (size.minDimension / 2) * 0.75f
-                                val radiusFraction2 = (size.minDimension / 2) * 0.5f
+                        Box(
+                            modifier = Modifier
+                                .weight(leftWeight.coerceAtLeast(0.001f))
+                                .graphicsLayer {
+                                    alpha = ((leftWeight - 0.1f) / 0.9f).coerceIn(0f, 1f)
+                                    scaleX = (leftWeight / 1.0f).coerceIn(0f, 1f)
+                                    scaleY = (leftWeight / 1.0f).coerceIn(0f, 1f)
+                                }
+                        ) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = "TOTAL EARNINGS",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 2.5.sp,
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                )
                                 
-                                drawCircle(
-                                    color = spaceRadarColor,
-                                    radius = radiusFraction1,
-                                    center = center,
-                                    style = Stroke(
-                                        width = 1.dp.toPx(),
-                                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 12f), 0f)
-                                    )
-                                )
-                                drawCircle(
-                                    color = spaceRadarColor,
-                                    radius = radiusFraction2,
-                                    center = center,
-                                    style = Stroke(
-                                        width = 1.dp.toPx(),
-                                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f), 0f)
-                                    )
-                                )
-                            }
-                            
-                            // Track
-                            drawArc(
-                                color = trackColor,
-                                startAngle = 0f,
-                                sweepAngle = 360f,
-                                useCenter = false,
-                                style = Stroke(width = stroke, cap = StrokeCap.Round)
-                            )
-                            
-                            // Progress
-                            drawArc(
-                                color = progressColor,
-                                startAngle = -90f,
-                                sweepAngle = 360f * animatedProgress,
-                                useCenter = false,
-                                style = Stroke(width = stroke, cap = StrokeCap.Round)
-                            )
-                            
-                            if (isSpaceTerminal && animatedProgress > 0f) {
-                                // Calculate planet satellite dot coordinates at the progress head
-                                val angleRad = Math.toRadians((-90f + 360f * animatedProgress).toDouble())
-                                val cx = size.width / 2
-                                val cy = size.height / 2
-                                val orbitRadius = (size.minDimension - stroke) / 2
-                                val satX = cx + orbitRadius * cos(angleRad).toFloat()
-                                val satY = cy + orbitRadius * sin(angleRad).toFloat()
+                                Spacer(modifier = Modifier.height(8.dp))
                                 
-                                // Glowing satellite
-                                drawCircle(
-                                    color = spaceSatelliteGlow,
-                                    radius = 8.dp.toPx(),
-                                    center = Offset(satX, satY)
+                                ExpressiveTotalEarningsTicker(
+                                    totalSalary = totalSalary,
+                                    isPrivacyMode = isPrivacyMode,
+                                    themeSettings = themeSettings,
+                                    fontWeight = tickerFontWeight
                                 )
-                                drawCircle(
-                                    color = spaceSatelliteCore,
-                                    radius = 4.dp.toPx(),
-                                    center = Offset(satX, satY)
-                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Surface(
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
+                                            contentDescription = null,
+                                            tint = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "Cumulative Net Income",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
+                                    }
+                                }
+                                
+                                if (currentEntry != null) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    FilledTonalButton(
+                                        onClick = { 
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onEdit() 
+                                        },
+                                        colors = ButtonDefaults.filledTonalButtonColors(
+                                            containerColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
+                                            contentColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                                        ),
+                                        shape = RoundedCornerShape(16.dp),
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Edit ${DateUtils.getShortMonthName(currentEntry.month)} Record", fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
+
+                        // Donut
+                        val savingsRatio = if (totalSalary > 0) 
+                            (totalSavings.toFloat() / totalSalary).coerceIn(0f, 1f)
+                        else 0f
                         
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            AnimatedContent(
-                                targetState = donutMode,
-                                transitionSpec = {
-                                    (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut() + slideOutVertically { -it / 2 })
+                        val animatedProgress by animateFloatAsState(
+                            targetValue = savingsRatio,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            label = "savings_progress"
+                        )
+
+                        Box(
+                            modifier = Modifier.weight(rightWeight.coerceAtLeast(0.001f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Surface(
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onDonutClick()
                                 },
-                                label = "donut_mode_ticker"
-                            ) { mode ->
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    when (mode) {
-                                        DonutDisplayMode.PERCENTAGE -> {
-                                            Text(
-                                                text = "${(savingsRatio * 100).toInt()}%",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                fontWeight = FontWeight.Black
-                                            )
-                                            Text(
-                                                text = "SAVED",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 8.sp
-                                            )
-                                        }
-                                        DonutDisplayMode.ABSOLUTE -> {
-                                            Text(
-                                                text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode, compact = true),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Black
-                                            )
-                                            Text(
-                                                text = "TOTAL",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 8.sp
-                                            )
-                                        }
-                                        DonutDisplayMode.REMAINING_DAYS -> {
-                                            val today = LocalDate.now()
-                                            val nextMonth = today.withDayOfMonth(1).plusMonths(1)
-                                            val days = ChronoUnit.DAYS.between(today, nextMonth)
-                                            Text(
-                                                text = days.toString(),
-                                                style = MaterialTheme.typography.titleLarge,
-                                                fontWeight = FontWeight.Black
-                                            )
-                                            Text(
-                                                text = "DAYS LEFT",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 8.sp
-                                            )
+                                color = Color.Transparent,
+                                shape = CircleShape
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.size(donutSize).padding(4.dp)
+                                ) {
+                                    val trackColor = if (isSystemInDarkTheme()) {
+                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                                    } else {
+                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
+                                    }
+                                    val progressColor = if (isSystemInDarkTheme()) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    }
+                                    
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        val stroke = 10.dp.toPx()
+                                        
+                                        // Track
+                                        drawArc(
+                                            color = trackColor,
+                                            startAngle = 0f,
+                                            sweepAngle = 360f,
+                                            useCenter = false,
+                                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                                        )
+                                        
+                                        // Progress
+                                        drawArc(
+                                            color = progressColor,
+                                            startAngle = -90f,
+                                            sweepAngle = 360f * animatedProgress,
+                                            useCenter = false,
+                                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                                        )
+                                    }
+                                    
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        AnimatedContent(
+                                            targetState = donutMode,
+                                            transitionSpec = {
+                                                (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut() + slideOutVertically { -it / 2 })
+                                            },
+                                            label = "donut_mode_ticker"
+                                        ) { mode ->
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                when (mode) {
+                                                    DonutDisplayMode.PERCENTAGE -> {
+                                                        Text(
+                                                            text = "${(savingsRatio * 100).toInt()}%",
+                                                            style = MaterialTheme.typography.titleLarge,
+                                                            fontWeight = FontWeight.Black,
+                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                                        )
+                                                        Text(
+                                                            text = "SAVED",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = 8.sp,
+                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                                        )
+                                                    }
+                                                    DonutDisplayMode.ABSOLUTE -> {
+                                                        Text(
+                                                            text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode, compact = true),
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            fontWeight = FontWeight.Black,
+                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                                        )
+                                                        Text(
+                                                            text = "TOTAL",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = 8.sp,
+                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                                        )
+                                                    }
+                                                    DonutDisplayMode.REMAINING_DAYS -> {
+                                                        val today = LocalDate.now()
+                                                        val nextMonth = today.withDayOfMonth(1).plusMonths(1)
+                                                        val days = ChronoUnit.DAYS.between(today, nextMonth)
+                                                        Text(
+                                                            text = days.toString(),
+                                                            style = MaterialTheme.typography.titleLarge,
+                                                            fontWeight = FontWeight.Black,
+                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                                        )
+                                                        Text(
+                                                            text = "DAYS LEFT",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = 8.sp,
+                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                    }
+                } else {
+                    // Back Content
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "WEALTH SPLIT METRICS",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.5.sp,
+                                color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "SAVED FUNDS",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "NET DISPOSABLE",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = CurrencyUtils.formatAmount(totalSalary - totalSavings, themeSettings.currencySymbol, isPrivacyMode),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "💡 Tap card to flip back to main view",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                        )
                     }
                 }
             }
@@ -1157,9 +1216,10 @@ fun ExpressiveStatsGrid(
     themeSettings: ThemeSettings
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(160.dp),
+        modifier = Modifier.fillMaxWidth().height(165.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Savings Bento Card with Custom Sparkline
         BentoCard(
             title = "Total Savings",
             icon = Icons.Outlined.Savings,
@@ -1167,13 +1227,79 @@ fun ExpressiveStatsGrid(
             idleContentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         ) {
-            Text(
-                text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(2.dp))
+                
+                // Sparkline representation of savings growth (Organic Bezier + Gradient Fill decay)
+                val sparklineColor = Color(0xFF10B981)
+                val sparklineBrush = Brush.verticalGradient(
+                    colors = listOf(sparklineColor.copy(alpha = 0.35f), Color.Transparent)
+                )
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp)
+                        .padding(top = 4.dp)
+                ) {
+                    val points = listOf(0.15f, 0.35f, 0.2f, 0.55f, 0.45f, 0.85f)
+                    if (points.size >= 2) {
+                        val chartWidth = size.width
+                        val chartHeight = size.height
+                        val stepX = chartWidth / (points.size - 1)
+
+                        val path = androidx.compose.ui.graphics.Path()
+                        val fillPath = androidx.compose.ui.graphics.Path()
+
+                        val calculatedPoints = points.mapIndexed { idx, ratio ->
+                            Offset(idx * stepX, chartHeight - (ratio * chartHeight))
+                        }
+
+                        path.moveTo(calculatedPoints[0].x, calculatedPoints[0].y)
+                        fillPath.moveTo(calculatedPoints[0].x, calculatedPoints[0].y)
+
+                        for (i in 0 until calculatedPoints.size - 1) {
+                            val p0 = calculatedPoints[i]
+                            val p1 = calculatedPoints[i + 1]
+                            val controlX = (p0.x + p1.x) / 2
+                            path.cubicTo(
+                                controlX, p0.y,
+                                controlX, p1.y,
+                                p1.x, p1.y
+                            )
+                            fillPath.cubicTo(
+                                controlX, p0.y,
+                                controlX, p1.y,
+                                p1.x, p1.y
+                            )
+                        }
+
+                        fillPath.lineTo(chartWidth, chartHeight)
+                        fillPath.lineTo(0f, chartHeight)
+                        fillPath.close()
+
+                        drawPath(path = fillPath, brush = sparklineBrush)
+
+                        drawPath(
+                            path = path,
+                            color = sparklineColor,
+                            style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
+                        )
+                    }
+                }
+            }
         }
+
+        // Remittance Bento Card with animated Outflow line
         BentoCard(
             title = "Total Remittance",
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
@@ -1182,12 +1308,76 @@ fun ExpressiveStatsGrid(
             modifier = Modifier.weight(1f),
             onClick = onRemittanceClick
         ) {
-            Text(
-                text = CurrencyUtils.formatAmount(totalRemittance, themeSettings.currencySymbol, isPrivacyMode),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = CurrencyUtils.formatAmount(totalRemittance, themeSettings.currencySymbol, isPrivacyMode),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(2.dp))
+                
+                // Wavy out-transfer line (Organic Bezier + Gradient Fill decay)
+                val outflowColor = MaterialTheme.colorScheme.tertiary
+                val outflowBrush = Brush.verticalGradient(
+                    colors = listOf(outflowColor.copy(alpha = 0.35f), Color.Transparent)
+                )
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp)
+                        .padding(top = 4.dp)
+                ) {
+                    val points = listOf(0.85f, 0.7f, 0.55f, 0.4f, 0.25f, 0.1f)
+                    if (points.size >= 2) {
+                        val chartWidth = size.width
+                        val chartHeight = size.height
+                        val stepX = chartWidth / (points.size - 1)
+
+                        val path = androidx.compose.ui.graphics.Path()
+                        val fillPath = androidx.compose.ui.graphics.Path()
+
+                        val calculatedPoints = points.mapIndexed { idx, ratio ->
+                            Offset(idx * stepX, chartHeight - (ratio * chartHeight))
+                        }
+
+                        path.moveTo(calculatedPoints[0].x, calculatedPoints[0].y)
+                        fillPath.moveTo(calculatedPoints[0].x, calculatedPoints[0].y)
+
+                        for (i in 0 until calculatedPoints.size - 1) {
+                            val p0 = calculatedPoints[i]
+                            val p1 = calculatedPoints[i + 1]
+                            val controlX = (p0.x + p1.x) / 2
+                            path.cubicTo(
+                                controlX, p0.y,
+                                controlX, p1.y,
+                                p1.x, p1.y
+                            )
+                            fillPath.cubicTo(
+                                controlX, p0.y,
+                                controlX, p1.y,
+                                p1.x, p1.y
+                            )
+                        }
+
+                        fillPath.lineTo(chartWidth, chartHeight)
+                        fillPath.lineTo(0f, chartHeight)
+                        fillPath.close()
+
+                        drawPath(path = fillPath, brush = outflowBrush)
+
+                        drawPath(
+                            path = path,
+                            color = outflowColor,
+                            style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -1202,118 +1392,235 @@ fun ExpressiveHistoryBentoBox(
     isLarge: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val savingsRatio = if (entry.salaryAmount > 0) 
+        (entry.savingsAmount.toFloat() / entry.salaryAmount.toFloat())
+    else 0f
+    val savingsPercent = (savingsRatio * 100).toInt()
+
+    val animatedSavingsProgress by animateFloatAsState(
+        targetValue = savingsRatio,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "bento_progress"
+    )
+
+    val indicatorColor = when {
+        savingsPercent >= 25 -> MaterialTheme.colorScheme.tertiary
+        savingsPercent >= 10 -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.error
+    }
+
+    val topCornerRadius by animateDpAsState(
+        targetValue = if (isExpanded) 8.dp else 28.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "top_corners"
+    )
+    val bottomCornerRadius by animateDpAsState(
+        targetValue = if (isExpanded) 24.dp else 28.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "bottom_corners"
+    )
+    val cardShape = RoundedCornerShape(
+        topStart = topCornerRadius,
+        topEnd = topCornerRadius,
+        bottomStart = bottomCornerRadius,
+        bottomEnd = bottomCornerRadius
+    )
+
+    val elevationAnimated by animateDpAsState(
+        targetValue = if (isExpanded) 12.dp else 0.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "elevation_anim"
+    )
+
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(28.dp),
-        color = if (isLarge) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = modifier
+            .animateContentSize(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)),
+        shape = cardShape,
+        tonalElevation = elevationAnimated,
+        shadowElevation = elevationAnimated,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onEdit()
+            isExpanded = !isExpanded
         }
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = if (isLarge) Arrangement.SpaceBetween else Arrangement.Center
-        ) {
-            Column(
-                horizontalAlignment = if (isLarge) Alignment.Start else Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = if (isLarge) Modifier.weight(1f) else Modifier
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = DateUtils.getShortMonthName(entry.month).uppercase(),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = CurrencyUtils.formatAmount(entry.salaryAmount, themeSettings.currencySymbol, isPrivacyMode),
-                    style = if (isLarge) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                val savingsRatio = if (entry.salaryAmount > 0) 
-                    (entry.savingsAmount.toFloat() / entry.salaryAmount.toFloat())
-                else 0f
-                val savingsPercent = (savingsRatio * 100).toInt()
-                
-                val animatedSavingsProgress by animateFloatAsState(
-                    targetValue = savingsRatio,
-                    animationSpec = spring(stiffness = Spring.StiffnessLow),
-                    label = "bento_progress"
-                )
-
-                Column(
-                    modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
-                    horizontalAlignment = if (isLarge) Alignment.Start else Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(if (isLarge) 0.85f else 0.9f),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Savings",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "$savingsPercent%",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Black
-                        )
-                    }
-                    
-                    // Premium Bento Progress Bar
                     Box(
                         modifier = Modifier
-                            .padding(top = 6.dp)
-                            .fillMaxWidth(if (isLarge) 0.85f else 0.9f)
-                            .height(8.dp)
+                            .width(5.dp)
+                            .height(38.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(animatedSavingsProgress.coerceAtLeast(0.01f))
-                                .fillMaxHeight()
-                                .background(
-                                    brush = Brush.horizontalGradient(
-                                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
-                                    ),
-                                    shape = CircleShape
-                                )
+                            .background(indicatorColor)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        ) {
+                            Text(
+                                text = DateUtils.getShortMonthName(entry.month).uppercase(),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(4.dp))
+                        
+                        Text(
+                            text = CurrencyUtils.formatAmount(entry.salaryAmount, themeSettings.currencySymbol, isPrivacyMode),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            
-            if (isLarge) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    modifier = Modifier.size(48.dp)
+
+            if (isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.padding(12.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "SAVINGS",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                letterSpacing = 1.sp
+                            )
+                            Text(
+                                text = "${CurrencyUtils.formatAmount(entry.savingsAmount, themeSettings.currencySymbol, isPrivacyMode)} ($savingsPercent%)",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = indicatorColor
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(animatedSavingsProgress.coerceAtLeast(0.01f))
+                                    .fillMaxHeight()
+                                    .background(indicatorColor, CircleShape)
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "REMITTANCE",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                text = CurrencyUtils.formatAmount(entry.remittanceAmount, themeSettings.currencySymbol, isPrivacyMode),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "SPENT",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                            val spent = entry.salaryAmount - entry.savingsAmount - entry.remittanceAmount
+                            Text(
+                                text = CurrencyUtils.formatAmount(spent, themeSettings.currencySymbol, isPrivacyMode),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    if (entry.note.isNotBlank()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                                .padding(8.dp)
+                        ) {
+                            Text(
+                                text = "NOTE",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                            Text(
+                                text = entry.note,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onEdit()
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Edit Record", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
                 }
             }
         }
@@ -1466,30 +1773,31 @@ fun ExpressiveEmptyHero(onAdd: () -> Unit) {
     }
 }
 
-
-
 @Composable
 fun ExpressiveTotalEarningsTicker(
     totalSalary: Long,
     isPrivacyMode: Boolean,
-    themeSettings: ThemeSettings
+    themeSettings: ThemeSettings,
+    fontWeight: FontWeight = FontWeight.Black
 ) {
     val haptic = LocalHapticFeedback.current
     val formattedTotal = CurrencyUtils.formatAmount(totalSalary, themeSettings.currencySymbol, isPrivacyMode)
     
     val textStyle = when {
-        formattedTotal.length <= 6 -> MaterialTheme.typography.displayMedium
-        formattedTotal.length <= 9 -> MaterialTheme.typography.displaySmall
-        formattedTotal.length <= 12 -> MaterialTheme.typography.headlineLarge
-        else -> MaterialTheme.typography.headlineMedium
-    }
+        formattedTotal.length <= 6 -> MaterialTheme.typography.displayLarge
+        formattedTotal.length <= 9 -> MaterialTheme.typography.displayMedium
+        formattedTotal.length <= 12 -> MaterialTheme.typography.displaySmall
+        else -> MaterialTheme.typography.headlineLarge
+    }.copy(
+        letterSpacing = (-2).sp
+    )
     
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (isPrivacyMode) {
             Text(
                 text = formattedTotal,
                 style = textStyle,
-                fontWeight = FontWeight.Black
+                fontWeight = fontWeight
             )
         } else {
             // Split the formatted string into characters to animate each digit separately
@@ -1502,7 +1810,7 @@ fun ExpressiveTotalEarningsTicker(
                         if (isDigit) {
                             // Micro-Haptic "Ticker" Feedback
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-
+ 
                             // The "Physical Drum" Roll effect for digits
                             (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
@@ -1517,7 +1825,7 @@ fun ExpressiveTotalEarningsTicker(
                     Text(
                         text = targetChar.toString(),
                         style = textStyle,
-                        fontWeight = FontWeight.Black,
+                        fontWeight = fontWeight,
                         softWrap = false
                     )
                 }
@@ -1579,18 +1887,26 @@ fun ExpressiveAddEditSheet(
             .padding(horizontal = 24.dp)
             .padding(bottom = 24.dp)
             .navigationBarsPadding()
-            .imePadding()
+            .imePadding(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (uiState.editingEntry == null) "Add Salary" else "Edit Salary",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black
-            )
+            Column {
+                Text(
+                    text = if (uiState.editingEntry == null) "Add Salary" else "Edit Salary",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = "Track your monthly earnings & splits",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            }
             
             IconButton(
                 onClick = onDismiss,
@@ -1599,8 +1915,6 @@ fun ExpressiveAddEditSheet(
                 Icon(Icons.Default.Close, contentDescription = "Close")
             }
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
 
         // 1. Period Island (Bento Selection)
         Surface(
@@ -1610,10 +1924,11 @@ fun ExpressiveAddEditSheet(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Pay Period",
-                    style = MaterialTheme.typography.labelLarge,
+                    text = "PAY PERIOD",
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp,
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
                 ExpressivePeriodSelector(
@@ -1625,11 +1940,9 @@ fun ExpressiveAddEditSheet(
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
         // 2. Hero Amount Island (Bento Card, Focused Scaling)
-        val salaryElevation by animateDpAsState(if (isSalaryFocused) 12.dp else 0.dp)
-        val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.04f else 1f)
+        val salaryElevation by animateDpAsState(if (isSalaryFocused) 12.dp else 0.dp, label = "salary_elevation")
+        val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.04f else 1f, label = "salary_scale")
         
         Surface(
             color = if (isSalaryFocused) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -1637,7 +1950,11 @@ fun ExpressiveAddEditSheet(
             shadowElevation = salaryElevation,
             modifier = Modifier
                 .fillMaxWidth()
-                .graphicsLayer(scaleX = salaryScale, scaleY = salaryScale)
+                .graphicsLayer(scaleX = salaryScale, scaleY = salaryScale),
+            border = BorderStroke(
+                width = 1.dp,
+                color = if (isSalaryFocused) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
+            )
         ) {
             Column(
                 modifier = Modifier.padding(24.dp).fillMaxWidth(),
@@ -1646,7 +1963,7 @@ fun ExpressiveAddEditSheet(
             ) {
                 Text(
                     text = "TOTAL EARNINGS",
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelSmall,
                     color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 1.2.sp
@@ -1702,8 +2019,6 @@ fun ExpressiveAddEditSheet(
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Visual Math feedback (The "Remaining" Pill)
         AnimatedVisibility(
             visible = uiState.inputSalary.isNotBlank(),
@@ -1749,20 +2064,20 @@ fun ExpressiveAddEditSheet(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        
         // Bento Island for Allocations (Savings & Remittance & Notes)
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Allocations",
-                    style = MaterialTheme.typography.labelLarge,
+                    text = "ALLOCATIONS",
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp,
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
                 Row(
@@ -1827,7 +2142,93 @@ fun ExpressiveAddEditSheet(
                     }
                 }
 
-                // Expanding Note Drawer (Merged into Allocations Card for space efficiency)
+                // Dynamic Allocation segmented graph
+                val salary = uiState.inputSalary.toDoubleOrNull() ?: 0.0
+                val savings = uiState.inputSavings.toDoubleOrNull() ?: 0.0
+                val remittance = uiState.inputRemittance.toDoubleOrNull() ?: 0.0
+
+                val savingsRatio = if (salary > 0) (savings / salary).coerceIn(0.0, 1.0) else 0.0
+                val remittanceRatio = if (salary > 0) (remittance / salary).coerceIn(0.0, 1.0) else 0.0
+                val remainingRatio = (1.0 - savingsRatio - remittanceRatio).coerceAtLeast(0.0)
+
+                if (salary > 0) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Column(
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    ) {
+                        // Segmented progress bar
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                        ) {
+                            if (savingsRatio > 0.001) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(savingsRatio.toFloat())
+                                        .fillMaxHeight()
+                                        .background(MaterialTheme.colorScheme.primary)
+                                )
+                            }
+                            if (remittanceRatio > 0.001) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(remittanceRatio.toFloat())
+                                        .fillMaxHeight()
+                                        .background(Color(0xFF8B5CF6)) // Premium Purple
+                                )
+                            }
+                            if (remainingRatio > 0.001) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(remainingRatio.toFloat())
+                                        .fillMaxHeight()
+                                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Legends
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Saved: ${(savingsRatio * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.size(6.dp).background(Color(0xFF8B5CF6), CircleShape))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Remitted: ${(remittanceRatio * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.size(6.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), CircleShape))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Spent: ${(remainingRatio * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Expanding Note Drawer (Merged into Allocations Card)
                 AnimatedVisibility(
                     visible = showNoteField,
                     enter = expandVertically() + fadeIn(),
@@ -1859,7 +2260,7 @@ fun ExpressiveAddEditSheet(
             }
         }
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         
         val isInputValid = uiState.inputSalary.isNotBlank() && uiState.inputSalary.toDoubleOrNull() != null
         
@@ -2072,6 +2473,340 @@ fun HistoryBottomSheet(
                         )
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun InteractiveAnalyticsChart(
+    entries: List<SalaryEntry>,
+    isPrivacyMode: Boolean,
+    themeSettings: ThemeSettings,
+    onMonthSelected: (SalaryEntry) -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+    val last6 = remember(entries) {
+        entries.sortedWith(compareBy<SalaryEntry> { it.year }.thenBy { it.month }).takeLast(6)
+    }
+
+    if (last6.isEmpty()) return
+
+    val maxAmount = remember(last6) {
+        last6.maxOfOrNull { it.salaryAmount }?.coerceAtLeast(1L) ?: 1L
+    }
+
+    var selectedIndex by remember { mutableStateOf(-1) }
+
+    val scaleAnims = last6.mapIndexed { idx, _ ->
+        var trigger by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(idx * 75L)
+            trigger = true
+        }
+        animateFloatAsState(
+            targetValue = if (trigger) 1f else 0f,
+            animationSpec = spring(
+                stiffness = 100f,
+                dampingRatio = Spring.DampingRatioMediumBouncy
+            ),
+            label = "bar_scale_$idx"
+        )
+    }
+
+    Surface(
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "INCOME VS. SAVINGS TREND",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = 2.0.sp,
+                modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+            )
+
+            val primaryColor = MaterialTheme.colorScheme.primary
+
+            // Canvas Chart
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp)
+            ) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    val padding = 8.dp.toPx()
+                    val chartWidth = size.width
+                    val chartHeight = size.height
+                    val barGroupCount = last6.size
+                    val groupWidth = chartWidth / barGroupCount
+                    val barWidth = groupWidth * 0.32f
+                    val gap = groupWidth * 0.08f
+
+                    last6.forEachIndexed { idx, entry ->
+                        val groupCenterX = idx * groupWidth + (groupWidth / 2)
+                        
+                        val scale = scaleAnims[idx].value
+                        val salaryHeight = (entry.salaryAmount.toFloat() / maxAmount.toFloat()) * (chartHeight - padding * 2) * scale
+                        val savingsHeight = (entry.savingsAmount.toFloat() / maxAmount.toFloat()) * (chartHeight - padding * 2) * scale
+
+                        // Coordinates
+                        val salaryX = groupCenterX - barWidth - gap / 2
+                        val savingsX = groupCenterX + gap / 2
+
+                        val salaryY = chartHeight - padding - salaryHeight
+                        val savingsY = chartHeight - padding - savingsHeight
+
+                        // Colors
+                        val isSelected = selectedIndex == idx
+                        val salaryColor = if (isSelected) primaryColor else primaryColor.copy(alpha = 0.5f)
+                        val savingsColor = if (isSelected) Color(0xFF10B981) else Color(0xFF10B981).copy(alpha = 0.5f)
+
+                        // Draw Salary bar
+                        drawRoundRect(
+                            color = salaryColor,
+                            topLeft = Offset(salaryX, salaryY),
+                            size = androidx.compose.ui.geometry.Size(barWidth, salaryHeight.coerceAtLeast(4f)),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx(), 4.dp.toPx())
+                        )
+
+                        // Draw Savings bar
+                        drawRoundRect(
+                            color = savingsColor,
+                            topLeft = Offset(savingsX, savingsY),
+                            size = androidx.compose.ui.geometry.Size(barWidth, savingsHeight.coerceAtLeast(4f)),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx(), 4.dp.toPx())
+                        )
+                    }
+                }
+                
+                // Overlay Row to capture taps
+                Row(modifier = Modifier.fillMaxSize()) {
+                    last6.forEachIndexed { idx, entry ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    selectedIndex = idx
+                                    onMonthSelected(entry)
+                                }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Labels Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                last6.forEachIndexed { idx, entry ->
+                    val isSelected = selectedIndex == idx
+                    Text(
+                        text = DateUtils.getShortMonthName(entry.month),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            // Legend
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Income", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.width(20.dp))
+                Box(modifier = Modifier.size(8.dp).background(Color(0xFF10B981), CircleShape))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Savings", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
+    val haptic = LocalHapticFeedback.current
+    var savingsRate by remember { mutableStateOf(20f) }
+
+    val annualSavings = (averageSalary * (savingsRate / 100f) * 12).toLong()
+    val monthlyRemaining = (averageSalary * (1f - savingsRate / 100f)).toLong()
+
+    val motivationText = when {
+        savingsRate < 10f -> "Simulation: Budget constraints 📉"
+        savingsRate < 25f -> "Simulation: Balanced split 👍"
+        savingsRate < 40f -> "Simulation: Wealth builder mode 🚀"
+        else -> "Simulation: Hyper-savings champion 🏆"
+    }
+
+    Surface(
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "SALARY ALLOCATION PLAYGROUND",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = 2.0.sp,
+                modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+            )
+
+            Text(
+                text = "Adjust the slider to simulate target savings rates and project wealth trajectory.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
+            )
+
+            // Slider Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "${savingsRate.toInt()}%",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.width(48.dp)
+                )
+
+                Slider(
+                    value = savingsRate,
+                    onValueChange = { newValue -> 
+                        val newInt = newValue.toInt()
+                        val oldInt = savingsRate.toInt()
+                        if (newInt != oldInt) {
+                            if (newInt % 5 == 0) {
+                                if (newInt == 50 || newInt == 100) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                } else {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                }
+                            }
+                        }
+                        savingsRate = newValue
+                    },
+                    valueRange = 0f..100f,
+                    modifier = Modifier.weight(1f),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Projections grid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Annual accumulation block
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "PROJECTED ANNUAL SAVINGS",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 8.sp,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = CurrencyUtils.formatAmount(annualSavings, themeSettings.currencySymbol, false),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                // Remaining monthly block
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "EST. DISPOSABLE INCOME",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 8.sp,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = CurrencyUtils.formatAmount(monthlyRemaining, themeSettings.currencySymbol, false),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Advice Pill
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lightbulb,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = motivationText,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
             }
         }
     }
