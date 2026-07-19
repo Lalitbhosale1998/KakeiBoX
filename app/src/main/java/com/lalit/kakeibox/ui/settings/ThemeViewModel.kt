@@ -20,6 +20,7 @@ import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.DynamicTonalStyle
+import com.personal.kakeibox.data.preferences.ColorIntensityPreset
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
 import com.personal.kakeibox.data.repository.BirthdayRepository
 import com.personal.kakeibox.data.repository.ExerciseRepository
@@ -221,6 +222,12 @@ class ThemeViewModel @Inject constructor(
     fun setDynamicTonalStyle(style: DynamicTonalStyle) {
         viewModelScope.launch {
             preferencesRepository.setDynamicTonalStyle(style)
+        }
+    }
+
+    fun setIntensityPreset(preset: ColorIntensityPreset) {
+        viewModelScope.launch {
+            preferencesRepository.setIntensityPreset(preset)
         }
     }
 

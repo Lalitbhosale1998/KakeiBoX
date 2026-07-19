@@ -21,6 +21,7 @@ import com.personal.kakeibox.ui.theme.terminalGridBackground
 import com.personal.kakeibox.ui.theme.backdropPattern
 import com.personal.kakeibox.ui.theme.crtScreenFilter
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.data.preferences.ColorIntensityPreset
 
 @Composable
 fun KakeiboXAppRoot() {
@@ -51,7 +52,8 @@ fun KakeiboXAppRoot() {
         appFont = themeSettings.appFont,
         touchSynesthesia = themeSettings.touchSynesthesia,
         glowIntensity = themeSettings.glowIntensity,
-        dynamicTonalStyle = themeSettings.dynamicTonalStyle
+        dynamicTonalStyle = themeSettings.dynamicTonalStyle,
+        intensityPreset = themeSettings.intensityPreset
     ) {
         Box(
             modifier = Modifier

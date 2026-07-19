@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.AppFont
 import com.personal.kakeibox.data.preferences.DynamicTonalStyle
+import com.personal.kakeibox.data.preferences.ColorIntensityPreset
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -428,9 +429,6 @@ private fun getWallpaperSeedColor(context: android.content.Context, fallbackColo
     return fallbackColor.toArgb()
 }
 
-enum class ColorIntensityPreset {
-    NEUTRAL, SOFT, BRIGHT, BOLD
-}
 
 @Composable
 fun KakeiboXTheme(

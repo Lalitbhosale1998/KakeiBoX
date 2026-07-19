@@ -4,6 +4,20 @@ enum class AppLanguage {
     ENGLISH, JAPANESE
 }
 
+enum class ColorIntensityPreset {
+    NEUTRAL, SOFT, BRIGHT, BOLD;
+
+    companion object {
+        fun fromStorage(value: String?): ColorIntensityPreset {
+            return try {
+                value?.let { valueOf(it) } ?: SOFT
+            } catch (e: Exception) {
+                SOFT
+            }
+        }
+    }
+}
+
 data class ThemeSettings(
     val darkThemePreference: DarkThemePreference = DarkThemePreference.SYSTEM,
     val useDynamicColor: Boolean = true,
@@ -23,5 +37,6 @@ data class ThemeSettings(
     val glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
     val crtFilterEnabled: Boolean = false,
     val touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
-    val dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT
+    val dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
+    val intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT
 )

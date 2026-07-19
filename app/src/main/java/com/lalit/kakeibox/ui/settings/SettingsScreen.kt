@@ -160,6 +160,7 @@ import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.data.preferences.ColorIntensityPreset
 import com.personal.kakeibox.data.preferences.DynamicTonalStyle
 import com.personal.kakeibox.data.preferences.AppFont
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
@@ -388,7 +389,21 @@ fun SettingsScreen(
                                 onCheckedChange = { viewModel.setUseDynamicColor(it) },
                                 accentColor = Color(0xFFD946EF)
                             )
-                            
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                            SettingsSelectorRow(
+                                title = "Theme Controls Intensity",
+                                description = "Control tone saturation and contrast (Neutral, Soft, Bright, Bold).",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.intensityPreset.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = listOf(
+                                    ColorIntensityPreset.NEUTRAL to "Neutral",
+                                    ColorIntensityPreset.SOFT to "Soft",
+                                    ColorIntensityPreset.BRIGHT to "Bright",
+                                    ColorIntensityPreset.BOLD to "Bold"
+                                ),
+                                onOptionSelected = { viewModel.setIntensityPreset(it) },
+                                accentColor = Color(0xFF10B981)
+                            )
                         }
 
                         // Typography & Layout Group
@@ -600,6 +615,22 @@ fun SettingsScreen(
                                 checked = themeSettings.useDynamicColor,
                                 onCheckedChange = { viewModel.setUseDynamicColor(it) },
                                 accentColor = Color(0xFFD946EF)
+                            )
+                        }
+                        if (shouldShow("Theme Controls Intensity", keywords = listOf("intensity", "saturation", "preset", "contrast"))) {
+                            SettingsSelectorRow(
+                                title = "Theme Controls Intensity",
+                                description = "Control tone saturation and contrast (Neutral, Soft, Bright, Bold).",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.intensityPreset.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = listOf(
+                                    ColorIntensityPreset.NEUTRAL to "Neutral",
+                                    ColorIntensityPreset.SOFT to "Soft",
+                                    ColorIntensityPreset.BRIGHT to "Bright",
+                                    ColorIntensityPreset.BOLD to "Bold"
+                                ),
+                                onOptionSelected = { viewModel.setIntensityPreset(it) },
+                                accentColor = Color(0xFF10B981)
                             )
                         }
                         if (shouldShow("App Font Face", keywords = listOf("font", "typeface", "text", "style"))) {
