@@ -14,6 +14,7 @@ import com.google.android.material.color.utilities.SchemeNeutral
 import com.google.android.material.color.utilities.SchemeTonalSpot
 import com.google.android.material.color.utilities.SchemeFidelity
 import com.google.android.material.color.utilities.SchemeExpressive
+import com.google.android.material.color.utilities.SchemeVibrant
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
@@ -453,7 +454,7 @@ fun KakeiboXTheme(
                 ColorIntensityPreset.NEUTRAL -> SchemeNeutral(hct, darkTheme, 0.0)
                 ColorIntensityPreset.SOFT -> SchemeTonalSpot(hct, darkTheme, 0.0)
                 ColorIntensityPreset.BRIGHT -> SchemeFidelity(hct, darkTheme, 0.0)
-                ColorIntensityPreset.BOLD -> SchemeExpressive(hct, darkTheme, 0.0)
+                ColorIntensityPreset.BOLD -> SchemeVibrant(hct, darkTheme, 0.0)
             }
             val scheme = dynamicScheme.toComposeColorScheme()
             if (!darkTheme && scheme.background == Color.White) {
