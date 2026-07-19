@@ -9,6 +9,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import com.google.android.material.color.utilities.Hct
+import com.google.android.material.color.utilities.SchemeNeutral
+import com.google.android.material.color.utilities.SchemeTonalSpot
+import com.google.android.material.color.utilities.SchemeFidelity
+import com.google.android.material.color.utilities.SchemeExpressive
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
@@ -72,6 +77,8 @@ private val LightColors = lightColorScheme(
     surfaceContainer = Color(0xFFECEEF4),
     surfaceContainerHigh = Color(0xFFE7E8EE),
     surfaceContainerHighest = Color(0xFFE1E2E8),
+    background = Color(0xFFF5F6FB),
+    onBackground = Color(0xFF191C20),
 )
 
 private val DarkColors = darkColorScheme(
@@ -421,6 +428,10 @@ private fun getWallpaperSeedColor(context: android.content.Context, fallbackColo
     return fallbackColor.toArgb()
 }
 
+enum class ColorIntensityPreset {
+    NEUTRAL, SOFT, BRIGHT, BOLD
+}
+
 @Composable
 fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -430,13 +441,28 @@ fun KakeiboXTheme(
     touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
     glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
     dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
+    colorSeed: Color? = null,
+    intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context)
-            else dynamicLightColorScheme(context)
+        dynamicColor -> {
+            val fallbackColor = if (darkTheme) Color(0xFFAAC7FF) else Color(0xFF1565C0)
+            val seedInt = colorSeed?.toArgb() ?: getWallpaperSeedColor(context, fallbackColor)
+            val hct = Hct.fromInt(seedInt)
+            val dynamicScheme = when (intensityPreset) {
+                ColorIntensityPreset.NEUTRAL -> SchemeNeutral(hct, darkTheme, 0.0)
+                ColorIntensityPreset.SOFT -> SchemeTonalSpot(hct, darkTheme, 0.0)
+                ColorIntensityPreset.BRIGHT -> SchemeFidelity(hct, darkTheme, 0.0)
+                ColorIntensityPreset.BOLD -> SchemeExpressive(hct, darkTheme, 0.0)
+            }
+            val scheme = dynamicScheme.toComposeColorScheme()
+            if (!darkTheme && scheme.background == Color.White) {
+                scheme.copy(background = Color(0xFFF5F6FB))
+            } else {
+                scheme
+            }
         }
         darkTheme -> DarkColors
         else -> LightColors

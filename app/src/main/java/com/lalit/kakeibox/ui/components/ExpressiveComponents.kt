@@ -125,7 +125,7 @@ fun Modifier.elasticClick(
     val isPressed by interactionSource.collectIsPressedAsState()
     
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && enabled) 0.94f else 1.0f,
+        targetValue = if (isPressed && enabled) 0.98f else 1.0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
