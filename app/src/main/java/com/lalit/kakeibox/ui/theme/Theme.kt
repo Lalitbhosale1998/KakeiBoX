@@ -451,7 +451,10 @@ fun KakeiboXTheme(
             val seedInt = colorSeed?.toArgb() ?: getWallpaperSeedColor(context, fallbackColor)
             val hct = Hct.fromInt(seedInt)
             val dynamicScheme = when (intensityPreset) {
-                ColorIntensityPreset.NEUTRAL -> SchemeNeutral(hct, darkTheme, 0.0)
+                ColorIntensityPreset.NEUTRAL -> {
+                    val mutedHct = Hct.from(hct.hue, 12.0, hct.tone)
+                    SchemeFidelity(mutedHct, darkTheme, 0.0)
+                }
                 ColorIntensityPreset.SOFT -> SchemeTonalSpot(hct, darkTheme, 0.0)
                 ColorIntensityPreset.BRIGHT -> SchemeFidelity(hct, darkTheme, 0.0)
                 ColorIntensityPreset.BOLD -> SchemeVibrant(hct, darkTheme, 0.0)
