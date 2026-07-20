@@ -490,18 +490,19 @@ fun MemoryDetailScreen(
     }
 }
 
-class TicketShape(private val cornerRadius: Float, private val cutoutRadius: Float) : Shape {
+class TicketShape(private val topCornerRadius: Float, private val bottomCornerRadius: Float, private val cutoutRadius: Float) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: androidx.compose.ui.unit.Density): Outline {
         val path = Path().apply {
             val w = size.width
             val h = size.height
-            val cr = cornerRadius
+            val tcr = topCornerRadius
+            val bcr = bottomCornerRadius
             val cutR = cutoutRadius
             
-            moveTo(0f, cr)
-            quadraticTo(0f, 0f, cr, 0f)
-            lineTo(w - cr, 0f)
-            quadraticTo(w, 0f, w, cr)
+            moveTo(0f, tcr)
+            if (tcr > 0f) quadraticTo(0f, 0f, tcr, 0f) else lineTo(0f, 0f)
+            lineTo(w - tcr, 0f)
+            if (tcr > 0f) quadraticTo(w, 0f, w, tcr) else lineTo(w, 0f)
             
             lineTo(w, (h / 2) - cutR)
             arcTo(
@@ -511,10 +512,10 @@ class TicketShape(private val cornerRadius: Float, private val cutoutRadius: Flo
                 forceMoveTo = false
             )
             
-            lineTo(w, h - cr)
-            quadraticTo(w, h, w - cr, h)
-            lineTo(cr, h)
-            quadraticTo(0f, h, 0f, h - cr)
+            lineTo(w, h - bcr)
+            if (bcr > 0f) quadraticTo(w, h, w - bcr, h) else lineTo(w, h)
+            lineTo(bcr, h)
+            if (bcr > 0f) quadraticTo(0f, h, 0f, h - bcr) else lineTo(0f, h)
             
             lineTo(0f, (h / 2) + cutR)
             arcTo(
@@ -524,7 +525,7 @@ class TicketShape(private val cornerRadius: Float, private val cutoutRadius: Flo
                 forceMoveTo = false
             )
             
-            lineTo(0f, cr)
+            lineTo(0f, tcr)
             close()
         }
         return Outline.Generic(path)
@@ -538,6 +539,7 @@ fun BoardingPassCard(
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit = {},
+    onBack: () -> Unit = {},
     isHeader: Boolean = false // If true, disable touch bloom/click
 ) {
     val density = LocalDensity.current
@@ -551,8 +553,20 @@ fun BoardingPassCard(
     )
     
     val elevation by animateDpAsState(
-        targetValue = if (isPressed && !isHeader) 8.dp else 2.dp,
+        targetValue = if (isHeader) 0.dp else if (isPressed) 8.dp else 2.dp,
         label = "elevation"
+    )
+    
+    val topCornerRadius by animateFloatAsState(
+        targetValue = if (isHeader) 0f else with(density) { 32.dp.toPx() },
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 200f),
+        label = "top_cr"
+    )
+
+    val statusBarsPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val topPadding by animateDpAsState(
+        targetValue = if (isHeader) statusBarsPadding + 24.dp else 24.dp,
+        label = "top_padding"
     )
 
     with(sharedTransitionScope) {
@@ -574,28 +588,35 @@ fun BoardingPassCard(
                     indication = LocalIndication.current
                 ) { onClick() },
             shape = TicketShape(
-                cornerRadius = with(density) { 32.dp.toPx() },
+                topCornerRadius = topCornerRadius,
+                bottomCornerRadius = with(density) { 32.dp.toPx() },
                 cutoutRadius = with(density) { 16.dp.toPx() }
             ),
             color = MaterialTheme.colorScheme.surfaceVariant,
             shadowElevation = elevation
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Column(modifier = Modifier.padding(top = topPadding, bottom = 24.dp, start = 24.dp, end = 24.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.FlightTakeoff,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        if (isHeader) {
+                            IconButton(onClick = onBack, modifier = Modifier.offset(x = (-12).dp)) {
+                                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        } else {
+                            Icon(
+                                Icons.Default.FlightTakeoff,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
                         Text(
-                            text = "UPCOMING",
+                            text = if (isHeader) "ITINERARY" else "UPCOMING",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Black,
@@ -667,17 +688,16 @@ fun HorizonDetailScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.padding(16.dp).padding(top = 32.dp)) {
-                BoardingPassCard(
-                    horizon = horizon,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    isHeader = true
-                )
-            }
+            BoardingPassCard(
+                horizon = horizon,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                onBack = onBack,
+                isHeader = true
+            )
             
             Text(
-                text = "Itinerary",
+                text = "Timeline",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp),
@@ -803,13 +823,6 @@ fun HorizonDetailScreen(
                 }
                 Spacer(modifier = Modifier.height(100.dp))
             }
-        }
-        
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier.padding(top = 40.dp, start = 8.dp)
-        ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
         }
     }
 }
