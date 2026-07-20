@@ -181,7 +181,7 @@ fun ExpressivePeriodSelector(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -226,7 +226,7 @@ fun ExpressiveSnackbarHost(hostState: SnackbarHostState) {
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.cardColors(
                 containerColor = when {
                     isError -> MaterialTheme.colorScheme.errorContainer
@@ -293,7 +293,7 @@ fun ExpressiveCategoryToggle(
         modifier = modifier
             .fillMaxWidth()
             .height(64.dp)
-            .clip(RoundedCornerShape(28.dp))
+            .clip(MaterialTheme.shapes.extraLarge)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(8.dp)
     ) {
@@ -390,7 +390,7 @@ fun ExpressiveTab(
     val targetRadius = if (isSpaceTerminal) {
         if (isSelected) 12 else 8
     } else {
-        if (isSelected) 28 else 16
+        if (isSelected) 24 else 12 // Maps to large (24) and medium (12)
     }
 
     // Morphing Shape logic: Squircle (16dp) to Custom Expressive Shapes
@@ -791,7 +791,7 @@ fun BentoCard(
     val targetRadius = if (isSpaceTerminal) {
         if (isPressed) 8 else 12
     } else {
-        if (isPressed) 16 else 32
+        if (isPressed) 12 else 32 // Maps to medium (12) and extraLarge (32)
     }
 
     val cornerRadius by animateIntAsState(
@@ -900,7 +900,7 @@ fun ExpressiveOutlinedTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     singleLine: Boolean = false,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
-    shape: Shape = RoundedCornerShape(20.dp),
+    shape: Shape = MaterialTheme.shapes.large,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     val haptic = LocalHapticFeedback.current
@@ -1131,7 +1131,7 @@ fun ExpressiveButton(
                 ) else Modifier)
                 .terminalButton(enabled, backgroundColor),
             color = Color.Transparent,
-            shape = RoundedCornerShape(12.dp)
+            shape = MaterialTheme.shapes.medium
         ) {
             Row(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
@@ -1150,7 +1150,7 @@ fun ExpressiveButton(
             onClick = onClick,
             modifier = modifier.height(56.dp),
             enabled = enabled,
-            shape = RoundedCornerShape(24.dp),
+            shape = MaterialTheme.shapes.large,
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                 containerColor = backgroundColor
             ),

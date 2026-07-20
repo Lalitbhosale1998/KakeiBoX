@@ -1,4 +1,4 @@
-package com.personal.kakeibox.ui.settings
+﻿package com.personal.kakeibox.ui.settings
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -343,7 +343,7 @@ fun SettingsScreen(
                         }
                     }
                 } else null,
-                shape = RoundedCornerShape(24.dp),
+                shape = MaterialTheme.shapes.large,
                 singleLine = true,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
@@ -842,7 +842,7 @@ fun SettingsScreen(
     if (showTabOrderSheet) {
         val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
         val sheetBgColor = if (isSpaceTerminal) Color(0xFF0F172A) else MaterialTheme.colorScheme.surfaceContainerHigh
-        val sheetShape = if (isSpaceTerminal) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp) else RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        val sheetShape = if (isSpaceTerminal) MaterialTheme.shapes.medium.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp)) else MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp))
 
         ModalBottomSheet(
             onDismissRequest = { showTabOrderSheet = false },
@@ -946,7 +946,7 @@ fun SettingsScreen(
                                         }
                                     )
                                 },
-                            shape = if (isSpaceTerminal) RoundedCornerShape(8.dp) else RoundedCornerShape(16.dp),
+                            shape = if (isSpaceTerminal) MaterialTheme.shapes.small else MaterialTheme.shapes.medium,
                             color = itemBg,
                             border = itemBorder,
                             tonalElevation = elevation
@@ -1015,13 +1015,13 @@ fun SettingsCategoryCard(
     val contentColor = MaterialTheme.colorScheme.onSurface
 
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
-    val cardShape = if (isSpaceTerminal) RoundedCornerShape(12.dp) else RoundedCornerShape(28.dp)
+    val cardShape = if (isSpaceTerminal) MaterialTheme.shapes.medium else MaterialTheme.shapes.extraLarge
     val cardBorder = if (isSpaceTerminal) {
         BorderStroke(1.5.dp, if (isExpanded) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
     } else {
         null
     }
-    val iconShape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp)
+    val iconShape = if (isSpaceTerminal) MaterialTheme.shapes.small else MaterialTheme.shapes.medium
 
     val glowIntensity = LocalGlowIntensity.current
 
@@ -1219,7 +1219,7 @@ fun BirthdayManagementContent(
                     .fillMaxWidth()
                     .height(220.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
-                shape = RoundedCornerShape(32.dp)
+                shape = MaterialTheme.shapes.extraLarge
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -1314,7 +1314,7 @@ fun BirthdayManagementContent(
                                     MaterialTheme.colorScheme.tertiaryContainer
                                 )
                             ),
-                            shape = RoundedCornerShape(24.dp)
+                            shape = MaterialTheme.shapes.large
                         )
                         .graphicsLayer { rotationZ = -10f },
                     contentAlignment = Alignment.Center
@@ -1365,7 +1365,7 @@ fun BirthdayManagementContent(
                     Surface(
                         onClick = { showDatePicker = !showDatePicker },
                         color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(20.dp),
+                        shape = MaterialTheme.shapes.large,
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp, 
                             if (showDatePicker) MaterialTheme.colorScheme.primary 
@@ -1466,7 +1466,7 @@ fun BirthdayRow(
 
     Surface(
         color = backgroundColor,
-        shape = RoundedCornerShape(24.dp),
+        shape = MaterialTheme.shapes.large,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -1481,7 +1481,7 @@ fun BirthdayRow(
                     .background(
                         color = if (birthday.isEnabled) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = MaterialTheme.shapes.medium
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -1637,9 +1637,9 @@ fun FontOptionCard(
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     
     val shape = if (isSpaceTerminal) {
-        RoundedCornerShape(6.dp)
+        MaterialTheme.shapes.small
     } else {
-        RoundedCornerShape(16.dp)
+        MaterialTheme.shapes.medium
     }
     
     val animatedBgColor by animateColorAsState(
@@ -1811,7 +1811,7 @@ fun SettingsTabRow(
         tonalElevation = 0.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // ── Morphing Sliding Background Pill (Jelly effect with RoundedCornerShape(32.dp)) ──
+            // ── Morphing Sliding Background Pill (Jelly effect with MaterialTheme.shapes.extraLarge) ──
             if (tabBounds.size == tabs.size) {
                 val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
                 val animatedX by animateFloatAsState(
@@ -1849,7 +1849,7 @@ fun SettingsTabRow(
                             scaleY = squashY
                             transformOrigin = TransformOrigin(0.5f, 0.5f)
                         }
-                        .background(animatedColor, RoundedCornerShape(32.dp)) // True capsule pill shape
+                        .background(animatedColor, MaterialTheme.shapes.extraLarge) // True capsule pill shape
                 )
             }
 
@@ -1924,7 +1924,7 @@ fun SettingsTabRow(
                         modifier = Modifier
                             .weight(segmentWeight)
                             .fillMaxHeight()
-                            .clip(RoundedCornerShape(32.dp))
+                            .clip(MaterialTheme.shapes.extraLarge)
                             .onGloballyPositioned { coordinates ->
                                 val parent = coordinates.parentLayoutCoordinates
                                 if (parent != null) {
@@ -2027,7 +2027,7 @@ fun SettingsGroup(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
-    val cardShape = if (isSpaceTerminal) RoundedCornerShape(10.dp) else RoundedCornerShape(24.dp)
+    val cardShape = if (isSpaceTerminal) MaterialTheme.shapes.medium else MaterialTheme.shapes.large
     val cardBg = if (isSpaceTerminal) Color(0xFF0F172A).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerLow
     val cardBorder = if (isSpaceTerminal) {
         BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.3f))
@@ -2087,7 +2087,7 @@ fun SettingsToggleRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
             color = iconBgColor,
             modifier = Modifier.size(40.dp)
         ) {
@@ -2157,7 +2157,7 @@ fun <T> SettingsSelectorRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
             color = iconBgColor,
             modifier = Modifier.size(40.dp)
         ) {
@@ -2193,7 +2193,7 @@ fun <T> SettingsSelectorRow(
                     expanded = true
                 },
                 color = if (isSpaceTerminal) Color(0xFFFF7E6B).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                shape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(12.dp),
+                shape = if (isSpaceTerminal) MaterialTheme.shapes.small else MaterialTheme.shapes.medium,
                 border = if (isSpaceTerminal) BorderStroke(1.dp, Color(0xFFFF7E6B)) else null
             ) {
                 Row(
@@ -2218,7 +2218,7 @@ fun <T> SettingsSelectorRow(
 
             if (expanded) {
                 val sheetBgColor = if (isSpaceTerminal) Color(0xFF0C1020) else MaterialTheme.colorScheme.surfaceContainerHigh
-                val sheetShape = if (isSpaceTerminal) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp) else RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+                val sheetShape = if (isSpaceTerminal) MaterialTheme.shapes.medium.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp)) else MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp))
 
                 ModalBottomSheet(
                     onDismissRequest = { expanded = false },
@@ -2268,7 +2268,7 @@ fun <T> SettingsSelectorRow(
                                 if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurface
                             }
 
-                            val itemShape = RoundedCornerShape(16.dp)
+                            val itemShape = MaterialTheme.shapes.medium
 
                             Surface(
                                 onClick = {
@@ -2341,7 +2341,7 @@ fun SettingsActionRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
             color = iconBgColor,
             modifier = Modifier.size(40.dp)
         ) {
@@ -2377,7 +2377,7 @@ fun SettingsActionRow(
                     onClick()
                 },
                 color = if (isSpaceTerminal) Color(0xFFFF7E6B).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                shape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(12.dp),
+                shape = if (isSpaceTerminal) MaterialTheme.shapes.small else MaterialTheme.shapes.medium,
                 border = if (isSpaceTerminal) BorderStroke(1.dp, Color(0xFFFF7E6B)) else null
             ) {
                 Text(
@@ -2394,7 +2394,7 @@ fun SettingsActionRow(
 
 @Composable
 fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
-    val previewShape = RoundedCornerShape(12.dp)
+    val previewShape = MaterialTheme.shapes.medium
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -2442,12 +2442,12 @@ fun PresetVisualPreview(preset: StylePreset, isSpaceTerminal: Boolean) {
                             }
                         }
                         Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
-                            Box(modifier = Modifier.width(60.dp).height(8.dp).background(Color(0xFF1E1B4B), RoundedCornerShape(4.dp)))
+                            Box(modifier = Modifier.width(60.dp).height(8.dp).background(Color(0xFF1E1B4B), MaterialTheme.shapes.extraSmall))
                             Spacer(modifier = Modifier.height(4.dp))
-                            Box(modifier = Modifier.width(40.dp).height(6.dp).background(Color(0xFF1E1B4B).copy(alpha = 0.4f), RoundedCornerShape(3.dp)))
+                            Box(modifier = Modifier.width(40.dp).height(6.dp).background(Color(0xFF1E1B4B).copy(alpha = 0.4f), MaterialTheme.shapes.extraSmall))
                         }
                         Surface(
-                            shape = RoundedCornerShape(10.dp),
+                            shape = MaterialTheme.shapes.medium,
                             color = Color(0xFFD946EF),
                             modifier = Modifier.width(50.dp).height(18.dp)
                         ) {
@@ -2590,7 +2590,7 @@ fun PresetSpecsTags(preset: StylePreset, isSpaceTerminal: Boolean) {
     } else {
         MaterialTheme.colorScheme.onSecondaryContainer
     }
-    val tagShape = RoundedCornerShape(8.dp)
+    val tagShape = MaterialTheme.shapes.small
 
     Row(
         modifier = Modifier.fillMaxWidth(),

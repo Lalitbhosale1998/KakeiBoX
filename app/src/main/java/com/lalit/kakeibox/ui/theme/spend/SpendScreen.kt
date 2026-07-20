@@ -373,6 +373,7 @@ fun SpendScreen(
                     )
                     val haptic = LocalHapticFeedback.current
                     var isPressed by remember { mutableStateOf(false) }
+                    val extraLargeShape = MaterialTheme.shapes.extraLarge
                     val liftScale by animateFloatAsState(
                         targetValue = if (isPressed) 1.05f else 1f,
                         animationSpec = ExpressivePhysics.fluidSnappy(),
@@ -398,7 +399,7 @@ fun SpendScreen(
                                     scaleY = liftScale
                                     shadowElevation = liftElevation.toPx()
                                     clip = false
-                                    shape = RoundedCornerShape(28.dp)
+                                    shape = extraLargeShape
                                 }
                                 .pointerInput(Unit) {
                                     awaitPointerEventScope {
@@ -481,7 +482,7 @@ fun SpendScreen(
             sheetState = bottomSheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp))
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 SpendAddEditSheet(
@@ -509,7 +510,7 @@ fun SpendScreen(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = historyBottomSheetState,
             containerColor = sheetColorScheme.surfaceContainer,
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp))
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 SpendHistoryBottomSheet(
@@ -839,7 +840,7 @@ fun BudgetHealthBeam(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         color = bentoIdleColor
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -883,7 +884,7 @@ fun ExpressivePeriodIsland(
     val haptic = LocalHapticFeedback.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         color = bentoIdleColor,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
     ) {
@@ -917,7 +918,7 @@ fun ExpressivePeriodIsland(
                         },
                         color = bgColor,
                         contentColor = txtColor,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = MaterialTheme.shapes.medium,
                         modifier = Modifier
                             .height(40.dp)
                             .width(targetWidth)
@@ -1244,7 +1245,7 @@ fun ExpressiveListItem(
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.medium,
                 color = if (isNeed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
                 modifier = Modifier.size(48.dp)
             ) {
@@ -1270,7 +1271,7 @@ fun ExpressiveListItem(
 
 @Composable
 fun SpendSwipeDeleteBackground() {
-    Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(28.dp)).background(MaterialTheme.colorScheme.errorContainer), contentAlignment = Alignment.CenterEnd) {
+    Box(modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.extraLarge).background(MaterialTheme.colorScheme.errorContainer), contentAlignment = Alignment.CenterEnd) {
         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.padding(end = 24.dp), tint = MaterialTheme.colorScheme.onErrorContainer)
     }
 }
@@ -1297,7 +1298,7 @@ fun SpendDeleteDialog(entry: SpendEntry?, onConfirm: () -> Unit, onDismiss: () -
                 .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
                 .fillMaxWidth()
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(32.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 6.dp
         ) {
@@ -1422,7 +1423,7 @@ fun SpendAddEditSheet(
 
         Surface(
             color = amountBgColor,
-            shape = RoundedCornerShape(28.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             shadowElevation = amountElevation,
             modifier = Modifier
                 .fillMaxWidth()
@@ -1494,7 +1495,7 @@ fun SpendAddEditSheet(
         // 2. Category Island (Bento Selection)
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(28.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             modifier = Modifier.fillMaxWidth()
         ) {
             Box(modifier = Modifier.padding(16.dp)) {
@@ -1699,7 +1700,7 @@ fun SpendHistoryBottomSheet(
             Spacer(modifier = Modifier.weight(1f))
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(12.dp)
+                shape = MaterialTheme.shapes.medium
             ) {
                 Text(
                     text = "${entries.size} Records",

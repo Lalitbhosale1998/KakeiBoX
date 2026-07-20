@@ -1,4 +1,4 @@
-package com.personal.kakeibox.ui
+﻿package com.personal.kakeibox.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -155,7 +155,7 @@ fun KakeiboXLockScreen(
 
             Button(
                 onClick = { triggerUnlock() },
-                shape = RoundedCornerShape(28.dp),
+                shape = MaterialTheme.shapes.extraLarge,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary

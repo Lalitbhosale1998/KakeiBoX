@@ -1,4 +1,4 @@
-package com.personal.kakeibox.ui.components
+﻿package com.personal.kakeibox.ui.components
 
 import androidx.annotation.FloatRange
 import androidx.compose.animation.core.*

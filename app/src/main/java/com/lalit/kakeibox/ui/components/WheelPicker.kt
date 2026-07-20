@@ -1,4 +1,4 @@
-package com.personal.kakeibox.ui.components
+﻿package com.personal.kakeibox.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -214,7 +214,7 @@ fun ExpressiveDatePicker(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
