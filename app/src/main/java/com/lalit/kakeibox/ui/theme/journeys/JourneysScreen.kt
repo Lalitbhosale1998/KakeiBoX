@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.Delete
@@ -72,6 +73,7 @@ fun JourneysScreen(
     
     // Shared Element state
     var selectedMemoryId by remember { mutableStateOf<String?>(null) }
+    var selectedHorizonId by remember { mutableStateOf<String?>(null) }
     
     // Sample Data
     val memories = remember {
@@ -81,6 +83,14 @@ fun JourneysScreen(
             MemoryItem("3", "Tokyo Bay", "Dec 2024"),
             MemoryItem("4", "Osaka Food Tour", "Oct 2024"),
             MemoryItem("5", "Okinawa Beach", "Aug 2024")
+        )
+    }
+    
+    val horizonsData = remember {
+        listOf(
+            HorizonItem("h1", "Golden Week: Tobu-Nikko", "May 2 - May 5", listOf("Avoid Crowds", "Nature"), 25000f, 40000f),
+            HorizonItem("h2", "Fuji Summer Climb", "Aug 10 - Aug 12", listOf("Stamina", "Group"), 10000f, 50000f),
+            HorizonItem("h3", "Osaka Weekend", "Oct 1 - Oct 3", listOf("Food", "City"), 5000f, 30000f)
         )
     }
 
@@ -200,21 +210,15 @@ fun JourneysScreen(
                                     .verticalScroll(horizonsScrollState)
                             ) {
                                 Spacer(modifier = Modifier.height(16.dp))
-                                BoardingPassCard(
-                                    destination = "Golden Week: Tobu-Nikko",
-                                    dates = "May 2 - May 5",
-                                    tags = listOf("Avoid Crowds", "Nature"),
-                                    saved = 25000f,
-                                    target = 40000f
-                                )
-                                Spacer(modifier = Modifier.height(24.dp))
-                                BoardingPassCard(
-                                    destination = "Fuji Summer Climb",
-                                    dates = "Aug 10 - Aug 12",
-                                    tags = listOf("Stamina", "Group"),
-                                    saved = 10000f,
-                                    target = 50000f
-                                )
+                                horizonsData.forEach { horizon ->
+                                    BoardingPassCard(
+                                        horizon = horizon,
+                                        sharedTransitionScope = sharedTransitionScope,
+                                        animatedVisibilityScope = this@AnimatedContent,
+                                        onClick = { selectedHorizonId = horizon.id }
+                                    )
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                }
                                 Spacer(modifier = Modifier.height(100.dp))
                             }
                         }
@@ -236,6 +240,24 @@ fun JourneysScreen(
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = this@AnimatedVisibility,
                             onBack = { selectedMemoryId = null }
+                        )
+                    }
+                }
+            }
+            
+            AnimatedVisibility(
+                visible = selectedHorizonId != null,
+                enter = fadeIn(tween(300)),
+                exit = fadeOut(tween(300))
+            ) {
+                selectedHorizonId?.let { id ->
+                    val horizon = horizonsData.find { it.id == id }
+                    if (horizon != null) {
+                        HorizonDetailScreen(
+                            horizon = horizon,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = this@AnimatedVisibility,
+                            onBack = { selectedHorizonId = null }
                         )
                     }
                 }
@@ -319,6 +341,7 @@ fun JourneysTabButton(
 }
 
 data class MemoryItem(val id: String, val title: String, val date: String)
+data class HorizonItem(val id: String, val destination: String, val dates: String, val tags: List<String>, val saved: Float, val target: Float)
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -508,82 +531,285 @@ class TicketShape(private val cornerRadius: Float, private val cutoutRadius: Flo
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BoardingPassCard(
-    destination: String,
-    dates: String,
-    tags: List<String>,
-    saved: Float,
-    target: Float
+    horizon: HorizonItem,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onClick: () -> Unit = {},
+    isHeader: Boolean = false // If true, disable touch bloom/click
 ) {
     val density = LocalDensity.current
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = TicketShape(
-            cornerRadius = with(density) { 32.dp.toPx() },
-            cutoutRadius = with(density) { 16.dp.toPx() }
-        ),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 2.dp
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.FlightTakeoff,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val cardScale by animateFloatAsState(
+        targetValue = if (isPressed && !isHeader) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
+        label = "card_scale"
+    )
+    
+    val elevation by animateDpAsState(
+        targetValue = if (isPressed && !isHeader) 8.dp else 2.dp,
+        label = "elevation"
+    )
+
+    with(sharedTransitionScope) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .sharedElement(
+                    sharedContentState = rememberSharedContentState(key = "horizon_card_${horizon.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ -> spring(dampingRatio = 0.7f, stiffness = 200f) }
+                )
+                .graphicsLayer {
+                    scaleX = cardScale
+                    scaleY = cardScale
+                }
+                .clickable(
+                    enabled = !isHeader,
+                    interactionSource = interactionSource, 
+                    indication = LocalIndication.current
+                ) { onClick() },
+            shape = TicketShape(
+                cornerRadius = with(density) { 32.dp.toPx() },
+                cutoutRadius = with(density) { 16.dp.toPx() }
+            ),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shadowElevation = elevation
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.FlightTakeoff,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "UPCOMING",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 2.sp
+                        )
+                    }
                     Text(
-                        text = "UPCOMING",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp
+                        text = horizon.dates,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = dates,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = horizon.destination,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    horizon.tags.forEach { tag ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(
+                                text = tag,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                WaveformProgressIndicator(saved = horizon.saved, target = horizon.target)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun HorizonDetailScreen(
+    horizon: HorizonItem,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onBack: () -> Unit
+) {
+    var subDestinations by remember { 
+        mutableStateOf(
+            if (horizon.destination.contains("Osaka")) 
+                listOf("Osaka Castle", "Universal Studios Japan", "Dotombori District") 
+            else listOf()
+        ) 
+    }
+    var isAdding by remember { mutableStateOf(false) }
+    var newDestination by remember { mutableStateOf("") }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.padding(16.dp).padding(top = 32.dp)) {
+                BoardingPassCard(
+                    horizon = horizon,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    isHeader = true
                 )
             }
             
-            Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = destination,
-                style = MaterialTheme.typography.headlineSmall,
+                text = "Itinerary",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurface
+                modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp),
+                color = MaterialTheme.colorScheme.onBackground
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
-            Row {
-                tags.forEach { tag ->
-                    Surface(
-                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.padding(end = 8.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                subDestinations.forEachIndexed { index, dest ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = tag,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            fontWeight = FontWeight.Bold
-                        )
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.TopCenter
+                        ) {
+                            if (index < subDestinations.size - 1 || isAdding) {
+                                Canvas(modifier = Modifier.fillMaxHeight().width(2.dp).padding(top = 24.dp)) {
+                                    drawLine(
+                                        color = Color.Gray.copy(alpha = 0.5f),
+                                        start = Offset(size.width/2, 0f),
+                                        end = Offset(size.width/2, size.height),
+                                        strokeWidth = 4f,
+                                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                    )
+                                }
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 16.dp)
+                                    .size(16.dp)
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            tonalElevation = 2.dp
+                        ) {
+                            Text(
+                                text = dest,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
                     }
                 }
+                
+                AnimatedContent(
+                    targetState = isAdding,
+                    transitionSpec = {
+                        (fadeIn() + slideInVertically()).togetherWith(fadeOut() + slideOutVertically())
+                    },
+                    label = "add_node"
+                ) { adding ->
+                    if (adding) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier.width(24.dp).fillMaxHeight(),
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(top = 24.dp)
+                                        .size(16.dp)
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            OutlinedTextField(
+                                value = newDestination,
+                                onValueChange = { newDestination = it },
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                placeholder = { Text("Enter destination...") },
+                                trailingIcon = {
+                                    IconButton(onClick = { 
+                                        if (newDestination.isNotBlank()) {
+                                            subDestinations = subDestinations + newDestination
+                                        }
+                                        newDestination = ""
+                                        isAdding = false 
+                                    }) {
+                                        Icon(Icons.Default.Add, contentDescription = "Add")
+                                    }
+                                },
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Spacer(modifier = Modifier.width(40.dp))
+                            OutlinedButton(
+                                onClick = { isAdding = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Add Stop", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(100.dp))
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            WaveformProgressIndicator(saved = saved, target = target)
+        }
+        
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.padding(top = 40.dp, start = 8.dp)
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
         }
     }
 }
