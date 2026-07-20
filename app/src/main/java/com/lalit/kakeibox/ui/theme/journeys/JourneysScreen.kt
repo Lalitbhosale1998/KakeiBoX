@@ -215,6 +215,7 @@ fun JourneysScreen(
                                         horizon = horizon,
                                         sharedTransitionScope = sharedTransitionScope,
                                         animatedVisibilityScope = this@AnimatedContent,
+                                        isSelected = (selectedHorizonId == horizon.id),
                                         onClick = { selectedHorizonId = horizon.id }
                                     )
                                     Spacer(modifier = Modifier.height(24.dp))
@@ -229,8 +230,8 @@ fun JourneysScreen(
             // Fullscreen details via Shared Element
             AnimatedVisibility(
                 visible = selectedMemoryId != null,
-                enter = fadeIn(tween(300)),
-                exit = fadeOut(tween(300))
+                enter = fadeIn(tween(450)),
+                exit = fadeOut(tween(450))
             ) {
                 selectedMemoryId?.let { id ->
                     val memory = memories.find { it.id == id }
@@ -247,8 +248,8 @@ fun JourneysScreen(
             
             AnimatedVisibility(
                 visible = selectedHorizonId != null,
-                enter = fadeIn(tween(300)),
-                exit = fadeOut(tween(300))
+                enter = fadeIn(tween(450)),
+                exit = fadeOut(tween(450))
             ) {
                 selectedHorizonId?.let { id ->
                     val horizon = horizonsData.find { it.id == id }
@@ -490,44 +491,50 @@ fun MemoryDetailScreen(
     }
 }
 
-class TicketShape(private val topCornerRadius: Float, private val bottomCornerRadius: Float, private val cutoutRadius: Float) : Shape {
+class TicketShape(
+    private val topCornerRadiusProvider: () -> Float, 
+    private val bottomCornerRadius: Float, 
+    private val cutoutRadius: Float
+) : Shape {
+    private val path = Path()
+
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: androidx.compose.ui.unit.Density): Outline {
-        val path = Path().apply {
-            val w = size.width
-            val h = size.height
-            val tcr = topCornerRadius
-            val bcr = bottomCornerRadius
-            val cutR = cutoutRadius
-            
-            moveTo(0f, tcr)
-            if (tcr > 0f) quadraticTo(0f, 0f, tcr, 0f) else lineTo(0f, 0f)
-            lineTo(w - tcr, 0f)
-            if (tcr > 0f) quadraticTo(w, 0f, w, tcr) else lineTo(w, 0f)
-            
-            lineTo(w, (h / 2) - cutR)
-            arcTo(
-                rect = Rect(w - cutR, (h / 2) - cutR, w + cutR, (h / 2) + cutR),
-                startAngleDegrees = 270f,
-                sweepAngleDegrees = -180f,
-                forceMoveTo = false
-            )
-            
-            lineTo(w, h - bcr)
-            if (bcr > 0f) quadraticTo(w, h, w - bcr, h) else lineTo(w, h)
-            lineTo(bcr, h)
-            if (bcr > 0f) quadraticTo(0f, h, 0f, h - bcr) else lineTo(0f, h)
-            
-            lineTo(0f, (h / 2) + cutR)
-            arcTo(
-                rect = Rect(-cutR, (h / 2) - cutR, cutR, (h / 2) + cutR),
-                startAngleDegrees = 90f,
-                sweepAngleDegrees = -180f,
-                forceMoveTo = false
-            )
-            
-            lineTo(0f, tcr)
-            close()
-        }
+        path.reset()
+        val w = size.width
+        val h = size.height
+        val tcr = topCornerRadiusProvider()
+        val bcr = bottomCornerRadius
+        val cutR = cutoutRadius
+        
+        path.moveTo(0f, tcr)
+        if (tcr > 0f) path.quadraticTo(0f, 0f, tcr, 0f) else path.lineTo(0f, 0f)
+        path.lineTo(w - tcr, 0f)
+        if (tcr > 0f) path.quadraticTo(w, 0f, w, tcr) else path.lineTo(w, 0f)
+        
+        path.lineTo(w, (h / 2) - cutR)
+        path.arcTo(
+            rect = Rect(w - cutR, (h / 2) - cutR, w + cutR, (h / 2) + cutR),
+            startAngleDegrees = 270f,
+            sweepAngleDegrees = -180f,
+            forceMoveTo = false
+        )
+        
+        path.lineTo(w, h - bcr)
+        if (bcr > 0f) path.quadraticTo(w, h, w - bcr, h) else path.lineTo(w, h)
+        path.lineTo(bcr, h)
+        if (bcr > 0f) path.quadraticTo(0f, h, 0f, h - bcr) else path.lineTo(0f, h)
+        
+        path.lineTo(0f, (h / 2) + cutR)
+        path.arcTo(
+            rect = Rect(-cutR, (h / 2) - cutR, cutR, (h / 2) + cutR),
+            startAngleDegrees = 90f,
+            sweepAngleDegrees = -180f,
+            forceMoveTo = false
+        )
+        
+        path.lineTo(0f, tcr)
+        path.close()
+        
         return Outline.Generic(path)
     }
 }
@@ -540,7 +547,9 @@ fun BoardingPassCard(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit = {},
     onBack: () -> Unit = {},
-    isHeader: Boolean = false // If true, disable touch bloom/click
+    isHeader: Boolean = false, // If true, disable touch bloom/click
+    isSelected: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -557,26 +566,33 @@ fun BoardingPassCard(
         label = "elevation"
     )
     
-    val topCornerRadius by animateFloatAsState(
-        targetValue = if (isHeader) 0f else with(density) { 32.dp.toPx() },
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = 200f),
+    val topCornerRadiusState = animateFloatAsState(
+        targetValue = if (isHeader || isSelected) 0f else with(density) { 32.dp.toPx() },
+        animationSpec = spring(dampingRatio = 0.82f, stiffness = 400f),
         label = "top_cr"
     )
 
+    val bcr = with(density) { 32.dp.toPx() }
+    val cutR = with(density) { 16.dp.toPx() }
+    val ticketShape = remember(bcr, cutR) { 
+        TicketShape({ topCornerRadiusState.value }, bcr, cutR) 
+    }
+
     val statusBarsPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val topPadding by animateDpAsState(
-        targetValue = if (isHeader) statusBarsPadding + 24.dp else 24.dp,
+        targetValue = if (isHeader || isSelected) statusBarsPadding + 24.dp else 24.dp,
+        animationSpec = spring(dampingRatio = 0.82f, stiffness = 400f),
         label = "top_padding"
     )
 
     with(sharedTransitionScope) {
         Surface(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
-                .sharedElement(
+                .sharedBounds(
                     sharedContentState = rememberSharedContentState(key = "horizon_card_${horizon.id}"),
                     animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ -> spring(dampingRatio = 0.7f, stiffness = 200f) }
+                    boundsTransform = { _, _ -> spring(dampingRatio = 0.82f, stiffness = 400f) }
                 )
                 .graphicsLayer {
                     scaleX = cardScale
@@ -587,11 +603,7 @@ fun BoardingPassCard(
                     interactionSource = interactionSource, 
                     indication = LocalIndication.current
                 ) { onClick() },
-            shape = TicketShape(
-                topCornerRadius = topCornerRadius,
-                bottomCornerRadius = with(density) { 32.dp.toPx() },
-                cutoutRadius = with(density) { 16.dp.toPx() }
-            ),
+            shape = ticketShape,
             color = MaterialTheme.colorScheme.surfaceVariant,
             shadowElevation = elevation
         ) {
@@ -604,8 +616,16 @@ fun BoardingPassCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (isHeader) {
                             IconButton(onClick = onBack, modifier = Modifier.offset(x = (-12).dp)) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.primary)
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(20.dp))
+                                }
                             }
+                            Spacer(modifier = Modifier.width(4.dp))
                         } else {
                             Icon(
                                 Icons.Default.FlightTakeoff,
@@ -693,7 +713,8 @@ fun HorizonDetailScreen(
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 onBack = onBack,
-                isHeader = true
+                isHeader = true,
+                modifier = Modifier.fillMaxHeight(0.4f)
             )
             
             Text(

@@ -117,6 +117,8 @@ import com.personal.kakeibox.util.DateUtils
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import com.personal.kakeibox.ui.theme.ExpressivePhysics
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -269,20 +271,17 @@ fun SpendScreen(
                 contentPadding = PaddingValues(
                     start = 16.dp, 
                     end = 16.dp, 
-                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    top = innerPadding.calculateTopPadding() + 150.dp + statusBarPadding + 8.dp,
                     bottom = innerPadding.calculateBottomPadding() + 80.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                item {
-                    Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
-                }
             // ── Bento Box Hero Grid ──────────────────────
             item {
                 AnimatedVisibility(
                     visible = showHero,
-                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                            slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                    enter = fadeIn(ExpressivePhysics.fluidBouncy()) +
+                            slideInVertically(ExpressivePhysics.fluidBouncy()) { it / 4 }
                 ) {
                     BentoHeroSection(
                         totalSpend = totalSpendAllTime ?: 0L,
@@ -308,8 +307,8 @@ fun SpendScreen(
             item {
                 AnimatedVisibility(
                     visible = (salary?.salaryAmount ?: 0L) > 0 && showStats,
-                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                            slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 },
+                    enter = fadeIn(ExpressivePhysics.fluidBouncy()) +
+                            slideInVertically(ExpressivePhysics.fluidBouncy()) { it / 4 },
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     BudgetHealthBeam(
@@ -326,8 +325,8 @@ fun SpendScreen(
             item {
                 AnimatedVisibility(
                     visible = showHistory,
-                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                            slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                    enter = fadeIn(ExpressivePhysics.fluidBouncy()) +
+                            slideInVertically(ExpressivePhysics.fluidBouncy()) { it / 4 }
                 ) {
                     ExpressiveCategoryTabs(
                         selectedCategory = uiState.selectedCategory,
@@ -352,8 +351,8 @@ fun SpendScreen(
                 item {
                     AnimatedVisibility(
                         visible = showHistory,
-                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        enter = fadeIn(ExpressivePhysics.fluidBouncy()) +
+                                slideInVertically(ExpressivePhysics.fluidBouncy()) { it / 4 }
                     ) {
                         ExpressiveEmptyState(
                             message = if (uiState.selectedCategory != null) "No ${uiState.selectedCategory} logs" else "No spending yet",
@@ -376,19 +375,19 @@ fun SpendScreen(
                     var isPressed by remember { mutableStateOf(false) }
                     val liftScale by animateFloatAsState(
                         targetValue = if (isPressed) 1.05f else 1f,
-                        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
+                        animationSpec = ExpressivePhysics.fluidSnappy(),
                         label = "lift_scale"
                     )
                     val liftElevation by animateDpAsState(
                         targetValue = if (isPressed) 12.dp else 0.dp,
-                        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
+                        animationSpec = ExpressivePhysics.fluidSnappy(),
                         label = "lift_elevation"
                     )
 
                     AnimatedVisibility(
                         visible = showHistory,
-                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        enter = fadeIn(ExpressivePhysics.fluidBouncy()) +
+                                slideInVertically(ExpressivePhysics.fluidBouncy()) { it / 4 }
                     ) {
                         SwipeToDismissBox(
                             state = dismissState,
@@ -577,19 +576,13 @@ fun BentoHeroSection(
 
     val leftCardWeight by animateFloatAsState(
         targetValue = if (selectedCategory == null) 1.2f else 0.001f,
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 300f
-        ),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "left_card_weight"
     )
 
     val rightColWeight by animateFloatAsState(
         targetValue = if (selectedCategory == null) 1.0f else 2.0f,
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 300f
-        ),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "right_col_weight"
     )
 
@@ -599,10 +592,7 @@ fun BentoHeroSection(
             SpendCategory.WANT -> 0.001f
             null -> 1.0f
         },
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 300f
-        ),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "need_card_weight"
     )
 
@@ -612,10 +602,7 @@ fun BentoHeroSection(
             SpendCategory.NEED -> 0.001f
             null -> 1.0f
         },
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 300f
-        ),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "want_card_weight"
     )
     
@@ -741,8 +728,8 @@ fun ExpressiveTotalSpentTicker(
                     targetState = char,
                     transitionSpec = {
                         if (isDigit) {
-                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
-                                .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
+                            (slideInVertically(animationSpec = ExpressivePhysics.fluidBouncy()) { it } + fadeIn())
+                                .togetherWith(slideOutVertically(animationSpec = ExpressivePhysics.fluidSnappy()) { -it } + fadeOut())
                         } else {
                             // M3 Expressive: Morphing Currency Symbol
                             (fadeIn(animationSpec = tween(400)) + scaleIn(initialScale = 0.8f))
@@ -814,8 +801,8 @@ fun ExpressiveSmallStatTicker(
                     targetState = char,
                     transitionSpec = {
                         if (isDigit) {
-                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it } + fadeIn())
-                                .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
+                            (slideInVertically(animationSpec = ExpressivePhysics.fluidBouncy()) { it } + fadeIn())
+                                .togetherWith(slideOutVertically(animationSpec = ExpressivePhysics.fluidSnappy()) { -it } + fadeOut())
                         } else {
                             // M3 Expressive: Morphing Currency Symbol
                             (fadeIn(animationSpec = tween(400)) + scaleIn(initialScale = 0.8f))
@@ -847,8 +834,8 @@ fun BudgetHealthBeam(
     val needRatio = if (totalSpend > 0) totalNeed.toFloat() / totalSpend else 0f
     val wantRatio = if (totalSpend > 0) totalWant.toFloat() / totalSpend else 0f
     
-    val animatedNeed by animateFloatAsState(targetValue = needRatio, animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow))
-    val animatedWant by animateFloatAsState(targetValue = wantRatio, animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow))
+    val animatedNeed by animateFloatAsState(targetValue = needRatio, animationSpec = ExpressivePhysics.fluidBouncy())
+    val animatedWant by animateFloatAsState(targetValue = wantRatio, animationSpec = ExpressivePhysics.fluidBouncy())
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -910,7 +897,7 @@ fun ExpressivePeriodIsland(
                     
                     val targetWidth by animateDpAsState(
                         targetValue = if (isSelected) 80.dp else 64.dp,
-                        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+                        animationSpec = ExpressivePhysics.fluidBouncy(),
                         label = "month_width"
                     )
                     
@@ -983,22 +970,22 @@ fun ExpressiveCategoryTabs(
     // Morphing Outer Corners based on selection
     val outerCornerTopStart by animateIntAsState(
         targetValue = if (selectedIndex == 0) 36 else 28,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "spend_outer_corner_ts"
     )
     val outerCornerBottomStart by animateIntAsState(
         targetValue = if (selectedIndex == 0) 36 else 28,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "spend_outer_corner_bs"
     )
     val outerCornerTopEnd by animateIntAsState(
         targetValue = if (selectedIndex == tabs.lastIndex) 36 else 28,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "spend_outer_corner_te"
     )
     val outerCornerBottomEnd by animateIntAsState(
         targetValue = if (selectedIndex == tabs.lastIndex) 36 else 28,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "spend_outer_corner_be"
     )
 
@@ -1039,12 +1026,12 @@ fun ExpressiveCategoryTabs(
                 val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
                 val animatedX by animateFloatAsState(
                     targetValue = targetBounds.first,
-                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
                     label = "spend_pill_x"
                 )
                 val animatedWidth by animateFloatAsState(
                     targetValue = targetBounds.second,
-                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
                     label = "spend_pill_width"
                 )
 
@@ -1111,10 +1098,7 @@ fun ExpressiveCategoryTabs(
 
                     val iconScale by animateFloatAsState(
                         targetValue = if (isSelected) 1.2f else 1.0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium
-                        ),
+                        animationSpec = ExpressivePhysics.fluidBouncy(),
                         label = "spend_icon_scale"
                     )
 
@@ -1126,19 +1110,13 @@ fun ExpressiveCategoryTabs(
                                 else -> 0f
                             }
                         } else 0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
+                        animationSpec = ExpressivePhysics.fluidBouncy(),
                         label = "spend_icon_rotation"
                     )
 
                     val iconTranslationY by animateFloatAsState(
                         targetValue = if (isSelected) -8f else 0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
+                        animationSpec = ExpressivePhysics.fluidBouncy(),
                         label = "spend_icon_translation"
                     )
 
@@ -1242,14 +1220,27 @@ fun ExpressiveListItem(
 ) {
     val haptic = LocalHapticFeedback.current
     val isNeed = entry.category == SpendCategory.NEED
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val shapeRadius by animateDpAsState(
+        targetValue = if (isPressed) 12.dp else 28.dp,
+        animationSpec = ExpressivePhysics.fluidSnappy(),
+        label = "item_shape"
+    )
+
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(shapeRadius),
         color = containerColor,
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onEdit()
-        }
+        onClick = onEdit,
+        interactionSource = interactionSource
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
@@ -1292,10 +1283,7 @@ fun SpendDeleteDialog(entry: SpendEntry?, onConfirm: () -> Unit, onDismiss: () -
 
         val scale by animateFloatAsState(
             targetValue = if (animateTrigger) 1f else 0.8f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            ),
+            animationSpec = ExpressivePhysics.fluidBouncy(),
             label = "dialog_scale"
         )
         val alpha by animateFloatAsState(
@@ -1371,12 +1359,12 @@ fun SpendAddEditSheet(
 
     val descWeight by animateFloatAsState(
         targetValue = if (isDescFocused) 1.5f else if (isNoteFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "spend_desc_weight"
     )
     val noteWeight by animateFloatAsState(
         targetValue = if (isNoteFocused) 1.5f else if (isDescFocused) 0.6f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "spend_note_weight"
     )
 
@@ -1385,7 +1373,7 @@ fun SpendAddEditSheet(
 
     val slideY by animateDpAsState(
         targetValue = if (animateIn) 0.dp else 100.dp,
-        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "sheet_slide_in"
     )
     val sheetAlpha by animateFloatAsState(
@@ -1650,7 +1638,7 @@ fun CategoryBentoItem(
 ) {
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.05f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)
+        animationSpec = ExpressivePhysics.fluidBouncy()
     )
     val elevation by animateDpAsState(if (isSelected) 6.dp else 0.dp)
 
@@ -1682,7 +1670,7 @@ fun SpendHistoryBottomSheet(
 
     val slideY by animateDpAsState(
         targetValue = if (animateIn) 0.dp else 100.dp,
-        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "sheet_slide_in"
     )
     val sheetAlpha by animateFloatAsState(

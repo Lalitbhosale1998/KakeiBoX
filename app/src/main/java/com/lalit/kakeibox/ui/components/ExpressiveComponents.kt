@@ -114,22 +114,22 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import kotlin.random.Random
 
+import com.personal.kakeibox.ui.theme.ExpressivePhysics
+
 fun Modifier.elasticClick(
     enabled: Boolean = true,
     hapticType: HapticFeedbackType = HapticFeedbackType.LongPress,
+    interactionSource: MutableInteractionSource? = null,
     onClick: () -> Unit
 ): Modifier = composed {
     val haptic = LocalHapticFeedback.current
     val touchSynesthesia = LocalTouchSynesthesia.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
+    val actualInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
+    val isPressed by actualInteractionSource.collectIsPressedAsState()
     
     val scale by animateFloatAsState(
         targetValue = if (isPressed && enabled) 0.98f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = ExpressivePhysics.fluidBouncy(),
         label = "elastic_scale"
     )
     
@@ -139,7 +139,7 @@ fun Modifier.elasticClick(
             scaleY = scale
         }
         .clickable(
-            interactionSource = interactionSource,
+            interactionSource = actualInteractionSource,
             indication = LocalIndication.current,
             enabled = enabled
         ) {
@@ -785,7 +785,22 @@ fun BentoCard(
     )
 
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
-    val cardShape = if (isSpaceTerminal) RoundedCornerShape(12.dp) else RoundedCornerShape(32.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val targetRadius = if (isSpaceTerminal) {
+        if (isPressed) 8 else 12
+    } else {
+        if (isPressed) 16 else 32
+    }
+
+    val cornerRadius by animateIntAsState(
+        targetValue = targetRadius,
+        animationSpec = ExpressivePhysics.fluidSnappy(),
+        label = "bento_corner_morph"
+    )
+
+    val cardShape = RoundedCornerShape(cornerRadius.dp)
     val cardBorder = if (isSpaceTerminal) {
         BorderStroke(1.5.dp, if (isActive) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
     } else {
@@ -802,10 +817,11 @@ fun BentoCard(
                 intensity = if (isActive) glowIntensity else GlowIntensity.OFF,
                 shape = cardShape
             )
-            .clip(cardShape)
+        .clip(cardShape)
             .then(if (onClick != null && enabled) Modifier.elasticClick(
                 enabled = enabled,
                 hapticType = HapticFeedbackType.LongPress,
+                interactionSource = interactionSource,
                 onClick = onClick
             ) else Modifier)
             .terminalScanlines(),

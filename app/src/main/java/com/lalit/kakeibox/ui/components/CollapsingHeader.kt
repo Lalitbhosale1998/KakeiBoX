@@ -1,8 +1,8 @@
 package com.personal.kakeibox.ui.components
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
+import com.personal.kakeibox.ui.theme.ExpressivePhysics
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -35,7 +35,7 @@ fun ExpressiveCollapsingHeader(
     // Spring animate the height and text scale
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessLow),
+        animationSpec = ExpressivePhysics.fluidSnappy(),
         label = "header_progress"
     )
     

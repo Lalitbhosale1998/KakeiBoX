@@ -46,9 +46,15 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.spring
 import com.personal.kakeibox.data.preferences.BackdropPattern
 import com.personal.kakeibox.data.preferences.GlowIntensity
 import com.personal.kakeibox.data.preferences.TouchSynesthesia
+
+object ExpressivePhysics {
+    fun <T> fluidSnappy() = spring<T>(dampingRatio = 0.82f, stiffness = 400f)
+    fun <T> fluidBouncy() = spring<T>(dampingRatio = 0.65f, stiffness = 300f)
+}
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF1565C0),
@@ -457,7 +463,7 @@ fun KakeiboXTheme(
                 }
                 ColorIntensityPreset.SOFT -> SchemeTonalSpot(hct, darkTheme, 0.0)
                 ColorIntensityPreset.BRIGHT -> SchemeFidelity(hct, darkTheme, 0.0)
-                ColorIntensityPreset.BOLD -> SchemeVibrant(hct, darkTheme, 0.0)
+                ColorIntensityPreset.BOLD -> SchemeExpressive(hct, darkTheme, 0.0)
             }
             val scheme = dynamicScheme.toComposeColorScheme()
             if (!darkTheme && scheme.background == Color.White) {
