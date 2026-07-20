@@ -120,9 +120,16 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import com.personal.kakeibox.ui.theme.ExpressivePhysics
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.personal.kakeibox.ui.theme.spend.TransactionDetailScreen
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun SpendScreen(
+fun SharedTransitionScope.SpendScreen(
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onNavigateToTransactionDetail: (Int) -> Unit = {},
     viewModel: SpendViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(LocalActivity.current as ComponentActivity)
 ) {
@@ -414,9 +421,13 @@ fun SpendScreen(
                             backgroundContent = { SpendSwipeDeleteBackground() }
                         ) {
                             ExpressiveListItem(
+                                modifier = Modifier.sharedBounds(
+                                    sharedContentState = rememberSharedContentState(key = "transaction_${entry.id}"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                ),
                                 entry = entry,
                                 isPrivacyMode = themeSettings.privacyModeEnabled,
-                                onEdit = { viewModel.openEditSheet(entry) },
+                                onEdit = { onNavigateToTransactionDetail(entry.id) },
                                 onDelete = { viewModel.openDeleteDialog(entry) },
                                 containerColor = bentoIdleColor,
                                 themeSettings = themeSettings
@@ -1212,6 +1223,7 @@ fun ExpressiveCategoryTabs(
 
 @Composable
 fun ExpressiveListItem(
+    modifier: Modifier = Modifier,
     entry: SpendEntry,
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
@@ -1237,7 +1249,7 @@ fun ExpressiveListItem(
     }
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(shapeRadius),
         color = containerColor,
         onClick = onEdit,

@@ -80,6 +80,8 @@ import com.personal.kakeibox.ui.settings.SettingsScreen
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.exercise.ExerciseScreen
 import com.personal.kakeibox.ui.components.ExpressiveAnimatedIcon
+import com.personal.kakeibox.ui.spend.SpendScreen
+import com.personal.kakeibox.ui.theme.spend.TransactionDetailScreen
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Offset
@@ -92,9 +94,14 @@ import androidx.compose.runtime.mutableStateListOf
 import kotlin.math.roundToInt
 
 
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+
 @Composable
 fun KakeiboXApp(
-    viewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+    viewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity),
+    windowSizeClass: WindowSizeClass? = null
 ) {
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
     val navController = rememberNavController()
@@ -211,10 +218,47 @@ fun KakeiboXApp(
         label = "action_icon_color"
     )
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = {
-            if (themeSettings.navBarStyle == NavBarStyle.FULL_WIDTH) {
+    val isExpandedScreen = windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Expanded
+
+    Row(modifier = Modifier.fillMaxSize()) {
+        if (isExpandedScreen) {
+            androidx.compose.material3.NavigationRail(
+                modifier = Modifier.fillMaxHeight(),
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                Spacer(modifier = Modifier.weight(1f))
+                bottomNavItems.forEach { item ->
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+                    androidx.compose.material3.NavigationRailItem(
+                        selected = isSelected,
+                        onClick = {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                contentDescription = stringResource(item.labelRes)
+                            )
+                        },
+                        label = { Text(stringResource(item.labelRes)) }
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+
+        Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                if (!isExpandedScreen) {
+                    if (themeSettings.navBarStyle == NavBarStyle.FULL_WIDTH) {
                 val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
                 val selectedIndex = remember(currentDestination, bottomNavItems) {
                     bottomNavItems.indexOfFirst { item ->
@@ -449,6 +493,7 @@ fun KakeiboXApp(
                         }
                     }
                 }
+                }
             }
         }
     ) { innerPadding ->
@@ -457,8 +502,9 @@ fun KakeiboXApp(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            NavHost(
-                navController = navController,
+            SharedTransitionLayout {
+                NavHost(
+                    navController = navController,
                 startDestination = themeSettings.tabOrder.firstOrNull() ?: NavRoutes.Salary.route,
                 modifier = Modifier.fillMaxSize(),
                 // ── Screen transition animations ──────────────
@@ -484,11 +530,30 @@ fun KakeiboXApp(
             composable(NavRoutes.Settings.route) {
                 SettingsScreen()
             }
+            composable(NavRoutes.Spend.route) {
+                SpendScreen(
+                    animatedVisibilityScope = this@composable,
+                    onNavigateToTransactionDetail = { id ->
+                        navController.navigate(NavRoutes.TransactionDetail.createRoute(id))
+                    }
+                )
+            }
+            composable(NavRoutes.TransactionDetail.route) {
+                val transactionId = it.arguments?.getString("transactionId")?.toIntOrNull()
+                if (transactionId != null) {
+                    TransactionDetailScreen(
+                        transactionId = transactionId,
+                        animatedVisibilityScope = this@composable,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+            }
 
+            }
         }
 
         // ── Floating "Bento" Navigation Bar Overlay ──
-        if (themeSettings.navBarStyle == NavBarStyle.FLOATING) {
+        if (!isExpandedScreen && themeSettings.navBarStyle == NavBarStyle.FLOATING) {
             val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
             val selectedIndex = remember(currentDestination, bottomNavItems) {
                 bottomNavItems.indexOfFirst { item ->
@@ -1236,6 +1301,7 @@ fun KakeiboXApp(
             }
         }
     }
+}
 }
 }
 

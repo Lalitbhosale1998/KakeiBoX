@@ -22,7 +22,12 @@ import com.personal.kakeibox.ui.theme.backdropPattern
 import com.personal.kakeibox.ui.theme.crtScreenFilter
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.ColorIntensityPreset
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import android.app.Activity
 
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun KakeiboXAppRoot() {
     val themeViewModel: ThemeViewModel = hiltViewModel()
@@ -62,7 +67,8 @@ fun KakeiboXAppRoot() {
                 .backdropPattern(themeSettings.backdropPattern)
         ) {
             if (!themeSettings.biometricEnabled || isAuthenticated) {
-                KakeiboXApp()
+                val windowSizeClass = calculateWindowSizeClass(context as Activity)
+                KakeiboXApp(windowSizeClass = windowSizeClass)
             } else {
                 KakeiboXLockScreen(
                     themeSettings = themeSettings,

@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.compose.ui.text.google.fonts)
 
     implementation(libs.material3)
+    implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
     implementation(libs.material.icons.extended)
 
     implementation(libs.navigation.compose)
