@@ -17,8 +17,19 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import kotlin.math.roundToInt
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.personal.kakeibox.ui.components.RoundedPolygonShape
+import com.personal.kakeibox.ui.components.CookieShape
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.LinearEasing
+import com.personal.kakeibox.ui.theme.OutfitFontFamily
+import com.personal.kakeibox.ui.theme.PlayfairFontFamily
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -555,6 +566,28 @@ fun DailyProgressDashboard(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(100.dp)
             ) {
+                // Floating/Rotating 6-sided Cookie Shape in background of text
+                val infiniteTransition = rememberInfiniteTransition(label = "cookie_pulse")
+                val cookieRotation by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(25000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart
+                    ),
+                    label = "cookie_rot"
+                )
+                Box(
+                    modifier = Modifier
+                        .size(62.dp)
+                        .graphicsLayer { rotationZ = cookieRotation }
+                        .background(
+                            color = primaryColor.copy(alpha = 0.08f),
+                            shape = CookieShape(petals = 6)
+                        )
+                        .border(1.dp, primaryColor.copy(alpha = 0.15f), CookieShape(petals = 6))
+                )
+
                 androidx.compose.foundation.Canvas(modifier = Modifier.size(90.dp)) {
                     // Track Circle
                     drawCircle(

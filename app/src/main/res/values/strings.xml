@@ -4,6 +4,7 @@
     <!-- Tab Labels -->
     <string name="tab_salary">Salary</string>
     <string name="tab_spend">Spend</string>
+    <string name="tab_journeys">Journeys</string>
     <string name="tab_exercise">Exercise</string>
     <string name="tab_settings">Settings</string>
 

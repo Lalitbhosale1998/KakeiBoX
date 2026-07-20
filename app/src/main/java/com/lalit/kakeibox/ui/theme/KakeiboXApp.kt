@@ -30,10 +30,12 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Wallet
+import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Wallet
+import androidx.compose.material.icons.outlined.FlightTakeoff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -149,6 +151,12 @@ fun KakeiboXApp(
                 labelRes = R.string.tab_settings,
                 icon = Icons.Outlined.Settings,
                 selectedIcon = Icons.Filled.Settings
+            )
+            NavRoutes.Journeys.route -> BottomNavItem(
+                route = NavRoutes.Journeys.route,
+                labelRes = R.string.tab_journeys,
+                icon = Icons.Outlined.FlightTakeoff,
+                selectedIcon = Icons.Filled.FlightTakeoff
             )
             else -> null
         }
@@ -479,6 +487,9 @@ fun KakeiboXApp(
             composable(NavRoutes.Settings.route) {
                 SettingsScreen()
             }
+            composable(NavRoutes.Journeys.route) {
+                com.personal.kakeibox.ui.theme.journeys.JourneysScreen()
+            }
         }
 
         // ── Floating "Bento" Navigation Bar Overlay ──
@@ -658,6 +669,7 @@ fun KakeiboXApp(
                                         when (item.route) {
                                             NavRoutes.Salary.route -> Color(0xFFFFD700) // Vibrant Gold
                                             NavRoutes.Exercise.route -> Color(0xFF10B981) // Emerald Green
+                                            NavRoutes.Journeys.route -> Color(0xFF3B82F6) // Blue
                                             NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Vibrant Violet
                                             else -> MaterialTheme.colorScheme.onSurface
                                         }

@@ -448,8 +448,6 @@ fun SettingsScreen(
                                 accentColor = Color(0xFF06B6D4)
                             )
                         }
-
-                        
                     }
                     "preferences" -> {
                         SettingsGroup(title = "Regional & Locale Options") {

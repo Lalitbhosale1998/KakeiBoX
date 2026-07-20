@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.androidx.foundation)
+    implementation("androidx.graphics:graphics-shapes:1.0.0-rc01")
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.ui.text.google.fonts)
 

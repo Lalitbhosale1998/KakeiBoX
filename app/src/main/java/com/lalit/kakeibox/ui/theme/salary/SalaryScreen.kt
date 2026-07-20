@@ -70,6 +70,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.asComposePath
+import androidx.graphics.shapes.RoundedPolygon
+import androidx.graphics.shapes.Morph
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -115,6 +121,7 @@ import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.LocalGlowIntensity
 import com.personal.kakeibox.ui.theme.glow
+import com.personal.kakeibox.ui.theme.OutfitFontFamily
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.data.preferences.BackdropPattern
 import com.personal.kakeibox.ui.components.RoundedPolygonShape
@@ -1020,111 +1027,37 @@ fun ExpressiveHeroCard(
         label = "shape_y_3"
     )
 
-    var shaderTime by remember { mutableStateOf(0f) }
-    LaunchedEffect(Unit) {
-        val startTime = withInfiniteAnimationFrameMillis { it }
-        while (true) {
-            withInfiniteAnimationFrameMillis { frameTime ->
-                shaderTime = (frameTime - startTime) / 1000f
-            }
-        }
+    // Using Morph from androidx.graphics.shapes
+    val shape1 = remember {
+        RoundedPolygon(
+            numVertices = 4,
+            radius = 1f,
+            centerX = 0.5f,
+            centerY = 0.5f
+        ) // Pill-like
     }
-
-    val isDark = isSystemInDarkTheme()
-
-    val backgroundBrush = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val shaderCode = """
-            uniform float2 uSize;
-            uniform float uTime;
-            uniform half3 uColor1;
-            uniform half3 uColor2;
-
-            // Smooth minimum for blending fluid metaballs
-            float smin(float a, float b, float k) {
-                float h = max(k - abs(a - b), 0.0) / k;
-                return min(a, b) - h * h * h * k * (1.0 / 6.0);
-            }
-
-            half4 main(in float2 fragCoord) {
-                float2 uv = fragCoord / uSize;
-                float aspectRatio = uSize.x / uSize.y;
-                float2 uvAspect = float2(uv.x * aspectRatio, uv.y);
-                
-                // Slow down time for premium, relaxing motion
-                float t = uTime * 0.35;
-                
-                // Blob 1: Morphing circle drifting on the left side
-                float2 center1 = float2(0.35 * aspectRatio + sin(t) * 0.12, 0.5 + cos(t * 0.8) * 0.12);
-                float dist1 = length(uvAspect - center1) - (0.28 + sin(t * 1.5) * 0.03);
-                
-                // Blob 2: Morphing circle drifting on the right side
-                float2 center2 = float2(0.75 * aspectRatio + cos(t * 1.1) * 0.12, 0.4 + sin(t * 0.9) * 0.12);
-                float dist2 = length(uvAspect - center2) - (0.24 + cos(t * 1.3) * 0.03);
-                
-                // Blob 3: Backdrop organic shape morphing near the top-center
-                float2 center3 = float2(0.55 * aspectRatio + sin(t * 0.7) * 0.15, 0.6 + cos(t * 1.2) * 0.1);
-                float dist3 = length(uvAspect - center3) - 0.32;
-
-                // Blend the shapes smoothly together
-                float d = smin(dist1, dist2, 0.2);
-                d = smin(d, dist3, 0.25);
-                
-                // Apply a tight smoothstep for a crisp, clean, anti-aliased vector edge
-                float shapeIntensity = 1.0 - smoothstep(-0.008, 0.008, d);
-                
-                // Base organic gradient background
-                float2 warp = float2(
-                    sin(uv.y * 3.0 + t) * 0.08,
-                    cos(uv.x * 3.0 - t * 0.8) * 0.08
-                );
-                float2 warpedUv = uv + warp;
-                float mixRatio = clamp(warpedUv.x * warpedUv.y * 1.6, 0.0, 1.0);
-                half3 backdropColor = mix(uColor2, uColor1, mixRatio);
-                
-                // Subtle hue highlight for shapes (shifting slightly towards cyan/emerald highlights)
-                half3 shapeColor = uColor1 * 1.2 + half3(0.02, 0.05, 0.05);
-                
-                // Mix shapes and background
-                half3 finalColor = mix(backdropColor, shapeColor, shapeIntensity * 0.45);
-                
-                // High-frequency animated chromatic film grain
-                float noise = fract(sin(dot(fragCoord.xy + t * 0.05, float2(12.9898, 78.233))) * 43758.5453);
-                finalColor += (noise - 0.5) * 0.03;
-                
-                return half4(finalColor, 1.0);
-            }
-        """.trimIndent()
-        
-        val color1 = MaterialTheme.colorScheme.primaryContainer
-        val color2 = MaterialTheme.colorScheme.surface
-        val c1 = floatArrayOf(color1.red, color1.green, color1.blue)
-        val c2 = floatArrayOf(color2.red, color2.green, color2.blue)
-        
-        // Retain the shader instance to prevent frame-by-frame memory allocations
-        val runtimeShader = remember(isDark) {
-            RuntimeShader(shaderCode).apply {
-                setFloatUniform("uColor1", c1[0], c1[1], c1[2])
-                setFloatUniform("uColor2", c2[0], c2[1], c2[2])
-            }
-        }
-        
-        runtimeShader.setFloatUniform("uTime", shaderTime)
-        
-        remember(runtimeShader) {
-            object : ShaderBrush() {
-                override fun createShader(size: androidx.compose.ui.geometry.Size): android.graphics.Shader {
-                    runtimeShader.setFloatUniform("uSize", size.width, size.height)
-                    return runtimeShader
-                }
-            }
-        }
-    } else {
-        if (isDark) {
-            Brush.verticalGradient(listOf(Color(0xFF1E293B), Color(0xFF0F172A)))
-        } else {
-            Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer))
-        }
+    val shape2 = remember {
+        RoundedPolygon(
+            numVertices = 8, // Blob
+            radius = 1f,
+            centerX = 0.5f,
+            centerY = 0.5f
+        )
     }
+    val morph = remember(shape1, shape2) { Morph(shape1, shape2) }
+
+    val morphProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = SineInOutEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "morph_progress"
+    )
+    
+    val shapeColor1 = MaterialTheme.colorScheme.primaryContainer
+    val shapeColor2 = MaterialTheme.colorScheme.tertiaryContainer
 
     Surface(
         modifier = Modifier
@@ -1141,16 +1074,30 @@ fun ExpressiveHeroCard(
                 isFlipped = !isFlipped
             },
         shape = RoundedCornerShape(32.dp),
-        color = Color.Transparent,
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.15f), Color.Transparent))),
         tonalElevation = 8.dp
     ) {
         Box(
             modifier = Modifier
-                .background(backgroundBrush)
-                .padding(vertical = 36.dp, horizontal = 24.dp)
                 .fillMaxWidth()
-                .heightIn(min = 180.dp)
+                .height(320.dp)
+                .drawBehind {
+                    // Draw morphing background shape
+                    val path = morph.toComposePath(progress = morphProgress)
+                    
+                    val scaleFactor = size.minDimension * 0.9f
+                    
+                    translate(left = size.width / 2f, top = size.height / 2f) {
+                        scale(scaleX = scaleFactor, scaleY = scaleFactor) {
+                            drawPath(
+                                path = path,
+                                brush = Brush.linearGradient(listOf(shapeColor1, shapeColor2))
+                            )
+                        }
+                    }
+                }
+                .padding(vertical = 36.dp, horizontal = 24.dp)
         ) {
             // Floating Decorative Shapes (Android 17 M3 style)
             // Shape 1: Pill (Top-Right)
@@ -1841,7 +1788,8 @@ fun ExpressiveHistoryBentoBox(
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = "SAVINGS",
@@ -1850,12 +1798,30 @@ fun ExpressiveHistoryBentoBox(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                         letterSpacing = 1.sp
                                     )
-                                    Text(
-                                        text = "${CurrencyUtils.formatAmount(entry.savingsAmount, themeSettings.currencySymbol, isPrivacyMode)} ($savingsPercent%)",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Black,
-                                        color = indicatorColor
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text(
+                                            text = CurrencyUtils.formatAmount(entry.savingsAmount, themeSettings.currencySymbol, isPrivacyMode),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Black,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Surface(
+                                            shape = RoundedCornerShape(50), // Pill Shape
+                                            color = indicatorColor.copy(alpha = 0.12f),
+                                            border = BorderStroke(1.dp, indicatorColor.copy(alpha = 0.25f))
+                                        ) {
+                                            Text(
+                                                text = "$savingsPercent%",
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = OutfitFontFamily),
+                                                fontWeight = FontWeight.Black,
+                                                color = indicatorColor
+                                            )
+                                        }
+                                    }
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Box(
@@ -3241,4 +3207,23 @@ fun Modifier.expressiveClickable(
             indication = expressiveIndication,
             onClick = onClick
         )
+}
+
+// Helper to convert KMP Morph to Compose Path
+private fun androidx.graphics.shapes.Morph.toComposePath(progress: Float): androidx.compose.ui.graphics.Path {
+    val path = androidx.compose.ui.graphics.Path()
+    var first = true
+    this.forEachCubic(progress) { cubic ->
+        if (first) {
+            path.moveTo(cubic.anchor0X, cubic.anchor0Y)
+            first = false
+        }
+        path.cubicTo(
+            cubic.control0X, cubic.control0Y,
+            cubic.control1X, cubic.control1Y,
+            cubic.anchor1X, cubic.anchor1Y
+        )
+    }
+    path.close()
+    return path
 }

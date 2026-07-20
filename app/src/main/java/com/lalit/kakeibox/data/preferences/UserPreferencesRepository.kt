@@ -49,7 +49,7 @@ class UserPreferencesRepository @Inject constructor(
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
             tabOrder = run {
-                val rawOrder = prefs[Keys.TAB_ORDER] ?: "salary,exercise,settings"
+                val rawOrder = prefs[Keys.TAB_ORDER] ?: "salary,exercise,journeys,settings"
                 var parsed = rawOrder.split(",").filter { it != "commute" && it != "spend" && it.isNotBlank() }
                 if (!parsed.contains("exercise")) {
                     val list = parsed.toMutableList()
@@ -58,6 +58,16 @@ class UserPreferencesRepository @Inject constructor(
                         list.add(settingsIndex, "exercise")
                     } else {
                         list.add("exercise")
+                    }
+                    parsed = list
+                }
+                if (!parsed.contains("journeys")) {
+                    val list = parsed.toMutableList()
+                    val settingsIndex = list.indexOf("settings")
+                    if (settingsIndex != -1) {
+                        list.add(settingsIndex, "journeys")
+                    } else {
+                        list.add("journeys")
                     }
                     parsed = list
                 }
