@@ -167,6 +167,7 @@ fun KakeiboXApp(
     val isActionEnabled = currentRoute == NavRoutes.Salary.route ||
             currentRoute == NavRoutes.Exercise.route ||
             currentRoute == NavRoutes.Spend.route ||
+            currentRoute == NavRoutes.Journeys.route ||
             currentRoute == "commute"
 
     val actionButtonScale by animateFloatAsState(
@@ -189,6 +190,7 @@ fun KakeiboXApp(
             NavRoutes.Salary.route -> Color(0xFFFFD700)
             NavRoutes.Exercise.route -> Color(0xFF10B981)
             NavRoutes.Spend.route -> Color(0xFF0D9488)
+            NavRoutes.Journeys.route -> Color(0xFF3B82F6)
             "commute" -> Color(0xFF0284C7)
             else -> MaterialTheme.colorScheme.primary
         },
@@ -200,6 +202,7 @@ fun KakeiboXApp(
             NavRoutes.Salary.route -> Color(0xFFF59E0B)
             NavRoutes.Exercise.route -> Color(0xFF059669)
             NavRoutes.Spend.route -> Color(0xFF0F766E)
+            NavRoutes.Journeys.route -> Color(0xFF2563EB)
             "commute" -> Color(0xFF0369A1)
             else -> MaterialTheme.colorScheme.secondary
         },

@@ -37,9 +37,22 @@ import com.personal.kakeibox.R
 import kotlinx.coroutines.launch
 import kotlin.math.sin
 
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
+import com.personal.kakeibox.ui.settings.ThemeViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.personal.kakeibox.data.preferences.TopAppBarBackground
+
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun JourneysScreen() {
+fun JourneysScreen(
+    themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+) {
+    val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableStateOf(JourneysTab.Memories) }
     var showAddTripSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -59,10 +72,60 @@ fun JourneysScreen() {
         )
     }
 
+    LaunchedEffect(Unit) {
+        themeViewModel.onAddActionButtonClicked.collect { route ->
+            if (route == "journeys") {
+                showAddTripSheet = true
+            }
+        }
+    }
+
+    val memoriesListState = rememberLazyStaggeredGridState()
+    val horizonsScrollState = rememberScrollState()
+
+    val density = LocalDensity.current
+    val maxOffsetPx = with(density) { 70.dp.toPx() }
+
+    val scrollOffset by remember {
+        derivedStateOf {
+            when (selectedTab) {
+                JourneysTab.Memories -> {
+                    if (memoriesListState.firstVisibleItemIndex > 0) maxOffsetPx
+                    else memoriesListState.firstVisibleItemScrollOffset.toFloat().coerceAtMost(maxOffsetPx)
+                }
+                JourneysTab.Horizons -> {
+                    horizonsScrollState.value.toFloat().coerceAtMost(maxOffsetPx)
+                }
+            }
+        }
+    }
+    
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val onContainerColor = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val primaryTextAccent = if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
+
+    val topAppBarContainerColor by animateColorAsState(
+        targetValue = when (themeSettings.topAppBarBackground) {
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
+            TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
+        },
+        label = "top_app_bar_container_color"
+    )
+
     SharedTransitionLayout {
         val sharedTransitionScope = this
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             Column(modifier = Modifier.fillMaxSize()) {
+                ExpressiveCollapsingHeader(
+                    title = "My",
+                    subtitle = "Journeys",
+                    scrollOffset = scrollOffset,
+                    maxOffset = maxOffsetPx,
+                    containerColor = topAppBarContainerColor,
+                    onContainerColor = onContainerColor,
+                    primaryTextAccent = primaryTextAccent,
+                    actions = {}
+                )
                 // Top Tab Selector (Expressive ButtonGroup style)
                 Row(
                     modifier = Modifier
@@ -95,6 +158,7 @@ fun JourneysScreen() {
                     when (tab) {
                         JourneysTab.Memories -> {
                             LazyVerticalStaggeredGrid(
+                                state = memoriesListState,
                                 columns = StaggeredGridCells.Fixed(2),
                                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                                 contentPadding = PaddingValues(bottom = 100.dp),
@@ -116,7 +180,7 @@ fun JourneysScreen() {
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(horizontal = 16.dp)
-                                    .verticalScroll(rememberScrollState())
+                                    .verticalScroll(horizonsScrollState)
                             ) {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 BoardingPassCard(
@@ -139,57 +203,28 @@ fun JourneysScreen() {
                         }
                     }
                 }
-            }
+            } // Closes Column
 
-            // HorizontalFloatingToolbar (Bottom)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-                    .wrapContentSize()
+            // Fullscreen details via Shared Element
+            AnimatedVisibility(
+                visible = selectedMemoryId != null,
+                enter = fadeIn(tween(300)),
+                exit = fadeOut(tween(300))
             ) {
-                FloatingActionButton(
-                    onClick = { showAddTripSheet = true },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.height(64.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Trip")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Add Trip",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.labelLarge
+                selectedMemoryId?.let { id ->
+                    val memory = memories.find { it.id == id }
+                    if (memory != null) {
+                        MemoryDetailScreen(
+                            memory = memory,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = this@AnimatedVisibility,
+                            onBack = { selectedMemoryId = null }
                         )
                     }
                 }
             }
-        }
-        
-        // Fullscreen details via Shared Element
-        AnimatedVisibility(
-            visible = selectedMemoryId != null,
-            enter = fadeIn(tween(300)),
-            exit = fadeOut(tween(300))
-        ) {
-            selectedMemoryId?.let { id ->
-                val memory = memories.find { it.id == id }
-                if (memory != null) {
-                    MemoryDetailScreen(
-                        memory = memory,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = this@AnimatedVisibility,
-                        onBack = { selectedMemoryId = null }
-                    )
-                }
-            }
-        }
-    }
+        } // Closes Box
+    } // Closes SharedTransitionLayout
 
     if (showAddTripSheet) {
         ModalBottomSheet(
