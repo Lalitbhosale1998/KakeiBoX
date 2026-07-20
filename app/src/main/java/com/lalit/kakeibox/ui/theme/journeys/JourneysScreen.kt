@@ -26,6 +26,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
+import android.os.Build
+import android.graphics.RuntimeShader
+import androidx.graphics.shapes.CornerRounding
+import androidx.graphics.shapes.Morph
+import androidx.graphics.shapes.RoundedPolygon
+import androidx.graphics.shapes.star
+import androidx.graphics.shapes.toPath
+import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -153,8 +162,13 @@ fun JourneysScreen(
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = {
-                        (fadeIn(animationSpec = tween(300)) + slideInVertically(initialOffsetY = { 50 }))
-                            .togetherWith(fadeOut(animationSpec = tween(300)))
+                        val slideDir = if (targetState.ordinal > initialState.ordinal) {
+                            AnimatedContentTransitionScope.SlideDirection.Left
+                        } else {
+                            AnimatedContentTransitionScope.SlideDirection.Right
+                        }
+                        (slideIntoContainer(slideDir, tween(400)) + fadeIn(tween(400)))
+                            .togetherWith(slideOutOfContainer(slideDir, tween(400)) + fadeOut(tween(400)))
                     },
                     label = "tab_content"
                 ) { tab ->
@@ -270,7 +284,7 @@ fun JourneysTabButton(
         label = "tab_scale"
     )
 
-    // Expressive Shape Morphing: Asymmetrical 'cookie' shape when selected, perfect pill when unselected
+    // Expressive Shape Morphing: Asymmetrical 'leaf/cookie' shape when selected, perfect pill when unselected
     val cornerTS by animateIntAsState(if (isSelected) 20 else 50, label = "ts")
     val cornerTE by animateIntAsState(if (isSelected) 100 else 50, label = "te")
     val cornerBE by animateIntAsState(if (isSelected) 20 else 50, label = "be")
@@ -574,6 +588,30 @@ fun BoardingPassCard(
     }
 }
 
+const val WAVE_SHADER_CODE = """
+    uniform float2 u_resolution;
+    uniform float u_time;
+    uniform float u_progress;
+    uniform half4 u_activeColor;
+    
+    half4 main(float2 fragCoord) {
+        float normalizedX = fragCoord.x / u_resolution.x;
+        if (normalizedX > u_progress) return half4(0.0);
+        
+        float waveAmp = u_resolution.y * 0.15;
+        float waveFreq = 20.0;
+        
+        float yOffset = sin(normalizedX * waveFreq + u_time) * waveAmp;
+        float centerY = (u_resolution.y / 2.0) + yOffset;
+        
+        float halfStroke = u_resolution.y / 2.0;
+        if (fragCoord.y >= centerY - halfStroke && fragCoord.y <= centerY + halfStroke) {
+            return u_activeColor;
+        }
+        return half4(0.0);
+    }
+"""
+
 @Composable
 fun WaveformProgressIndicator(saved: Float, target: Float) {
     val progress = (saved / target).coerceIn(0f, 1f)
@@ -590,6 +628,18 @@ fun WaveformProgressIndicator(saved: Float, target: Float) {
     
     val activeColor = MaterialTheme.colorScheme.primary
     val trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+    
+    val runtimeShader = remember(activeColor) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            RuntimeShader(WAVE_SHADER_CODE).apply {
+                setFloatUniform("u_activeColor", activeColor.red, activeColor.green, activeColor.blue, activeColor.alpha)
+            }
+        } else null
+    }
+    
+    val shaderBrush = remember(runtimeShader) {
+        runtimeShader?.let { ShaderBrush(it) }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -620,26 +670,33 @@ fun WaveformProgressIndicator(saved: Float, target: Float) {
                 cornerRadius = CornerRadius(height / 2)
             )
             
-            // Draw waveform progress
-            val activeWidth = width * progress
-            if (activeWidth > 0) {
-                clipRect(right = activeWidth) {
-                    val path = Path()
-                    val waveAmp = height * 0.15f
-                    val waveFreq = 20f
-                    
-                    path.moveTo(0f, height / 2f)
-                    for (x in 0..width.toInt() step 5) {
-                        val normalizedX = x / width
-                        val yOffset = sin(normalizedX * waveFreq + waveOffset) * waveAmp
-                        path.lineTo(x.toFloat(), height / 2f + yOffset)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && runtimeShader != null && shaderBrush != null) {
+                runtimeShader.setFloatUniform("u_resolution", width, height)
+                runtimeShader.setFloatUniform("u_time", waveOffset)
+                runtimeShader.setFloatUniform("u_progress", progress)
+                drawRect(brush = shaderBrush, size = Size(width, height))
+            } else {
+                // Fallback CPU Path Rendering
+                val activeWidth = width * progress
+                if (activeWidth > 0) {
+                    clipRect(right = activeWidth) {
+                        val path = Path()
+                        val waveAmp = height * 0.15f
+                        val waveFreq = 20f
+                        
+                        path.moveTo(0f, height / 2f)
+                        for (x in 0..width.toInt() step 5) {
+                            val normalizedX = x / width
+                            val yOffset = sin(normalizedX * waveFreq + waveOffset) * waveAmp
+                            path.lineTo(x.toFloat(), height / 2f + yOffset)
+                        }
+                        
+                        drawPath(
+                            path = path,
+                            color = activeColor,
+                            style = Stroke(width = height, cap = StrokeCap.Round)
+                        )
                     }
-                    
-                    drawPath(
-                        path = path,
-                        color = activeColor,
-                        style = Stroke(width = height, cap = StrokeCap.Round)
-                    )
                 }
             }
         }
