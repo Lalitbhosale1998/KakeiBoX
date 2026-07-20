@@ -20,7 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -267,9 +270,15 @@ fun JourneysTabButton(
         label = "tab_scale"
     )
 
+    // Expressive Shape Morphing: Asymmetrical 'cookie' shape when selected, perfect pill when unselected
+    val cornerTS by animateIntAsState(if (isSelected) 20 else 50, label = "ts")
+    val cornerTE by animateIntAsState(if (isSelected) 100 else 50, label = "te")
+    val cornerBE by animateIntAsState(if (isSelected) 20 else 50, label = "be")
+    val cornerBS by animateIntAsState(if (isSelected) 100 else 50, label = "bs")
+
     Surface(
         color = backgroundColor,
-        shape = RoundedCornerShape(50),
+        shape = RoundedCornerShape(topStartPercent = cornerTS, topEndPercent = cornerTE, bottomEndPercent = cornerBE, bottomStartPercent = cornerBS),
         modifier = Modifier
             .graphicsLayer {
                 scaleX = scale
@@ -315,6 +324,21 @@ fun MemoryCard(
         }
     )
     
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    // M3 Expressive "Touch Bloom" physics
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isPressed) 8.dp else 24.dp,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
+        label = "corner_radius"
+    )
+    val cardScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
+        label = "card_scale"
+    )
+    
     if (isDismissed) return
 
     SwipeToDismissBox(
@@ -346,8 +370,12 @@ fun MemoryCard(
                         animatedVisibilityScope = animatedVisibilityScope,
                         boundsTransform = { _, _ -> spring(dampingRatio = 0.7f, stiffness = 200f) }
                     )
-                    .clickable { onClick() },
-                shape = RoundedCornerShape(24.dp),
+                    .graphicsLayer {
+                        scaleX = cardScale
+                        scaleY = cardScale
+                    }
+                    .clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onClick() },
+                shape = RoundedCornerShape(cornerRadius),
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 tonalElevation = 4.dp
             ) {
@@ -425,6 +453,47 @@ fun MemoryDetailScreen(
     }
 }
 
+class TicketShape(private val cornerRadius: Float, private val cutoutRadius: Float) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: androidx.compose.ui.unit.Density): Outline {
+        val path = Path().apply {
+            val w = size.width
+            val h = size.height
+            val cr = cornerRadius
+            val cutR = cutoutRadius
+            
+            moveTo(0f, cr)
+            quadraticTo(0f, 0f, cr, 0f)
+            lineTo(w - cr, 0f)
+            quadraticTo(w, 0f, w, cr)
+            
+            lineTo(w, (h / 2) - cutR)
+            arcTo(
+                rect = Rect(w - cutR, (h / 2) - cutR, w + cutR, (h / 2) + cutR),
+                startAngleDegrees = 270f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+            
+            lineTo(w, h - cr)
+            quadraticTo(w, h, w - cr, h)
+            lineTo(cr, h)
+            quadraticTo(0f, h, 0f, h - cr)
+            
+            lineTo(0f, (h / 2) + cutR)
+            arcTo(
+                rect = Rect(-cutR, (h / 2) - cutR, cutR, (h / 2) + cutR),
+                startAngleDegrees = 90f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+            
+            lineTo(0f, cr)
+            close()
+        }
+        return Outline.Generic(path)
+    }
+}
+
 @Composable
 fun BoardingPassCard(
     destination: String,
@@ -433,9 +502,13 @@ fun BoardingPassCard(
     saved: Float,
     target: Float
 ) {
+    val density = LocalDensity.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(32.dp),
+        shape = TicketShape(
+            cornerRadius = with(density) { 32.dp.toPx() },
+            cutoutRadius = with(density) { 16.dp.toPx() }
+        ),
         color = MaterialTheme.colorScheme.surfaceVariant,
         tonalElevation = 2.dp
     ) {
