@@ -1,4 +1,4 @@
-﻿package com.personal.kakeibox.ui.components
+package com.personal.kakeibox.ui.components
 
 import androidx.annotation.FloatRange
 import androidx.compose.animation.core.*
@@ -21,6 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
@@ -238,6 +244,49 @@ fun RoundedHorizontalMultiBrowseCarousel(
    CORE
    ================================================================================================ */
 
+@Composable
+fun rememberGyroTilt(): Pair<Float, Float> {
+    val context = LocalContext.current
+    var pitch by remember { mutableFloatStateOf(0f) }
+    var roll by remember { mutableFloatStateOf(0f) }
+    
+    val smoothPitch by animateFloatAsState(targetValue = pitch, animationSpec = spring(dampingRatio = 0.8f, stiffness = 100f), label = "pitchAnim")
+    val smoothRoll by animateFloatAsState(targetValue = roll, animationSpec = spring(dampingRatio = 0.8f, stiffness = 100f), label = "rollAnim")
+    
+    DisposableEffect(context) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+        val rotationSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                event?.let {
+                    val rotationMatrix = FloatArray(9)
+                    SensorManager.getRotationMatrixFromVector(rotationMatrix, it.values)
+                    val orientation = FloatArray(3)
+                    SensorManager.getOrientation(rotationMatrix, orientation)
+                    
+                    val pitchRad = orientation[1]
+                    val rollRad = orientation[2]
+                    
+                    pitch = Math.toDegrees(pitchRad.toDouble()).toFloat().coerceIn(-45f, 45f)
+                    roll = Math.toDegrees(rollRad.toDouble()).toFloat().coerceIn(-45f, 45f)
+                }
+            }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        
+        rotationSensor?.let {
+            sensorManager.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
+        }
+        
+        onDispose {
+            sensorManager?.unregisterListener(listener)
+        }
+    }
+    
+    return Pair(smoothPitch, smoothRoll)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RoundedCarousel(
@@ -309,10 +358,17 @@ private fun RoundedCarousel(
             animationSpec = tween(durationMillis = 200),
             label = "CarouselItemAlpha"
         )
+        
+        val gyroTilt = rememberGyroTilt()
 
         Box(
             modifier = Modifier
-                .graphicsLayer { alpha = animatedAlpha }
+                .graphicsLayer { 
+                    alpha = animatedAlpha 
+                    rotationX = gyroTilt.first * -0.5f
+                    rotationY = gyroTilt.second * 0.5f
+                    cameraDistance = 8 * density
+                }
                 .carouselItem(
                     index = page,
                     state = state,

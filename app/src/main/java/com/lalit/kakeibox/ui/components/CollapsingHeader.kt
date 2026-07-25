@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clipToBounds
 
 @Composable
 fun ExpressiveCollapsingHeader(
@@ -41,8 +43,12 @@ fun ExpressiveCollapsingHeader(
     
     val density = LocalDensity.current
     val statusBarPadding = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
-    val height = (150.dp + statusBarPadding) - (70.dp * animatedProgress)
-    val scale = 1f - (0.25f * animatedProgress)
+    val height = (180.dp + statusBarPadding) - (100.dp * animatedProgress)
+    
+    // Hyper-expressive typography scaling
+    val scale = 1f - (0.4f * animatedProgress)
+    val letterSpacing = (-4f + (4f * animatedProgress)).sp
+    val offsetX = (-20f * (1f - animatedProgress)).dp
     
     Surface(
         modifier = modifier
@@ -66,22 +72,29 @@ fun ExpressiveCollapsingHeader(
                         scaleY = scale
                         transformOrigin = TransformOrigin(0f, 0.5f)
                     }
-                    .weight(1f),
+                    .offset(x = offsetX)
+                    .weight(1f)
+                    .clipToBounds(),
                 verticalArrangement = Arrangement.Center
             ) {
                 if (animatedProgress < 0.6f) {
                     Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
+                        text = title.uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 4.sp,
                         color = onContainerColor.copy(alpha = (1f - animatedProgress / 0.6f).coerceIn(0f, 1f))
                     )
                 }
                 Text(
                     text = subtitle,
-                    style = if (animatedProgress >= 0.6f) MaterialTheme.typography.titleLarge else MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontSize = if (animatedProgress >= 0.6f) 24.sp else 68.sp,
+                        letterSpacing = letterSpacing
+                    ),
                     fontWeight = FontWeight.Black,
-                    color = primaryTextAccent
+                    color = primaryTextAccent,
+                    maxLines = 1
                 )
             }
             Row(

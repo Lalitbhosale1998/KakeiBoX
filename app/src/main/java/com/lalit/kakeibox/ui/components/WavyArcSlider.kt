@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -60,11 +61,42 @@ fun WavyArcSlider(
     // Normalize value
     val normalizedValue = ((value - valueRange.start) / (valueRange.endInclusive - valueRange.start)).coerceIn(0f, 1f)
     
-    // Static wave shift
-    val phaseShift = 0f
-    
+    // Dynamic wave shift
+    val infiniteTransition = rememberInfiniteTransition()
+    val phaseShift by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phaseShift"
+    )
+
+    // Dynamic wave amplitude based on velocity
+    var lastDragPosition by remember { mutableStateOf(Offset.Zero) }
+    var lastDragTime by remember { mutableLongStateOf(0L) }
+    var waveVelocity by remember { mutableFloatStateOf(0f) }
+
+    val dynamicWaveAmplitude by animateFloatAsState(
+        targetValue = waveAmplitudePx + (waveVelocity * 5f).coerceAtMost(waveAmplitudePx * 3),
+        animationSpec = spring(dampingRatio = 0.4f, stiffness = 100f),
+        label = "dynamicAmplitude"
+    )
+
     // Interaction state for thumb scaling
     var isInteracting by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(isInteracting) {
+        if (!isInteracting) {
+            while (waveVelocity > 0.1f) {
+                waveVelocity *= 0.9f
+                delay(16)
+            }
+            waveVelocity = 0f
+            lastDragTime = 0L
+        }
+    }
     val thumbScale by animateFloatAsState(
         targetValue = if (isInteracting) 1.2f else 1f,
         label = "ThumbScale"
@@ -116,6 +148,21 @@ fun WavyArcSlider(
                         down.consume()
 
                         fun dispatchValue(point: Offset, forceHaptic: Boolean = false) {
+                            val currentTime = System.currentTimeMillis()
+                            if (lastDragTime > 0) {
+                                val dt = currentTime - lastDragTime
+                                if (dt > 0) {
+                                    val dx = point.x - lastDragPosition.x
+                                    val dy = point.y - lastDragPosition.y
+                                    val dist = sqrt(dx*dx + dy*dy)
+                                    val rawVelocity = dist / dt
+                                    // Smooth out velocity
+                                    waveVelocity = waveVelocity * 0.5f + rawVelocity * 0.5f
+                                }
+                            }
+                            lastDragPosition = point
+                            lastDragTime = currentTime
+
                             val newValue = mapTouchToValue(point)
                             onValueChange(newValue)
                             val newInt = newValue.roundToInt()
@@ -181,7 +228,7 @@ fun WavyArcSlider(
                     val distanceAlongArc = arcRadius * angleFromStartRad
                     
                     val k = (2 * PI) / waveLengthPx
-                    val h = if (enabled) waveAmplitudePx * sin(k * distanceAlongArc + phaseShift) else 0.0
+                    val h = if (enabled) dynamicWaveAmplitude * sin(k * distanceAlongArc + phaseShift) else 0.0
                     
                     val r = arcRadius + h
                     

@@ -90,6 +90,10 @@ import com.personal.kakeibox.ui.components.ExpressiveButton
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.ui.theme.LocalGlowIntensity
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import com.personal.kakeibox.ui.theme.glow
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.data.preferences.BackdropPattern
@@ -105,6 +109,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.personal.kakeibox.ui.components.ExpressiveCollapsingHeader
 import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
+import com.personal.kakeibox.ui.components.MorphingCard
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
@@ -370,10 +375,15 @@ fun SharedTransitionScope.SpendScreen(
                 }
             } else {
                 items(items = filteredEntries, key = { it.id }) { entry ->
+                    val view = androidx.compose.ui.platform.LocalView.current
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
                             if (value == SwipeToDismissBoxValue.EndToStart) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                                    view.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)
+                                } else {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
                                 viewModel.deleteEntryDirectly(entry); true
                             } else false
                         }
@@ -420,18 +430,43 @@ fun SharedTransitionScope.SpendScreen(
                             enableDismissFromStartToEnd = false,
                             backgroundContent = { SpendSwipeDeleteBackground() }
                         ) {
-                            ExpressiveListItem(
-                                modifier = Modifier.sharedBounds(
-                                    sharedContentState = rememberSharedContentState(key = "transaction_${entry.id}"),
-                                    animatedVisibilityScope = animatedVisibilityScope
-                                ),
-                                entry = entry,
-                                isPrivacyMode = themeSettings.privacyModeEnabled,
-                                onEdit = { onNavigateToTransactionDetail(entry.id) },
-                                onDelete = { viewModel.openDeleteDialog(entry) },
-                                containerColor = bentoIdleColor,
-                                themeSettings = themeSettings
-                            )
+                            var isExpanded by remember { mutableStateOf(false) }
+
+                            MorphingCard(
+                                isExpanded = isExpanded,
+                                onClick = {
+                                    isExpanded = true
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    // Trigger navigation immediately, shared element handles the rest
+                                    onNavigateToTransactionDetail(entry.id)
+                                    // Reset state after a delay in case they return
+                                    view.postDelayed({ isExpanded = false }, 500)
+                                }
+                            ) { progress ->
+                                ExpressiveListItem(
+                                    modifier = Modifier.sharedBounds(
+                                        sharedContentState = rememberSharedContentState(key = "transaction_${entry.id}"),
+                                        animatedVisibilityScope = animatedVisibilityScope
+                                    ).semantics {
+                                        contentDescription = "Transaction for ${entry.description}, amount ${entry.amount}. Swipe left to delete."
+                                        customActions = listOf(
+                                            androidx.compose.ui.semantics.CustomAccessibilityAction(
+                                                label = "Delete transaction",
+                                                action = { viewModel.deleteEntryDirectly(entry); true }
+                                            )
+                                        )
+                                    }.graphicsLayer {
+                                        scaleX = 1f + (0.05f * progress)
+                                        scaleY = 1f + (0.05f * progress)
+                                    },
+                                    entry = entry,
+                                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                                    onEdit = { onNavigateToTransactionDetail(entry.id) },
+                                    onDelete = { viewModel.openDeleteDialog(entry) },
+                                    containerColor = Color.Transparent,
+                                    themeSettings = themeSettings
+                                )
+                            }
                         }
                     }
                 }
