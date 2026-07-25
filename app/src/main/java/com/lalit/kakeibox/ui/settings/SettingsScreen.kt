@@ -443,8 +443,9 @@ fun SettingsScreen(
                                     NavBarStyle.FULL_WIDTH -> "Full Width"
                                     NavBarStyle.FLOATING -> "Floating"
                                     NavBarStyle.SPLIT -> "Split-Dock"
+                                    NavBarStyle.GOOEY -> "Gooey Slingshot"
                                 },
-                                options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock"),
+                                options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock", NavBarStyle.GOOEY to "Gooey Slingshot"),
                                 onOptionSelected = { viewModel.setNavBarStyle(it) },
                                 accentColor = Color(0xFF06B6D4)
                             )
@@ -709,8 +710,9 @@ fun SettingsScreen(
                                     NavBarStyle.FULL_WIDTH -> "Full Width"
                                     NavBarStyle.FLOATING -> "Floating"
                                     NavBarStyle.SPLIT -> "Split-Dock"
+                                    NavBarStyle.GOOEY -> "Gooey Slingshot"
                                 },
-                                options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock"),
+                                options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock", NavBarStyle.GOOEY to "Gooey Slingshot"),
                                 onOptionSelected = { viewModel.setNavBarStyle(it) },
                                 accentColor = Color(0xFF06B6D4)
                             )
