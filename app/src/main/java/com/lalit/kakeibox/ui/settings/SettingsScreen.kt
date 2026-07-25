@@ -1,4 +1,4 @@
-﻿package com.personal.kakeibox.ui.settings
+package com.personal.kakeibox.ui.settings
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -172,6 +172,7 @@ import com.personal.kakeibox.ui.theme.LocalGlowIntensity
 import com.personal.kakeibox.ui.theme.glow
 import com.personal.kakeibox.data.preferences.GlowIntensity
 import com.personal.kakeibox.data.preferences.BackdropPattern
+import com.personal.kakeibox.data.preferences.CardShapePreference
 import com.personal.kakeibox.data.preferences.TouchSynesthesia
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.BorderStroke
@@ -448,6 +449,46 @@ fun SettingsScreen(
                                 accentColor = Color(0xFF06B6D4)
                             )
                         }
+
+                        val shapeOptions = listOf(
+                            CardShapePreference.DEFAULT to "Default",
+                            CardShapePreference.SEMICIRCLE to "Semicircle",
+                            CardShapePreference.PILL to "Pill",
+                            CardShapePreference.CLAMSHELL to "Clamshell",
+                            CardShapePreference.SLANTED to "Slanted",
+                            CardShapePreference.SQUARE to "Square"
+                        )
+                        SettingsGroup(title = "App Appearance (Shapes)") {
+                            SettingsSelectorRow(
+                                title = "Earnings Card Shape",
+                                description = "Select the shape for the earnings card.",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.earningsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = shapeOptions,
+                                onOptionSelected = { viewModel.setEarningsCardShape(it) },
+                                accentColor = Color(0xFF8B5CF6)
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                            SettingsSelectorRow(
+                                title = "Savings Card Shape",
+                                description = "Select the shape for the savings card.",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.savingsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = shapeOptions,
+                                onOptionSelected = { viewModel.setSavingsCardShape(it) },
+                                accentColor = Color(0xFF10B981)
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                            SettingsSelectorRow(
+                                title = "Remittance Card Shape",
+                                description = "Select the shape for the remittance card.",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.remittanceCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = shapeOptions,
+                                onOptionSelected = { viewModel.setRemittanceCardShape(it) },
+                                accentColor = Color(0xFFEAB308)
+                            )
+                        }
                     }
                     "preferences" -> {
                         SettingsGroup(title = "Regional & Locale Options") {
@@ -675,9 +716,50 @@ fun SettingsScreen(
                             )
                         }
                         
+                        val shapeOptions = listOf(
+                            CardShapePreference.DEFAULT to "Default",
+                            CardShapePreference.SEMICIRCLE to "Semicircle",
+                            CardShapePreference.PILL to "Pill",
+                            CardShapePreference.CLAMSHELL to "Clamshell",
+                            CardShapePreference.SLANTED to "Slanted",
+                            CardShapePreference.SQUARE to "Square"
+                        )
                         
+                        if (shouldShow("Earnings Card Shape", keywords = listOf("earnings", "shape", "card"))) {
+                            SettingsSelectorRow(
+                                title = "Earnings Card Shape",
+                                description = "Select the shape for the earnings card.",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.earningsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = shapeOptions,
+                                onOptionSelected = { viewModel.setEarningsCardShape(it) },
+                                accentColor = Color(0xFF8B5CF6)
+                            )
+                        }
 
-                        
+                        if (shouldShow("Savings Card Shape", keywords = listOf("savings", "shape", "card"))) {
+                            SettingsSelectorRow(
+                                title = "Savings Card Shape",
+                                description = "Select the shape for the savings card.",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.savingsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = shapeOptions,
+                                onOptionSelected = { viewModel.setSavingsCardShape(it) },
+                                accentColor = Color(0xFF10B981)
+                            )
+                        }
+
+                        if (shouldShow("Remittance Card Shape", keywords = listOf("remittance", "shape", "card"))) {
+                            SettingsSelectorRow(
+                                title = "Remittance Card Shape",
+                                description = "Select the shape for the remittance card.",
+                                icon = Icons.Outlined.Palette,
+                                selectedValueLabel = themeSettings.remittanceCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
+                                options = shapeOptions,
+                                onOptionSelected = { viewModel.setRemittanceCardShape(it) },
+                                accentColor = Color(0xFFEAB308)
+                            )
+                        }
                     }
                 }
                 

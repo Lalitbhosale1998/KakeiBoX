@@ -21,6 +21,7 @@ import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.DynamicTonalStyle
 import com.personal.kakeibox.data.preferences.ColorIntensityPreset
+import com.personal.kakeibox.data.preferences.CardShapePreference
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
 import com.personal.kakeibox.data.repository.BirthdayRepository
 import com.personal.kakeibox.data.repository.ExerciseRepository
@@ -228,6 +229,24 @@ class ThemeViewModel @Inject constructor(
     fun setIntensityPreset(preset: ColorIntensityPreset) {
         viewModelScope.launch {
             preferencesRepository.setIntensityPreset(preset)
+        }
+    }
+
+    fun setEarningsCardShape(shape: CardShapePreference) {
+        viewModelScope.launch {
+            preferencesRepository.setEarningsCardShape(shape)
+        }
+    }
+
+    fun setSavingsCardShape(shape: CardShapePreference) {
+        viewModelScope.launch {
+            preferencesRepository.setSavingsCardShape(shape)
+        }
+    }
+
+    fun setRemittanceCardShape(shape: CardShapePreference) {
+        viewModelScope.launch {
+            preferencesRepository.setRemittanceCardShape(shape)
         }
     }
 

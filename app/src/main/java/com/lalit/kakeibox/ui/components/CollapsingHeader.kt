@@ -48,7 +48,6 @@ fun ExpressiveCollapsingHeader(
     // Hyper-expressive typography scaling
     val scale = 1f - (0.4f * animatedProgress)
     val letterSpacing = (-4f + (4f * animatedProgress)).sp
-    val offsetX = (-20f * (1f - animatedProgress)).dp
     
     Surface(
         modifier = modifier
@@ -72,7 +71,6 @@ fun ExpressiveCollapsingHeader(
                         scaleY = scale
                         transformOrigin = TransformOrigin(0f, 0.5f)
                     }
-                    .offset(x = offsetX)
                     .weight(1f)
                     .clipToBounds(),
                 verticalArrangement = Arrangement.Center

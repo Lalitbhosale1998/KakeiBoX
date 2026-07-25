@@ -18,6 +18,20 @@ enum class ColorIntensityPreset {
     }
 }
 
+enum class CardShapePreference {
+    DEFAULT, SEMICIRCLE, PILL, CLAMSHELL, SLANTED, SQUARE;
+
+    companion object {
+        fun fromStorage(value: String?): CardShapePreference {
+            return try {
+                value?.let { valueOf(it) } ?: DEFAULT
+            } catch (e: Exception) {
+                DEFAULT
+            }
+        }
+    }
+}
+
 data class ThemeSettings(
     val darkThemePreference: DarkThemePreference = DarkThemePreference.SYSTEM,
     val useDynamicColor: Boolean = true,
@@ -38,5 +52,8 @@ data class ThemeSettings(
     val crtFilterEnabled: Boolean = false,
     val touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
     val dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
-    val intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT
+    val intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT,
+    val earningsCardShape: CardShapePreference = CardShapePreference.DEFAULT,
+    val savingsCardShape: CardShapePreference = CardShapePreference.DEFAULT,
+    val remittanceCardShape: CardShapePreference = CardShapePreference.DEFAULT
 )

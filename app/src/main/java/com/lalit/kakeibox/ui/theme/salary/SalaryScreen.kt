@@ -115,6 +115,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.R
 import com.personal.kakeibox.data.entity.SalaryEntry
 import com.personal.kakeibox.data.preferences.ThemeSettings
+import com.personal.kakeibox.ui.components.toShape
 import com.personal.kakeibox.util.CurrencyUtils
 import com.personal.kakeibox.util.DateUtils
 import com.personal.kakeibox.data.preferences.ThemeStyle
@@ -1073,7 +1074,7 @@ fun ExpressiveHeroCard(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 isFlipped = !isFlipped
             },
-        shape = RoundedCornerShape(32.dp),
+        shape = themeSettings.earningsCardShape.toShape(isPressed = false),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.15f), Color.Transparent))),
         tonalElevation = 8.dp
@@ -1486,6 +1487,7 @@ fun ExpressiveStatsGrid(
             icon = Icons.Outlined.Savings,
             idleContainerColor = bentoIdleColor,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
+            cardShapePreference = themeSettings.savingsCardShape,
             modifier = Modifier.weight(1f)
         ) {
             Column(
@@ -1567,6 +1569,7 @@ fun ExpressiveStatsGrid(
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
             idleContainerColor = bentoIdleColor,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
+            cardShapePreference = themeSettings.remittanceCardShape,
             modifier = Modifier.weight(1f),
             onClick = onRemittanceClick
         ) {

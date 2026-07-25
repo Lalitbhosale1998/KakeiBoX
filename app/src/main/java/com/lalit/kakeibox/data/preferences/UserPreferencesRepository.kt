@@ -31,6 +31,9 @@ private object Keys {
     val TOUCH_SYNESTHESIA = stringPreferencesKey("touch_synesthesia")
     val DYNAMIC_TONAL_STYLE = stringPreferencesKey("dynamic_tonal_style")
     val INTENSITY_PRESET = stringPreferencesKey("intensity_preset")
+    val EARNINGS_CARD_SHAPE = stringPreferencesKey("earnings_card_shape")
+    val SAVINGS_CARD_SHAPE = stringPreferencesKey("savings_card_shape")
+    val REMITTANCE_CARD_SHAPE = stringPreferencesKey("remittance_card_shape")
 }
 
 @Singleton
@@ -85,7 +88,10 @@ class UserPreferencesRepository @Inject constructor(
             crtFilterEnabled = prefs[Keys.CRT_FILTER_ENABLED] ?: false,
             touchSynesthesia = TouchSynesthesia.fromStorage(prefs[Keys.TOUCH_SYNESTHESIA]),
             dynamicTonalStyle = DynamicTonalStyle.fromStorage(prefs[Keys.DYNAMIC_TONAL_STYLE]),
-            intensityPreset = ColorIntensityPreset.fromStorage(prefs[Keys.INTENSITY_PRESET])
+            intensityPreset = ColorIntensityPreset.fromStorage(prefs[Keys.INTENSITY_PRESET]),
+            earningsCardShape = CardShapePreference.fromStorage(prefs[Keys.EARNINGS_CARD_SHAPE]),
+            savingsCardShape = CardShapePreference.fromStorage(prefs[Keys.SAVINGS_CARD_SHAPE]),
+            remittanceCardShape = CardShapePreference.fromStorage(prefs[Keys.REMITTANCE_CARD_SHAPE])
         )
     }
 
@@ -163,6 +169,18 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setIntensityPreset(preset: ColorIntensityPreset) {
         dataStore.edit { it[Keys.INTENSITY_PRESET] = preset.name }
+    }
+
+    suspend fun setEarningsCardShape(shape: CardShapePreference) {
+        dataStore.edit { it[Keys.EARNINGS_CARD_SHAPE] = shape.name }
+    }
+
+    suspend fun setSavingsCardShape(shape: CardShapePreference) {
+        dataStore.edit { it[Keys.SAVINGS_CARD_SHAPE] = shape.name }
+    }
+
+    suspend fun setRemittanceCardShape(shape: CardShapePreference) {
+        dataStore.edit { it[Keys.REMITTANCE_CARD_SHAPE] = shape.name }
     }
 
     suspend fun applyStylePreset(

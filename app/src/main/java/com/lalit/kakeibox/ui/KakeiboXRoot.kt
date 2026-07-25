@@ -9,6 +9,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -60,10 +68,24 @@ fun KakeiboXAppRoot() {
         dynamicTonalStyle = themeSettings.dynamicTonalStyle,
         intensityPreset = themeSettings.intensityPreset
     ) {
+        val infiniteTransition = rememberInfiniteTransition(label = "ambient_bg")
+        val baseColor = MaterialTheme.colorScheme.background
+        val pulseColor = Color(ColorUtils.blendARGB(baseColor.toArgb(), MaterialTheme.colorScheme.primaryContainer.toArgb(), 0.15f))
+        
+        val ambientColor by infiniteTransition.animateColor(
+            initialValue = baseColor,
+            targetValue = pulseColor,
+            animationSpec = infiniteRepeatable(
+                animation = tween(4000),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "ambient_color"
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(ambientColor)
                 .backdropPattern(themeSettings.backdropPattern)
         ) {
             if (!themeSettings.biometricEnabled || isAuthenticated) {

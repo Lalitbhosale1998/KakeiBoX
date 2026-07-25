@@ -25,6 +25,11 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Settings
@@ -1349,7 +1354,14 @@ fun RowScope.CentralActionButton(
             label = "fab_rotation"
         )
 
-        val combinedScale = scale * scaleAnim.value
+        val isPressed = remember { mutableStateOf(false) }
+        val pressureScale by animateFloatAsState(
+            targetValue = if (isPressed.value) 0.85f else 1f,
+            animationSpec = spring(dampingRatio = if (isPressed.value) 0.9f else Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+            label = "pressure_scale"
+        )
+        val combinedScale = scale * scaleAnim.value * pressureScale
+        val view = androidx.compose.ui.platform.LocalView.current
 
         Box(
             modifier = Modifier
@@ -1358,39 +1370,48 @@ fun RowScope.CentralActionButton(
             contentAlignment = Alignment.Center
         ) {
             if (combinedScale > 0.01f) {
-                Surface(
-                    onClick = {
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                        currentRoute?.let { themeViewModel.triggerAddActionButton(it) }
-                    },
+                Box(
                     modifier = Modifier
                         .size(56.dp)
                         .graphicsLayer {
                             scaleX = combinedScale
                             scaleY = combinedScale
-                        },
-                    shape = CircleShape,
-                    color = Color.Transparent,
-                    contentColor = iconColor,
-                    shadowElevation = 8.dp
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(brush, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add",
-                            modifier = Modifier
-                                .size(32.dp)
-                                .graphicsLayer {
-                                    rotationZ = rotationAnim
+                        }
+                        .pointerInput(currentRoute) {
+                            detectTapGestures(
+                                onPress = {
+                                    isPressed.value = true
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                    tryAwaitRelease()
+                                    isPressed.value = false
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                                        view.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)
+                                    } else {
+                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    }
                                 },
-                            tint = iconColor
-                        )
-                    }
+                                onTap = {
+                                    currentRoute?.let { themeViewModel.triggerAddActionButton(it) }
+                                }
+                            )
+                        }
+                        .semantics { 
+                            contentDescription = "Add new ${currentRoute ?: "item"}"
+                            role = androidx.compose.ui.semantics.Role.Button 
+                        }
+                        .background(brush, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add",
+                        modifier = Modifier
+                            .size(32.dp)
+                            .graphicsLayer {
+                                rotationZ = rotationAnim
+                            },
+                        tint = iconColor
+                    )
                 }
             }
         }
