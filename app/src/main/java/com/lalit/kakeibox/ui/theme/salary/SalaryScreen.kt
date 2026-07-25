@@ -1082,7 +1082,7 @@ fun ExpressiveHeroCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp)
+                .heightIn(min = 200.dp)
                 .drawBehind {
                     // Draw morphing background shape
                     val path = morph.toComposePath(progress = morphProgress)
@@ -1181,11 +1181,15 @@ fun ExpressiveHeroCard(
             ) {
                 if (!isBack) {
                     // Front Content
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.spacedBy(32.dp)
                     ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                         Box(
                             modifier = Modifier
                                 .weight(leftWeight.coerceAtLeast(0.001f))
@@ -1392,6 +1396,66 @@ fun ExpressiveHeroCard(
                             }
                         }
                     }
+                    
+                    // Glanceable Insights
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Insight 1: This Month
+                        Surface(
+                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Default.CalendarToday, 
+                                    contentDescription = null, 
+                                    modifier = Modifier.size(14.dp),
+                                    tint = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                val thisMonthVal = currentEntry?.salaryAmount ?: 0L
+                                Text(
+                                    text = "This Month: ${CurrencyUtils.formatAmount(thisMonthVal, themeSettings.currencySymbol, isPrivacyMode, compact = true)}", 
+                                    style = MaterialTheme.typography.labelSmall, 
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+
+                        // Insight 2: Top Source
+                        Surface(
+                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Outlined.WorkOutline, 
+                                    contentDescription = null, 
+                                    modifier = Modifier.size(14.dp),
+                                    tint = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Top Source: Salary", 
+                                    style = MaterialTheme.typography.labelSmall, 
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+                    }
+                }
                 } else {
                     // Back Content
                     Column(

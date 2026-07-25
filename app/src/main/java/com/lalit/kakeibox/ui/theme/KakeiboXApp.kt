@@ -566,33 +566,7 @@ fun KakeiboXApp(
                 }.coerceAtLeast(0)
             }
 
-            val outerCornerTopStart by animateIntAsState(
-                targetValue = if (selectedIndex == 0) 41 else 32,
-                animationSpec = spring(stiffness = Spring.StiffnessLow),
-                label = "outer_corner_ts"
-            )
-            val outerCornerBottomStart by animateIntAsState(
-                targetValue = if (selectedIndex == 0) 41 else 32,
-                animationSpec = spring(stiffness = Spring.StiffnessLow),
-                label = "outer_corner_bs"
-            )
-            val outerCornerTopEnd by animateIntAsState(
-                targetValue = if (selectedIndex == bottomNavItems.lastIndex) 41 else 32,
-                animationSpec = spring(stiffness = Spring.StiffnessLow),
-                label = "outer_corner_te"
-            )
-            val outerCornerBottomEnd by animateIntAsState(
-                targetValue = if (selectedIndex == bottomNavItems.lastIndex) 41 else 32,
-                animationSpec = spring(stiffness = Spring.StiffnessLow),
-                label = "outer_corner_be"
-            )
-
-            val outerShape = RoundedCornerShape(
-                topStart = outerCornerTopStart.dp,
-                bottomStart = outerCornerBottomStart.dp,
-                topEnd = outerCornerTopEnd.dp,
-                bottomEnd = outerCornerBottomEnd.dp
-            )
+            val outerShape = RoundedCornerShape(percent = 50)
 
             Box(
                 modifier = Modifier
@@ -606,11 +580,11 @@ fun KakeiboXApp(
                         .height(82.dp),
                     shape = outerShape,
                     color = navBarColor,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 16.dp,
                     border = BorderStroke(
                         width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.08f)
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -619,12 +593,15 @@ fun KakeiboXApp(
                             val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
                             val animatedX by animateFloatAsState(
                                 targetValue = targetBounds.first,
-                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                animationSpec = spring(
+                                    dampingRatio = 0.5f, // Bouncier for lava fluid effect
+                                    stiffness = Spring.StiffnessLow
+                                ),
                                 label = "pill_x"
                             )
                             val animatedWidth by animateFloatAsState(
                                 targetValue = targetBounds.second,
-                                animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                                animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
                                 label = "pill_width"
                             )
                             val targetColor = MaterialTheme.colorScheme.secondaryContainer
@@ -632,8 +609,12 @@ fun KakeiboXApp(
 
                             val distance = targetBounds.first - animatedX
                             val absDistance = java.lang.Math.abs(distance)
-                            val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
-                            val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+                            // Lava lamp oozing stretch effect
+                            val stretchX = 1f + (absDistance / 100f).coerceAtMost(0.8f) // High stretch
+                            val squashY = 1f - (absDistance / 300f).coerceAtMost(0.4f)  // High squeeze
+                            
+                            // Shift the transform origin to make it stretch from the leading edge
+                            val direction = if (distance > 0) 1f else if (distance < 0) 0f else 0.5f
 
                             Box(
                                 modifier = Modifier
@@ -644,9 +625,9 @@ fun KakeiboXApp(
                                     .graphicsLayer {
                                         scaleX = stretchX
                                         scaleY = squashY
-                                        transformOrigin = TransformOrigin(0.5f, 0.5f)
+                                        transformOrigin = TransformOrigin(direction, 0.5f)
                                     }
-                                    .background(animatedColor, RoundedCornerShape(32.dp))
+                                    .background(animatedColor, RoundedCornerShape(percent = 50))
                             )
                         }
 
@@ -687,11 +668,11 @@ fun KakeiboXApp(
                                     label = "weight_anim"
                                 )
 
-                                // 2. Icon Bounce
+                                // 2. Icon Bounce & Twist
                                 val iconScale by animateFloatAsState(
-                                    targetValue = if (isSelected) 1.2f else 1f,
+                                    targetValue = if (isSelected) 1.35f else 0.85f,
                                     animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        dampingRatio = 0.5f, // Bouncier
                                         stiffness = Spring.StiffnessMedium
                                     ),
                                     label = "floating_icon_scale"
@@ -709,12 +690,9 @@ fun KakeiboXApp(
                                     label = "floating_icon_x_${item.route}"
                                 )
                                 val iconRotation by animateFloatAsState(
-                                    targetValue = when {
-                                        isSelected && item.route == NavRoutes.Settings.route -> 360f
-                                        else -> 0f
-                                    },
+                                    targetValue = if (isSelected) 360f else 0f,
                                     animationSpec = spring(
-                                        dampingRatio = if (item.route == NavRoutes.Settings.route) 0.6f else 0.4f,
+                                        dampingRatio = 0.6f,
                                         stiffness = Spring.StiffnessLow
                                     ),
                                     label = "floating_icon_rot_${item.route}"

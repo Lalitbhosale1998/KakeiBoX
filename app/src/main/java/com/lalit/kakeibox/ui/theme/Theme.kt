@@ -57,67 +57,67 @@ object ExpressivePhysics {
 }
 
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF1565C0),
+    primary = Color(0xFF6750A4),
     onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFD6E4FF),
-    onPrimaryContainer = Color(0xFF001B45),
-    secondary = Color(0xFF2E7D32),
+    primaryContainer = Color(0xFFEADDFF),
+    onPrimaryContainer = Color(0xFF21005D),
+    secondary = Color(0xFF625B71),
     onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFB9F6CA),
-    onSecondaryContainer = Color(0xFF00210A),
-    tertiary = Color(0xFFE65100),
+    secondaryContainer = Color(0xFFE8DEF8),
+    onSecondaryContainer = Color(0xFF1D192B),
+    tertiary = Color(0xFF7D5260),
     onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFFFDCC4),
-    onTertiaryContainer = Color(0xFF321200),
-    error = Color(0xFFBA1A1A),
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002),
-    surface = Color(0xFFF8F9FF),
-    onSurface = Color(0xFF191C20),
-    surfaceVariant = Color(0xFFE0E2EC),
-    onSurfaceVariant = Color(0xFF43474E),
-    outline = Color(0xFF73777F),
-    outlineVariant = Color(0xFFC4C6D0),
-    surfaceDim = Color(0xFFDAD9E0),
-    surfaceBright = Color(0xFFF8F9FF),
+    tertiaryContainer = Color(0xFFFFD8E4),
+    onTertiaryContainer = Color(0xFF31111D),
+    error = Color(0xFFB3261E),
+    errorContainer = Color(0xFFF9DEDC),
+    onErrorContainer = Color(0xFF410E0B),
+    surface = Color(0xFFFEF7FF),
+    onSurface = Color(0xFF1D1B20),
+    surfaceVariant = Color(0xFFE7E0EC),
+    onSurfaceVariant = Color(0xFF49454F),
+    outline = Color(0xFF79747E),
+    outlineVariant = Color(0xFFCAC4D0),
+    surfaceDim = Color(0xFFDED8E1),
+    surfaceBright = Color(0xFFFEF7FF),
     surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFF2F3FA),
-    surfaceContainer = Color(0xFFECEEF4),
-    surfaceContainerHigh = Color(0xFFE7E8EE),
-    surfaceContainerHighest = Color(0xFFE1E2E8),
-    background = Color(0xFFF5F6FB),
-    onBackground = Color(0xFF191C20),
+    surfaceContainerLow = Color(0xFFF7F2FA),
+    surfaceContainer = Color(0xFFF3EDF7),
+    surfaceContainerHigh = Color(0xFFECE6F0),
+    surfaceContainerHighest = Color(0xFFE6E0E9),
+    background = Color(0xFFFEF7FF),
+    onBackground = Color(0xFF1D1B20),
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFFAAC7FF),
-    onPrimary = Color(0xFF002F6C),
-    primaryContainer = Color(0xFF004798),
-    onPrimaryContainer = Color(0xFFD6E4FF),
-    secondary = Color(0xFF6EF094),
-    onSecondary = Color(0xFF003918),
-    secondaryContainer = Color(0xFF005226),
-    onSecondaryContainer = Color(0xFFB9F6CA),
-    tertiary = Color(0xFFFFB680),
-    onTertiary = Color(0xFF502200),
-    tertiaryContainer = Color(0xFF6F3300),
-    onTertiaryContainer = Color(0xFFFFDCC4),
-    error = Color(0xFFFFB4AB),
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
-    surface = Color(0xFF111318),
-    onSurface = Color(0xFFE2E2E9),
-    surfaceVariant = Color(0xFF43474E),
-    onSurfaceVariant = Color(0xFFC3C6CF),
-    outline = Color(0xFF8D9199),
-    outlineVariant = Color(0xFF43474E),
-    surfaceDim = Color(0xFF111318),
-    surfaceBright = Color(0xFF37393E),
-    surfaceContainerLowest = Color(0xFF0C0E13),
-    surfaceContainerLow = Color(0xFF1A1C22),
-    surfaceContainer = Color(0xFF1E2026),
-    surfaceContainerHigh = Color(0xFF282A31),
-    surfaceContainerHighest = Color(0xFF33353C),
+    primary = Color(0xFFD0BCFF),
+    onPrimary = Color(0xFF381E72),
+    primaryContainer = Color(0xFF4F378B),
+    onPrimaryContainer = Color(0xFFEADDFF),
+    secondary = Color(0xFFCCC2DC),
+    onSecondary = Color(0xFF332D41),
+    secondaryContainer = Color(0xFF4A4458),
+    onSecondaryContainer = Color(0xFFE8DEF8),
+    tertiary = Color(0xFFEFB8C8),
+    onTertiary = Color(0xFF492532),
+    tertiaryContainer = Color(0xFF633B48),
+    onTertiaryContainer = Color(0xFFFFD8E4),
+    error = Color(0xFFF2B8B5),
+    errorContainer = Color(0xFF8C1D18),
+    onErrorContainer = Color(0xFFF9DEDC),
+    surface = Color(0xFF141218),
+    onSurface = Color(0xFFE6E0E9),
+    surfaceVariant = Color(0xFF49454F),
+    onSurfaceVariant = Color(0xFFCAC4D0),
+    outline = Color(0xFF938F99),
+    outlineVariant = Color(0xFF49454F),
+    surfaceDim = Color(0xFF141218),
+    surfaceBright = Color(0xFF3B383E),
+    surfaceContainerLowest = Color(0xFF0F0D13),
+    surfaceContainerLow = Color(0xFF1D1B20),
+    surfaceContainer = Color(0xFF211F26),
+    surfaceContainerHigh = Color(0xFF2B2930),
+    surfaceContainerHighest = Color(0xFF36343B),
 )
 
 val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle.M3_EXPRESSIVE }
@@ -406,6 +406,18 @@ private fun com.google.android.material.color.utilities.DynamicScheme.toComposeC
         surfaceContainer = Color(colors.surfaceContainer().getArgb(this)),
         surfaceContainerHigh = Color(colors.surfaceContainerHigh().getArgb(this)),
         surfaceContainerHighest = Color(colors.surfaceContainerHighest().getArgb(this)),
+        primaryFixed = Color(colors.primaryFixed().getArgb(this)),
+        primaryFixedDim = Color(colors.primaryFixedDim().getArgb(this)),
+        onPrimaryFixed = Color(colors.onPrimaryFixed().getArgb(this)),
+        onPrimaryFixedVariant = Color(colors.onPrimaryFixedVariant().getArgb(this)),
+        secondaryFixed = Color(colors.secondaryFixed().getArgb(this)),
+        secondaryFixedDim = Color(colors.secondaryFixedDim().getArgb(this)),
+        onSecondaryFixed = Color(colors.onSecondaryFixed().getArgb(this)),
+        onSecondaryFixedVariant = Color(colors.onSecondaryFixedVariant().getArgb(this)),
+        tertiaryFixed = Color(colors.tertiaryFixed().getArgb(this)),
+        tertiaryFixedDim = Color(colors.tertiaryFixedDim().getArgb(this)),
+        onTertiaryFixed = Color(colors.onTertiaryFixed().getArgb(this)),
+        onTertiaryFixedVariant = Color(colors.onTertiaryFixedVariant().getArgb(this))
     )
 }
 
@@ -452,18 +464,20 @@ fun KakeiboXTheme(
 ) {
     val context = LocalContext.current
     val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
         dynamicColor -> {
-            val fallbackColor = if (darkTheme) Color(0xFFAAC7FF) else Color(0xFF1565C0)
+            val fallbackColor = if (darkTheme) Color(0xFFD0BCFF) else Color(0xFF6750A4)
             val seedInt = colorSeed?.toArgb() ?: getWallpaperSeedColor(context, fallbackColor)
             val hct = Hct.fromInt(seedInt)
-            val dynamicScheme = when (intensityPreset) {
-                ColorIntensityPreset.NEUTRAL -> {
-                    val mutedHct = Hct.from(hct.hue, 12.0, hct.tone)
-                    SchemeFidelity(mutedHct, darkTheme, 0.0)
-                }
-                ColorIntensityPreset.SOFT -> SchemeTonalSpot(hct, darkTheme, 0.0)
-                ColorIntensityPreset.BRIGHT -> SchemeFidelity(hct, darkTheme, 0.0)
-                ColorIntensityPreset.BOLD -> SchemeExpressive(hct, darkTheme, 0.0)
+            val dynamicScheme = when (dynamicTonalStyle) {
+                DynamicTonalStyle.TONAL_SPOT -> SchemeTonalSpot(hct, darkTheme, 0.0)
+                DynamicTonalStyle.VIBRANT -> SchemeVibrant(hct, darkTheme, 0.0)
+                DynamicTonalStyle.EXPRESSIVE -> SchemeExpressive(hct, darkTheme, 0.0)
+                DynamicTonalStyle.RAINBOW -> SchemeFidelity(hct, darkTheme, 0.0) // Closest match
+                DynamicTonalStyle.FRUIT_SALAD -> SchemeExpressive(hct, darkTheme, 0.0) // Closest match
             }
             val scheme = dynamicScheme.toComposeColorScheme()
             if (!darkTheme && scheme.background == Color.White) {
