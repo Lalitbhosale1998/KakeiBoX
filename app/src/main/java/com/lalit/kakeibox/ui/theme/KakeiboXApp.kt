@@ -385,8 +385,6 @@ fun KakeiboXApp(
                                 .windowInsetsPadding(WindowInsets.navigationBars)
                                 .padding(horizontal = 16.dp, vertical = 12.dp)
                                 .height(72.dp)
-                                .shadow(8.dp, RoundedCornerShape(percent = 50))
-                                .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(percent = 50))
                         ) {
                             // The Gooey Indicator
                             if (tabBounds.size == bottomNavItems.size) {
@@ -509,7 +507,7 @@ fun KakeiboXApp(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding(), bottom = 0.dp)
         ) {
             SharedTransitionLayout {
                 NavHost(
