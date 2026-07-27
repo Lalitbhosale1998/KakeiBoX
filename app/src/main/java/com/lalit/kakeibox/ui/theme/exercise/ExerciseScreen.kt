@@ -133,7 +133,7 @@ fun ExerciseScreen(
             androidx.compose.ui.graphics.lerp(
                 MaterialTheme.colorScheme.surface,
                 MaterialTheme.colorScheme.primaryContainer,
-                0.20f // 20% tint overlay for soft blending
+                0.35f // 35% tint overlay for soft blending
             )
         } else {
             MaterialTheme.colorScheme.surfaceContainer
@@ -146,22 +146,22 @@ fun ExerciseScreen(
         val blendedSurface = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surface,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surfaceContainerHigh,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surfaceContainerLow,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surfaceContainerLowest,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         currentColorScheme.copy(
             surface = blendedSurface,

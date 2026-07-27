@@ -479,7 +479,7 @@ fun SalaryScreen(
             androidx.compose.ui.graphics.lerp(
                 MaterialTheme.colorScheme.surface,
                 MaterialTheme.colorScheme.primaryContainer,
-                0.20f // 20% tint overlay for soft blending
+                0.35f // 35% tint overlay for soft blending
             )
         } else {
             MaterialTheme.colorScheme.surfaceContainerLow
@@ -492,22 +492,22 @@ fun SalaryScreen(
         val blendedSurface = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surface,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surfaceContainerHigh,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surfaceContainerLow,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
             currentColorScheme.surfaceContainerLowest,
             currentColorScheme.primaryContainer,
-            0.20f
+            0.35f
         )
         currentColorScheme.copy(
             surface = blendedSurface,
@@ -588,24 +588,44 @@ fun SalaryScreen(
                         enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
                                 slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
-                        val entries = if (allEntries.isNotEmpty()) allEntries else listOfNotNull(currentEntry)
-                        val pageCount = entries.size.coerceAtLeast(1)
+                        val currentCal = remember { java.util.Calendar.getInstance() }
+                        val currentYearVal = remember(currentCal) { currentCal.get(java.util.Calendar.YEAR) }
+                        val currentMonthVal = remember(currentCal) { currentCal.get(java.util.Calendar.MONTH) + 1 }
+
+                        val monthEntries = remember(allEntries, currentEntry, currentYearVal) {
+                            (1..12).map { monthNum ->
+                                allEntries.find { it.month == monthNum && it.year == currentYearVal }
+                                    ?: if (currentEntry?.month == monthNum && currentEntry?.year == currentYearVal) currentEntry!!
+                                    else com.personal.kakeibox.data.entity.SalaryEntry(
+                                        id = -monthNum,
+                                        year = currentYearVal,
+                                        month = monthNum,
+                                        salaryAmount = 0L,
+                                        savingsAmount = 0L,
+                                        remittanceAmount = 0L,
+                                        remainingAmount = 0L,
+                                        note = ""
+                                    )
+                            }
+                        }
+
+                        val initialPage = remember(currentMonthVal) { (currentMonthVal - 1).coerceIn(0, 11) }
                         val pagerState = rememberPagerState(
-                            initialPage = (pageCount - 1).coerceAtLeast(0),
-                            pageCount = { pageCount }
+                            initialPage = initialPage,
+                            pageCount = { 12 }
                         )
 
                         HorizontalPager(
                             state = pagerState,
-                            contentPadding = PaddingValues(horizontal = 24.dp),
-                            pageSpacing = 12.dp,
+                            contentPadding = PaddingValues(horizontal = 32.dp),
+                            pageSpacing = 10.dp,
                             modifier = Modifier.fillMaxWidth()
                         ) { page ->
-                            val entry = entries.getOrNull(page)
+                            val entry = monthEntries[page]
                             val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
                             val absPageOffset = kotlin.math.abs(pageOffset)
-                            val cardScale = 1f - (absPageOffset * 0.12f).coerceAtMost(0.15f)
-                            val cardAlpha = 1f - (absPageOffset * 0.35f).coerceAtMost(0.4f)
+                            val cardScale = 1f - (absPageOffset * 0.12f).coerceAtMost(0.18f)
+                            val cardAlpha = 1f - (absPageOffset * 0.35f).coerceAtMost(0.5f)
 
                             Box(
                                 modifier = Modifier
@@ -618,10 +638,13 @@ fun SalaryScreen(
                             ) {
                                 AuraExpressiveHeroCard(
                                     totalSalary = totalSalary ?: 0L,
-                                    thisMonthSalary = entry?.salaryAmount ?: (currentEntry?.salaryAmount ?: 0L),
-                                    currentEntry = entry ?: currentEntry,
+                                    thisMonthSalary = entry.salaryAmount,
+                                    currentEntry = entry,
                                     isPrivacyMode = themeSettings.privacyModeEnabled,
-                                    onEdit = { (entry ?: currentEntry)?.let { viewModel.openEditDialog(it) } },
+                                    onEdit = {
+                                        if (entry.id > 0) viewModel.openEditDialog(entry)
+                                        else viewModel.openAddDialog()
+                                    },
                                     isPrimaryContainer = isPrimaryContainer,
                                     themeSettings = themeSettings
                                 )

@@ -125,7 +125,7 @@ fun KakeiboXApp(
             androidx.compose.ui.graphics.lerp(
                 MaterialTheme.colorScheme.surfaceContainer,
                 MaterialTheme.colorScheme.primaryContainer,
-                0.20f // 20% tint overlay for soft blending
+                0.35f // 35% tint overlay for rich soft blending
             )
         } else {
             MaterialTheme.colorScheme.surfaceContainer
