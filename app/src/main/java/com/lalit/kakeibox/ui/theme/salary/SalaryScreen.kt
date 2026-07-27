@@ -38,6 +38,8 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -579,22 +581,52 @@ fun SalaryScreen(
                     Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
                 }
 
-                // ── Hero Section ──────────────
+                // ── Hero Section (M3 Expressive Carousel Peek) ──────────────
                 item {
                     AnimatedVisibility(
                         visible = showHero,
                         enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
                                 slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
-                        AuraExpressiveHeroCard(
-                            totalSalary = totalSalary ?: 0L,
-                            thisMonthSalary = currentEntry?.salaryAmount ?: 0L,
-                            currentEntry = currentEntry,
-                            isPrivacyMode = themeSettings.privacyModeEnabled,
-                            onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } },
-                            isPrimaryContainer = isPrimaryContainer,
-                            themeSettings = themeSettings
+                        val entries = if (allEntries.isNotEmpty()) allEntries else listOfNotNull(currentEntry)
+                        val pageCount = entries.size.coerceAtLeast(1)
+                        val pagerState = rememberPagerState(
+                            initialPage = (pageCount - 1).coerceAtLeast(0),
+                            pageCount = { pageCount }
                         )
+
+                        HorizontalPager(
+                            state = pagerState,
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            pageSpacing = 12.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { page ->
+                            val entry = entries.getOrNull(page)
+                            val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                            val absPageOffset = kotlin.math.abs(pageOffset)
+                            val cardScale = 1f - (absPageOffset * 0.12f).coerceAtMost(0.15f)
+                            val cardAlpha = 1f - (absPageOffset * 0.35f).coerceAtMost(0.4f)
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .graphicsLayer {
+                                        scaleX = cardScale
+                                        scaleY = cardScale
+                                        alpha = cardAlpha
+                                    }
+                            ) {
+                                AuraExpressiveHeroCard(
+                                    totalSalary = totalSalary ?: 0L,
+                                    thisMonthSalary = entry?.salaryAmount ?: (currentEntry?.salaryAmount ?: 0L),
+                                    currentEntry = entry ?: currentEntry,
+                                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                                    onEdit = { (entry ?: currentEntry)?.let { viewModel.openEditDialog(it) } },
+                                    isPrimaryContainer = isPrimaryContainer,
+                                    themeSettings = themeSettings
+                                )
+                            }
+                        }
                     }
                 }
 
