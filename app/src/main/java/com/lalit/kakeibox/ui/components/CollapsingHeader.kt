@@ -54,7 +54,7 @@ fun ExpressiveCollapsingHeader(
             .fillMaxWidth()
             .height(height),
         color = containerColor,
-        tonalElevation = (4.dp * animatedProgress)
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier

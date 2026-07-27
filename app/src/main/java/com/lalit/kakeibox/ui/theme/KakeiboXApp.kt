@@ -122,11 +122,7 @@ fun KakeiboXApp(
 
     val navBarColor by animateColorAsState(
         targetValue = if (themeSettings.topAppBarBackground == com.personal.kakeibox.data.preferences.TopAppBarBackground.PRIMARY_CONTAINER) {
-            androidx.compose.ui.graphics.lerp(
-                MaterialTheme.colorScheme.surfaceContainer,
-                MaterialTheme.colorScheme.primaryContainer,
-                0.35f // 35% tint overlay for rich soft blending
-            )
+            MaterialTheme.colorScheme.primaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainer
         },
