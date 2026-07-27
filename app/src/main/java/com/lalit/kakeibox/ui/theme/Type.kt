@@ -5,8 +5,34 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.R
+
+val fontProvider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
+
+val FredokaFont = GoogleFont("Fredoka")
+
+val FredokaFontFamily = FontFamily(
+    Font(googleFont = FredokaFont, fontProvider = fontProvider, weight = FontWeight.Normal),
+    Font(googleFont = FredokaFont, fontProvider = fontProvider, weight = FontWeight.Medium),
+    Font(googleFont = FredokaFont, fontProvider = fontProvider, weight = FontWeight.SemiBold),
+    Font(googleFont = FredokaFont, fontProvider = fontProvider, weight = FontWeight.Bold)
+)
+
+val ComfortaaFont = GoogleFont("Comfortaa")
+
+val ComfortaaFontFamily = FontFamily(
+    Font(googleFont = ComfortaaFont, fontProvider = fontProvider, weight = FontWeight.Normal),
+    Font(googleFont = ComfortaaFont, fontProvider = fontProvider, weight = FontWeight.Medium),
+    Font(googleFont = ComfortaaFont, fontProvider = fontProvider, weight = FontWeight.SemiBold),
+    Font(googleFont = ComfortaaFont, fontProvider = fontProvider, weight = FontWeight.Bold)
+)
 
 val NunitoFontFamily = FontFamily(
     Font(resId = R.font.nunito_variable, weight = FontWeight.Normal),

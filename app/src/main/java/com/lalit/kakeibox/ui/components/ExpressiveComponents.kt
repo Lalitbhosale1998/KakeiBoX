@@ -719,7 +719,7 @@ fun BentoCard(
     activeContentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     idleContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     idleContentColor: Color = MaterialTheme.colorScheme.onSurface,
-    cardShapePreference: CardShapePreference = CardShapePreference.DEFAULT,
+    cardShapePreference: CardShapePreference = CardShapePreference.PILL,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
@@ -806,7 +806,7 @@ fun BentoCard(
     val cardBorder = if (isSpaceTerminal) {
         BorderStroke(1.5.dp, if (isActive) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
     } else {
-        null
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     }
     val iconShape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp)
 
@@ -819,7 +819,6 @@ fun BentoCard(
                 intensity = if (isActive) glowIntensity else GlowIntensity.OFF,
                 shape = cardShape
             )
-        .clip(cardShape)
             .then(if (onClick != null && enabled) Modifier.elasticClick(
                 enabled = enabled,
                 hapticType = HapticFeedbackType.LongPress,
@@ -830,7 +829,9 @@ fun BentoCard(
         color = backgroundColor,
         contentColor = contentColor,
         shape = cardShape,
-        border = cardBorder
+        border = cardBorder,
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp
     ) {
         Column(
             modifier = Modifier
@@ -1302,7 +1303,7 @@ fun CardShapePreference.toShape(isPressed: Boolean): Shape {
             )
         }
         CardShapePreference.PILL -> {
-            val radius by animateIntAsState(targetValue = if (isPressed) 30 else 50, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            val radius by animateIntAsState(targetValue = if (isPressed) 16 else 28, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
             RoundedCornerShape(radius.dp)
         }
         CardShapePreference.CLAMSHELL -> {

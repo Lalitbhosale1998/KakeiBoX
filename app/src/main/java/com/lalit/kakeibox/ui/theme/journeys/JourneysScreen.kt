@@ -415,6 +415,8 @@ fun MemoryCard(
                     .clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onClick() },
                 shape = RoundedCornerShape(cornerRadius),
                 color = MaterialTheme.colorScheme.secondaryContainer,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                shadowElevation = 8.dp,
                 tonalElevation = 4.dp
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -562,7 +564,7 @@ fun BoardingPassCard(
     )
     
     val elevation by animateDpAsState(
-        targetValue = if (isHeader) 0.dp else if (isPressed) 8.dp else 2.dp,
+        targetValue = if (isHeader) 0.dp else if (isPressed) 12.dp else 8.dp,
         label = "elevation"
     )
     
@@ -605,7 +607,9 @@ fun BoardingPassCard(
                 ) { onClick() },
             shape = ticketShape,
             color = MaterialTheme.colorScheme.surfaceVariant,
-            shadowElevation = elevation
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            shadowElevation = elevation,
+            tonalElevation = 4.dp
         ) {
             Column(modifier = Modifier.padding(top = topPadding, bottom = 24.dp, start = 24.dp, end = 24.dp)) {
                 Row(

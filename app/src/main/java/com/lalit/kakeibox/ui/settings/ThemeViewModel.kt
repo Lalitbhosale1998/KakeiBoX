@@ -21,6 +21,7 @@ import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.DynamicTonalStyle
 import com.personal.kakeibox.data.preferences.ColorIntensityPreset
+import com.personal.kakeibox.data.preferences.NavAnimationPreference
 import com.personal.kakeibox.data.preferences.CardShapePreference
 import com.personal.kakeibox.data.preferences.UserPreferencesRepository
 import com.personal.kakeibox.data.repository.BirthdayRepository
@@ -124,6 +125,12 @@ class ThemeViewModel @Inject constructor(
     fun setNavBarStyle(style: NavBarStyle) {
         viewModelScope.launch {
             preferencesRepository.setNavBarStyle(style)
+        }
+    }
+
+    fun setNavAnimation(anim: NavAnimationPreference) {
+        viewModelScope.launch {
+            preferencesRepository.setNavAnimation(anim)
         }
     }
 

@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
@@ -89,10 +90,12 @@ fun MorphingCard(
         label = "morphProgress"
     )
 
+    val shape = MorphPolygonShape(morph, morphProgress)
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(MorphPolygonShape(morph, morphProgress))
+            .shadow(elevation = 8.dp, shape = shape)
+            .clip(shape)
             .background(if (isExpanded) expandedColor else collapsedColor)
             .clickable { onClick() }
             .padding(24.dp)

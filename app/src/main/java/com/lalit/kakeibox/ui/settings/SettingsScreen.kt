@@ -163,6 +163,7 @@ import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.ColorIntensityPreset
 import com.personal.kakeibox.data.preferences.DynamicTonalStyle
 import com.personal.kakeibox.data.preferences.AppFont
+import com.personal.kakeibox.data.preferences.NavAnimationPreference
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.terminalScanlines
 import com.personal.kakeibox.ui.theme.NunitoFontFamily
@@ -431,65 +432,31 @@ fun SettingsScreen(
                                 icon = Icons.Outlined.Dock,
                                 selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
-                                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
+                                 onOptionSelected = { viewModel.setTopAppBarBackground(it) },
                                 accentColor = Color(0xFF0D9488)
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                             SettingsSelectorRow(
-                                title = "Navigation Bar Style",
-                                description = "Toggle standard bar, floating island, or split-dock navbar shape.",
-                                icon = Icons.Outlined.Dock,
-                                selectedValueLabel = when(themeSettings.navBarStyle) {
-                                    NavBarStyle.FULL_WIDTH -> "Full Width"
-                                    NavBarStyle.FLOATING -> "Floating"
-                                    NavBarStyle.SPLIT -> "Split-Dock"
-                                    NavBarStyle.GOOEY -> "Gooey Slingshot"
+                                title = "Navbar Animation",
+                                description = "Select animation style for the floating navigation bar.",
+                                icon = Icons.Outlined.AutoMode,
+                                selectedValueLabel = when (themeSettings.navAnimation) {
+                                    NavAnimationPreference.MORPHING -> "Morphing Inflate"
+                                    NavAnimationPreference.ELASTIC_JELLY -> "Elastic Jelly"
+                                    NavAnimationPreference.LIQUID_RIPPLE -> "Liquid Ripple"
+                                    NavAnimationPreference.ARCADE_3D -> "Elevated 3D"
                                 },
-                                options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock", NavBarStyle.GOOEY to "Gooey Slingshot"),
-                                onOptionSelected = { viewModel.setNavBarStyle(it) },
-                                accentColor = Color(0xFF06B6D4)
+                                options = listOf(
+                                    NavAnimationPreference.MORPHING to "Morphing Inflate",
+                                    NavAnimationPreference.ELASTIC_JELLY to "Elastic Jelly",
+                                    NavAnimationPreference.LIQUID_RIPPLE to "Liquid Ripple",
+                                    NavAnimationPreference.ARCADE_3D to "Elevated 3D"
+                                ),
+                                 onOptionSelected = { viewModel.setNavAnimation(it) },
+                                accentColor = Color(0xFFEC4899)
                             )
                         }
 
-                        val shapeOptions = listOf(
-                            CardShapePreference.DEFAULT to "Default",
-                            CardShapePreference.SEMICIRCLE to "Semicircle",
-                            CardShapePreference.PILL to "Pill",
-                            CardShapePreference.CLAMSHELL to "Clamshell",
-                            CardShapePreference.SLANTED to "Slanted",
-                            CardShapePreference.SQUARE to "Square"
-                        )
-                        SettingsGroup(title = "App Appearance (Shapes)") {
-                            SettingsSelectorRow(
-                                title = "Earnings Card Shape",
-                                description = "Select the shape for the earnings card.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.earningsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = shapeOptions,
-                                onOptionSelected = { viewModel.setEarningsCardShape(it) },
-                                accentColor = Color(0xFF8B5CF6)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Savings Card Shape",
-                                description = "Select the shape for the savings card.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.savingsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = shapeOptions,
-                                onOptionSelected = { viewModel.setSavingsCardShape(it) },
-                                accentColor = Color(0xFF10B981)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Remittance Card Shape",
-                                description = "Select the shape for the remittance card.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.remittanceCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = shapeOptions,
-                                onOptionSelected = { viewModel.setRemittanceCardShape(it) },
-                                accentColor = Color(0xFFEAB308)
-                            )
-                        }
                     }
                     "preferences" -> {
                         SettingsGroup(title = "Regional & Locale Options") {
@@ -701,67 +668,6 @@ fun SettingsScreen(
                                 accentColor = Color(0xFF0D9488)
                             )
                         }
-                        if (shouldShow("Navigation Layout", keywords = listOf("floating", "bar"))) {
-                            SettingsSelectorRow(
-                                title = "Navigation Bar Layout",
-                                description = "Select full-width, floating island, or split-dock navbar shape.",
-                                icon = Icons.Outlined.Dock,
-                                selectedValueLabel = when(themeSettings.navBarStyle) {
-                                    NavBarStyle.FULL_WIDTH -> "Full Width"
-                                    NavBarStyle.FLOATING -> "Floating"
-                                    NavBarStyle.SPLIT -> "Split-Dock"
-                                    NavBarStyle.GOOEY -> "Gooey Slingshot"
-                                },
-                                options = listOf(NavBarStyle.FULL_WIDTH to "Full Width", NavBarStyle.FLOATING to "Floating", NavBarStyle.SPLIT to "Split-Dock", NavBarStyle.GOOEY to "Gooey Slingshot"),
-                                onOptionSelected = { viewModel.setNavBarStyle(it) },
-                                accentColor = Color(0xFF06B6D4)
-                            )
-                        }
-                        
-                        val shapeOptions = listOf(
-                            CardShapePreference.DEFAULT to "Default",
-                            CardShapePreference.SEMICIRCLE to "Semicircle",
-                            CardShapePreference.PILL to "Pill",
-                            CardShapePreference.CLAMSHELL to "Clamshell",
-                            CardShapePreference.SLANTED to "Slanted",
-                            CardShapePreference.SQUARE to "Square"
-                        )
-                        
-                        if (shouldShow("Earnings Card Shape", keywords = listOf("earnings", "shape", "card"))) {
-                            SettingsSelectorRow(
-                                title = "Earnings Card Shape",
-                                description = "Select the shape for the earnings card.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.earningsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = shapeOptions,
-                                onOptionSelected = { viewModel.setEarningsCardShape(it) },
-                                accentColor = Color(0xFF8B5CF6)
-                            )
-                        }
-
-                        if (shouldShow("Savings Card Shape", keywords = listOf("savings", "shape", "card"))) {
-                            SettingsSelectorRow(
-                                title = "Savings Card Shape",
-                                description = "Select the shape for the savings card.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.savingsCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = shapeOptions,
-                                onOptionSelected = { viewModel.setSavingsCardShape(it) },
-                                accentColor = Color(0xFF10B981)
-                            )
-                        }
-
-                        if (shouldShow("Remittance Card Shape", keywords = listOf("remittance", "shape", "card"))) {
-                            SettingsSelectorRow(
-                                title = "Remittance Card Shape",
-                                description = "Select the shape for the remittance card.",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.remittanceCardShape.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = shapeOptions,
-                                onOptionSelected = { viewModel.setRemittanceCardShape(it) },
-                                accentColor = Color(0xFFEAB308)
-                            )
-                        }
                     }
                 }
                 
@@ -891,9 +797,36 @@ fun SettingsScreen(
                             )
                         }
                         if (shouldShow("Developer")) {
-                            if (shouldShow("Version")) {
-                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                            SettingsSelectorRow(
+                                title = "Background Style",
+                                description = "Choose background style for screen canvas backdrop.",
+                                icon = Icons.Outlined.Dock,
+                                selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
+                                options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
+                                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
+                                accentColor = Color(0xFF0D9488)
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                            SettingsSelectorRow(
+                                title = "Navbar Motion Effect",
+                                description = "Select animation style for the floating navigation bar.",
+                                icon = Icons.Outlined.AutoMode,
+                                selectedValueLabel = when (themeSettings.navAnimation) {
+                                    NavAnimationPreference.MORPHING -> "Morphing Inflate"
+                                    NavAnimationPreference.ELASTIC_JELLY -> "Elastic Jelly"
+                                    NavAnimationPreference.LIQUID_RIPPLE -> "Liquid Ripple"
+                                    NavAnimationPreference.ARCADE_3D -> "Elevated 3D"
+                                },
+                                options = listOf(
+                                    NavAnimationPreference.MORPHING to "Morphing Inflate",
+                                    NavAnimationPreference.ELASTIC_JELLY to "Elastic Jelly",
+                                    NavAnimationPreference.LIQUID_RIPPLE to "Liquid Ripple",
+                                    NavAnimationPreference.ARCADE_3D to "Elevated 3D"
+                                ),
+                                onOptionSelected = { viewModel.setNavAnimation(it) },
+                                accentColor = Color(0xFFEC4899)
+                            )
                             SettingsActionRow(
                                 title = stringResource(R.string.about_developer),
                                 description = stringResource(R.string.about_developer_desc),
@@ -1130,7 +1063,9 @@ fun SettingsCategoryCard(
         color = containerColor,
         contentColor = contentColor,
         shape = cardShape,
-        border = cardBorder
+        border = cardBorder,
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp
     ) {
         Column(
             modifier = Modifier
@@ -1873,16 +1808,16 @@ fun SettingsTabRow(
     val containerBg = if (isSpaceTerminal) {
         Color(0xFF0F172A)
     } else {
-        MaterialTheme.colorScheme.surfaceContainer
+        MaterialTheme.colorScheme.surfaceContainerLow
     }
 
     val containerBorder = if (isSpaceTerminal) {
         BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
     } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     }
 
-    val shadowElevation = 0.dp
+    val shadowElevation = 8.dp
 
     Surface(
         modifier = modifier
@@ -1892,7 +1827,7 @@ fun SettingsTabRow(
         color = containerBg,
         border = containerBorder,
         shadowElevation = shadowElevation,
-        tonalElevation = 0.dp
+        tonalElevation = 4.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // ── Morphing Sliding Background Pill (Jelly effect with MaterialTheme.shapes.extraLarge) ──
@@ -2135,7 +2070,9 @@ fun SettingsGroup(
             modifier = Modifier.fillMaxWidth(),
             color = cardBg,
             shape = cardShape,
-            border = cardBorder
+            border = cardBorder,
+            shadowElevation = 8.dp,
+            tonalElevation = 4.dp
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),

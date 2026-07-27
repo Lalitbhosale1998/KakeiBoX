@@ -207,212 +207,26 @@ fun ExerciseScreen(
                     Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
                 }
 
-                // ── Day of Week Selector Card ───────────
+                // ── M3 Expressive Active Day Hero Header ───────────
                 item {
-                    val scrollState = rememberScrollState()
-                    val dayBounds = remember {
-                        mutableStateListOf<Pair<Float, Float>>().apply {
-                            repeat(daysOfWeek.size) { add(Pair(0f, 0f)) }
-                        }
-                    }
-                    val selectedIndex = daysOfWeek.indexOf(uiState.selectedDay).coerceAtLeast(0)
-                    val targetBounds = dayBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
-
-                    LaunchedEffect(selectedIndex, targetBounds) {
-                        if (targetBounds.second > 0f) {
-                            val viewportWidth = scrollState.viewportSize
-                            if (viewportWidth > 0) {
-                                val centerScroll = targetBounds.first - (viewportWidth / 2f) + (targetBounds.second / 2f)
-                                scrollState.animateScrollTo(centerScroll.roundToInt().coerceIn(0, scrollState.maxValue))
-                            }
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(28.dp))
-                            .background(bentoIdleColor)
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "WEEKLY SCHEDULE",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.1.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(start = 8.dp, bottom = 12.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(scrollState)
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            ) {
-                                // ── Morphing Sliding Background ──
-                                if (targetBounds.second > 0f) {
-                                    val animatedX by animateFloatAsState(
-                                        targetValue = targetBounds.first,
-                                        animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
-                                        label = "day_pill_x"
-                                    )
-                                    val animatedWidth by animateFloatAsState(
-                                        targetValue = targetBounds.second,
-                                        animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
-                                        label = "day_pill_width"
-                                    )
-
-                                    val distance = targetBounds.first - animatedX
-                                    val absDistance = java.lang.Math.abs(distance)
-                                    val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
-                                    val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
-
-                                    Box(
-                                        modifier = Modifier
-                                            .offset { IntOffset(animatedX.roundToInt(), 0) }
-                                            .width(with(LocalDensity.current) { animatedWidth.toDp() })
-                                            .height(76.dp)
-                                            .graphicsLayer {
-                                                scaleX = stretchX
-                                                scaleY = squashY
-                                                transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.5f)
-                                            }
-                                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(20.dp))
-                                    )
-                                }
-
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    daysOfWeek.forEachIndexed { index, day ->
-                                        val isSelected = day == uiState.selectedDay
-                                        val isRest = uiState.restDays.contains(day)
-                                        val scale by animateFloatAsState(
-                                            targetValue = if (isSelected) 1.05f else 1.0f,
-                                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
-                                            label = "day_scale"
-                                        )
-
-                                        val containerColor = when {
-                                            isSelected -> Color.Transparent
-                                            isRest -> MaterialTheme.colorScheme.surfaceVariant
-                                            else -> MaterialTheme.colorScheme.surfaceContainerHighest
-                                        }
-
-                                        val contentColor = when {
-                                            isSelected -> MaterialTheme.colorScheme.onPrimary
-                                            isRest -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                        }
-
-                                        Surface(
-                                            onClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                viewModel.selectDay(day)
-                                            },
-                                            shape = RoundedCornerShape(20.dp),
-                                            color = containerColor,
-                                            contentColor = contentColor,
-                                            modifier = Modifier
-                                                .graphicsLayer(scaleX = scale, scaleY = scale)
-                                                .width(76.dp)
-                                                .height(76.dp)
-                                                .onGloballyPositioned { coordinates ->
-                                                    val parent = coordinates.parentLayoutCoordinates
-                                                    if (parent != null) {
-                                                        val localPos = parent.localPositionOf(coordinates, Offset.Zero)
-                                                        val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
-                                                        if (index < dayBounds.size && dayBounds[index] != newBounds) {
-                                                            dayBounds[index] = newBounds
-                                                        }
-                                                    }
-                                                },
-                                            border = if (isRest && !isSelected) {
-                                                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                                            } else null
-                                        ) {
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Text(
-                                                    text = day.substring(0, 3).uppercase(),
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.Black
-                                                )
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Icon(
-                                                    imageVector = if (isRest) Icons.Outlined.Coffee else Icons.Outlined.FitnessCenter,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(16.dp),
-                                                    tint = contentColor.copy(alpha = 0.8f)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // ── Rest Day toggle for current day ────────
-                item {
-                    val isRest = uiState.isRestDay
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isRest) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f) else bentoIdleColor
-                        ),
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.toggleRestDay(uiState.selectedDay)
-                        }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = if (isRest) Icons.Filled.Coffee else Icons.Outlined.Coffee,
-                                contentDescription = null,
-                                tint = if (isRest) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = if (isRest) "Rest & Recovery Mode" else "Active Training Mode",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = if (isRest) "Tap to schedule workouts for ${uiState.selectedDay}" else "Tap to mark ${uiState.selectedDay} as a Rest Day",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
-                            }
-                            Switch(
-                                checked = isRest,
-                                onCheckedChange = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    viewModel.toggleRestDay(uiState.selectedDay)
-                                }
-                            )
-                        }
-                    }
+                    ExpressiveExerciseHeroHeader(
+                        selectedDay = uiState.selectedDay,
+                        daysOfWeek = daysOfWeek,
+                        restDays = uiState.restDays,
+                        isRestDay = uiState.isRestDay,
+                        exercises = uiState.exercises,
+                        completedSetsMap = completedSetsMap,
+                        containerColor = bentoIdleColor,
+                        onSelectDay = { day -> viewModel.selectDay(day) },
+                        onToggleRestDay = { day -> viewModel.toggleRestDay(day) },
+                        onAddWorkout = { viewModel.openAddSheet() }
+                    )
                 }
 
                 // ── Dashboard Content ──
                 if (uiState.isRestDay) {
                     item {
-                        RestDayDashboard(dayName = uiState.selectedDay)
+                        RestDayDashboard(dayName = uiState.selectedDay, containerColor = bentoIdleColor)
                     }
                 } else if (uiState.exercises.isEmpty()) {
                     item {
@@ -445,53 +259,21 @@ fun ExerciseScreen(
                         items = uiState.exercises,
                         key = { it.id }
                     ) { exercise ->
-                        val swipeState = rememberSwipeToDismissBoxState()
-
-                        LaunchedEffect(swipeState.currentValue) {
-                            if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.deleteExercise(exercise)
-                                swipeState.snapTo(SwipeToDismissBoxValue.Settled)
-                            }
-                        }
-
-                        SwipeToDismissBox(
-                            state = swipeState,
-                            enableDismissFromStartToEnd = false,
-                            backgroundContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(28.dp))
-                                        .background(MaterialTheme.colorScheme.errorContainer),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        modifier = Modifier.padding(end = 24.dp),
-                                        tint = MaterialTheme.colorScheme.onErrorContainer
-                                    )
+                        WorkoutItemCard(
+                            exercise = exercise,
+                            completedSets = completedSetsMap[exercise.id] ?: emptySet(),
+                            onToggleSet = { setNum ->
+                                val currentCompleted = completedSetsMap[exercise.id] ?: emptySet()
+                                val newCompleted = if (currentCompleted.contains(setNum)) {
+                                    currentCompleted - setNum
+                                } else {
+                                    currentCompleted + setNum
                                 }
+                                completedSetsMap[exercise.id] = newCompleted
                             },
-                            content = {
-                                WorkoutItem(
-                                    exercise = exercise,
-                                    completedSets = completedSetsMap[exercise.id] ?: emptySet(),
-                                    onToggleSet = { setNum ->
-                                        val currentCompleted = completedSetsMap[exercise.id] ?: emptySet()
-                                        val newCompleted = if (currentCompleted.contains(setNum)) {
-                                            currentCompleted - setNum
-                                        } else {
-                                            currentCompleted + setNum
-                                        }
-                                        completedSetsMap[exercise.id] = newCompleted
-                                    },
-                                    onEdit = { viewModel.openEditSheet(exercise) },
-                                    onDelete = { viewModel.deleteExercise(exercise) },
-                                    containerColor = bentoIdleColor
-                                )
-                            }
+                            onEdit = { viewModel.openEditSheet(exercise) },
+                            onDelete = { viewModel.deleteExercise(exercise) },
+                            modifier = Modifier.padding(bottom = 12.dp)
                         )
                     }
                 }
@@ -549,11 +331,11 @@ fun DailyProgressDashboard(
     val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp)),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     ) {
         Row(
             modifier = Modifier
@@ -692,7 +474,10 @@ fun DailyProgressDashboard(
 }
 
 @Composable
-fun RestDayDashboard(dayName: String) {
+fun RestDayDashboard(
+    dayName: String,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow
+) {
     val haptic = LocalHapticFeedback.current
     val recoveryQuotes = remember {
         listOf(
@@ -754,8 +539,9 @@ fun RestDayDashboard(dayName: String) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f)),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+            colors = CardDefaults.cardColors(containerColor = containerColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
         ) {
             Row(
                 modifier = Modifier.padding(20.dp),
@@ -907,13 +693,330 @@ fun RestDayDashboard(dayName: String) {
 }
 
 @Composable
-fun WorkoutItem(
+fun ExpressiveExerciseHeroHeader(
+    selectedDay: String,
+    daysOfWeek: List<String>,
+    restDays: List<String>,
+    isRestDay: Boolean,
+    exercises: List<ExerciseEntry>,
+    completedSetsMap: Map<Int, Set<Int>>,
+    containerColor: Color,
+    onSelectDay: (String) -> Unit,
+    onToggleRestDay: (String) -> Unit,
+    onAddWorkout: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptic = LocalHapticFeedback.current
+    val scrollState = rememberScrollState()
+
+    val dayBounds = remember {
+        mutableStateListOf<Pair<Float, Float>>().apply {
+            repeat(daysOfWeek.size) { add(Pair(0f, 0f)) }
+        }
+    }
+    val selectedIndex = daysOfWeek.indexOf(selectedDay).coerceAtLeast(0)
+    val targetBounds = dayBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
+
+    LaunchedEffect(selectedIndex, targetBounds) {
+        if (targetBounds.second > 0f) {
+            val viewportWidth = scrollState.viewportSize
+            if (viewportWidth > 0) {
+                val centerScroll = targetBounds.first - (viewportWidth / 2f) + (targetBounds.second / 2f)
+                scrollState.animateScrollTo(centerScroll.roundToInt().coerceIn(0, scrollState.maxValue))
+            }
+        }
+    }
+
+    // Detect predominant active focus for selected day
+    val activeFocusBadge = remember(isRestDay, exercises) {
+        if (isRestDay) {
+            "😴 REST & RECOVERY DAY"
+        } else if (exercises.isEmpty()) {
+            "🏋️ SCHEDULE WORKOUTS"
+        } else {
+            val categories = exercises.map { ex ->
+                val nameLower = ex.name.lowercase()
+                when {
+                    nameLower.contains("run") || nameLower.contains("cardio") -> "CARDIO"
+                    nameLower.contains("squat") || nameLower.contains("leg") -> "LEGS"
+                    nameLower.contains("pushup") || nameLower.contains("press") || nameLower.contains("chest") -> "CHEST"
+                    nameLower.contains("pullup") || nameLower.contains("row") || nameLower.contains("back") -> "BACK"
+                    else -> "STRENGTH"
+                }
+            }.distinct()
+            "🔥 " + categories.joinToString(" & ") + " DAY"
+        }
+    }
+
+    val totalWorkouts = exercises.size
+    val totalCompletedSets = exercises.sumOf { (completedSetsMap[it.id] ?: emptySet()).size }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // ── Top Header Row: Focus Badge + Quick Add Button ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Focus Badge
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (isRestDay) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        text = activeFocusBadge,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp
+                        ),
+                        color = if (isRestDay) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    )
+                }
+
+                // Add Workout Quick Button
+                Surface(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onAddWorkout()
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add workout",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Add",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
+            }
+
+            // ── Glanceable Day Summary Stats ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Workouts Count Pill
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FitnessCenter,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = "$totalWorkouts Workouts",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (isRestDay) "Rest Day" else "$totalCompletedSets Sets Done",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
+                // Rest Mode Quick Switch Pill
+                Surface(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onToggleRestDay(selectedDay)
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (isRestDay) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (isRestDay) Icons.Filled.Coffee else Icons.Outlined.Coffee,
+                                contentDescription = null,
+                                tint = if (isRestDay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isRestDay) "Rest Mode" else "Active",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Switch(
+                            checked = isRestDay,
+                            onCheckedChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onToggleRestDay(selectedDay)
+                            },
+                            modifier = Modifier.graphicsLayer { scaleX = 0.8f; scaleY = 0.8f }
+                        )
+                    }
+                }
+            }
+
+            // ── Shape-Morphing Day Pill Selector ──
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState)
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                ) {
+                    // Morphing Sliding Background
+                    if (targetBounds.second > 0f) {
+                        val animatedX by animateFloatAsState(
+                            targetValue = targetBounds.first,
+                            animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                            label = "day_pill_x"
+                        )
+                        val animatedWidth by animateFloatAsState(
+                            targetValue = targetBounds.second,
+                            animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+                            label = "day_pill_width"
+                        )
+
+                        val distance = targetBounds.first - animatedX
+                        val absDistance = java.lang.Math.abs(distance)
+                        val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
+                        val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+
+                        Box(
+                            modifier = Modifier
+                                .offset { IntOffset(animatedX.roundToInt(), 0) }
+                                .width(with(LocalDensity.current) { animatedWidth.toDp() })
+                                .height(72.dp)
+                                .graphicsLayer {
+                                    scaleX = stretchX
+                                    scaleY = squashY
+                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.5f)
+                                }
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(20.dp))
+                        )
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        daysOfWeek.forEachIndexed { index, day ->
+                            val isSelected = day == selectedDay
+                            val isRest = restDays.contains(day)
+                            val scale by animateFloatAsState(
+                                targetValue = if (isSelected) 1.05f else 1.0f,
+                                animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                                label = "day_scale"
+                            )
+
+                            val pillContainerColor = when {
+                                isSelected -> Color.Transparent
+                                isRest -> MaterialTheme.colorScheme.surfaceVariant
+                                else -> MaterialTheme.colorScheme.surfaceContainerHighest
+                            }
+
+                            val contentColor = when {
+                                isSelected -> MaterialTheme.colorScheme.onPrimary
+                                isRest -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+
+                            Surface(
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onSelectDay(day)
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                color = pillContainerColor,
+                                contentColor = contentColor,
+                                modifier = Modifier
+                                    .graphicsLayer(scaleX = scale, scaleY = scale)
+                                    .width(72.dp)
+                                    .height(72.dp)
+                                    .onGloballyPositioned { coordinates ->
+                                        val parent = coordinates.parentLayoutCoordinates
+                                        if (parent != null) {
+                                            val localPos = parent.localPositionOf(coordinates, Offset.Zero)
+                                            val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
+                                            if (index < dayBounds.size && dayBounds[index] != newBounds) {
+                                                dayBounds[index] = newBounds
+                                            }
+                                        }
+                                    },
+                                border = if (isRest && !isSelected) {
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                } else null
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    Text(
+                                        text = day.substring(0, 3).uppercase(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Icon(
+                                        imageVector = if (isRest) Icons.Outlined.Coffee else Icons.Outlined.FitnessCenter,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = contentColor.copy(alpha = 0.8f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WorkoutItemCard(
     exercise: ExerciseEntry,
     completedSets: Set<Int>,
     onToggleSet: (Int) -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    containerColor: Color
+    modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
     var isExpanded by remember { mutableStateOf(false) }
@@ -921,49 +1024,32 @@ fun WorkoutItem(
     val nameLower = exercise.name.lowercase()
     val (categoryName, categoryColor, categoryEmoji) = remember(nameLower) {
         when {
-            nameLower.contains("run") || nameLower.contains("jog") || nameLower.contains("cardio") || nameLower.contains("treadmill") -> {
-                Triple("CARDIO", Color(0xFF00B0FF), "🏃")
-            }
-            nameLower.contains("squat") || nameLower.contains("leg") || nameLower.contains("lunge") -> {
-                Triple("LEGS", Color(0xFFFF9100), "🦵")
-            }
-            nameLower.contains("pushup") || nameLower.contains("press") || nameLower.contains("chest") || nameLower.contains("bench") -> {
-                Triple("CHEST", Color(0xFFFF1744), "💪")
-            }
-            nameLower.contains("pullup") || nameLower.contains("row") || nameLower.contains("back") || nameLower.contains("deadlift") -> {
-                Triple("BACK", Color(0xFF00E676), "🏋️")
-            }
-            nameLower.contains("stretch") || nameLower.contains("yoga") || nameLower.contains("flex") || nameLower.contains("warm") -> {
-                Triple("FLEXIBILITY", Color(0xFFD500F9), "🧘")
-            }
-            nameLower.contains("cycle") || nameLower.contains("bike") -> {
-                Triple("CYCLING", Color(0xFFFFEA00), "🚴")
-            }
-            nameLower.contains("swim") -> {
-                Triple("SWIMMING", Color(0xFF00E5FF), "🏊")
-            }
-            else -> {
-                Triple("STRENGTH", Color(0xFFFF3D00), "🏋️")
-            }
+            nameLower.contains("run") || nameLower.contains("jog") || nameLower.contains("cardio") || nameLower.contains("treadmill") -> Triple("CARDIO", Color(0xFF00B0FF), "🏃")
+            nameLower.contains("squat") || nameLower.contains("leg") || nameLower.contains("lunge") -> Triple("LEGS", Color(0xFFFF9100), "🦵")
+            nameLower.contains("pushup") || nameLower.contains("press") || nameLower.contains("chest") || nameLower.contains("bench") -> Triple("CHEST", Color(0xFFFF1744), "💪")
+            nameLower.contains("pullup") || nameLower.contains("row") || nameLower.contains("back") || nameLower.contains("deadlift") -> Triple("BACK", Color(0xFF00E676), "🏋️")
+            nameLower.contains("stretch") || nameLower.contains("yoga") || nameLower.contains("flex") || nameLower.contains("warm") -> Triple("FLEXIBILITY", Color(0xFFD500F9), "🧘")
+            nameLower.contains("cycle") || nameLower.contains("bike") -> Triple("CYCLING", Color(0xFFFFEA00), "🚴")
+            nameLower.contains("swim") -> Triple("SWIMMING", Color(0xFF00E5FF), "🏊")
+            else -> Triple("STRENGTH", Color(0xFFFF3D00), "🏋️")
         }
     }
 
     val isAllCompleted = completedSets.size >= exercise.sets
-    val itemShape = RoundedCornerShape(24.dp)
-    
-    // Glowing/Accent Border Color
+    val itemShape = RoundedCornerShape(26.dp)
+
     val itemBorder = if (isAllCompleted) {
-        BorderStroke(2.dp, categoryColor.copy(alpha = 0.8f))
+        BorderStroke(2.dp, categoryColor.copy(alpha = 0.9f))
     } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        BorderStroke(1.5.dp, categoryColor.copy(alpha = 0.4f))
     }
 
     val formattedName = remember(exercise.name) {
         exercise.name.trim().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
     }
 
-    Surface(
-        modifier = Modifier
+    Card(
+        modifier = modifier
             .fillMaxWidth()
             .animateContentSize(
                 animationSpec = spring(
@@ -972,11 +1058,13 @@ fun WorkoutItem(
                 )
             ),
         shape = itemShape,
-        color = if (isAllCompleted) {
-            categoryColor.copy(alpha = 0.04f)
-        } else {
-            containerColor
-        },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp
+        ),
         border = itemBorder,
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -990,7 +1078,7 @@ fun WorkoutItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Category Icon Badge (Circular / Glow styled)
+                // Category Icon Badge
                 Surface(
                     shape = CircleShape,
                     color = categoryColor.copy(alpha = 0.12f),
@@ -1079,7 +1167,7 @@ fun WorkoutItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Beautiful tactile bento stats capsule (sets & reps)
+                // Bento stats capsule (sets & reps)
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f),
@@ -1151,13 +1239,12 @@ fun WorkoutItem(
                 }
             }
 
-            // Expanded content with sets bubbles check-off and instructions
+            // Expanded section
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Description/Instructions section
                 if (exercise.description.isNotBlank()) {
                     Text(
                         text = "INSTRUCTIONS",
@@ -1175,7 +1262,6 @@ fun WorkoutItem(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Interactive check-off selector
                 Text(
                     text = "TAP COMPLETED SETS",
                     style = MaterialTheme.typography.labelSmall,
@@ -1190,7 +1276,6 @@ fun WorkoutItem(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Set Selector Row
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.weight(1f)
@@ -1223,15 +1308,15 @@ fun WorkoutItem(
                                 if (isSetDone) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = "Completed set $setIndex",
+                                        contentDescription = "Set $setIndex done",
                                         tint = Color.White,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 } else {
                                     Text(
                                         text = setIndex.toString(),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Black,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -1239,19 +1324,38 @@ fun WorkoutItem(
                         }
                     }
 
-                    // Edit button inside the expanded content
-                    IconButton(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            onEdit()
-                        },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+                    // Action buttons (Edit & Delete)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit workout",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        IconButton(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onEdit()
+                            },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = "Edit workout",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onDelete()
+                            },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Delete workout",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
             }
@@ -1371,8 +1475,10 @@ fun ExerciseAddEditSheet(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                shadowElevation = 8.dp,
+                tonalElevation = 4.dp
             ) {
                 Column(
                     modifier = Modifier.padding(14.dp),
@@ -1425,8 +1531,10 @@ fun ExerciseAddEditSheet(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                shadowElevation = 8.dp,
+                tonalElevation = 4.dp
             ) {
                 Column(
                     modifier = Modifier.padding(14.dp),

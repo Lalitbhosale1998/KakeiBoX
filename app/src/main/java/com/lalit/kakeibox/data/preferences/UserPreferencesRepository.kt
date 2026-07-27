@@ -32,6 +32,7 @@ private object Keys {
     val DYNAMIC_TONAL_STYLE = stringPreferencesKey("dynamic_tonal_style")
     val INTENSITY_PRESET = stringPreferencesKey("intensity_preset")
     val EARNINGS_CARD_SHAPE = stringPreferencesKey("earnings_card_shape")
+    val NAV_ANIMATION = stringPreferencesKey("nav_animation")
     val SAVINGS_CARD_SHAPE = stringPreferencesKey("savings_card_shape")
     val REMITTANCE_CARD_SHAPE = stringPreferencesKey("remittance_card_shape")
 }
@@ -46,6 +47,7 @@ class UserPreferencesRepository @Inject constructor(
             darkThemePreference = DarkThemePreference.fromStorage(prefs[Keys.DARK_THEME]),
             useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
             navBarStyle = NavBarStyle.fromStorage(prefs[Keys.NAV_BAR_STYLE]),
+            navAnimation = NavAnimationPreference.fromStorage(prefs[Keys.NAV_ANIMATION]),
             remindersEnabled = prefs[Keys.REMINDERS_ENABLED] ?: false,
             currencySymbol = prefs[Keys.CURRENCY_SYMBOL] ?: "¥",
             dateFormat = prefs[Keys.DATE_FORMAT] ?: "MMM dd, yyyy",
@@ -79,7 +81,7 @@ class UserPreferencesRepository @Inject constructor(
             restDays = (prefs[Keys.REST_DAYS] ?: "Saturday,Sunday").split(",").filter { it.isNotBlank() },
             privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false,
             topAppBarBackground = TopAppBarBackground.valueOf(
-                prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.SURFACE.name
+                prefs[Keys.TOP_APP_BAR_BACKGROUND] ?: TopAppBarBackground.PRIMARY_CONTAINER.name
             ),
             themeStyle = ThemeStyle.fromStorage(prefs[Keys.THEME_STYLE]),
             appFont = AppFont.fromStorage(prefs[Keys.APP_FONT]),
@@ -101,6 +103,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setNavBarStyle(style: NavBarStyle) {
         dataStore.edit { it[Keys.NAV_BAR_STYLE] = style.name }
+    }
+
+    suspend fun setNavAnimation(anim: NavAnimationPreference) {
+        dataStore.edit { it[Keys.NAV_ANIMATION] = anim.name }
     }
 
     suspend fun setDarkThemePreference(value: DarkThemePreference) {

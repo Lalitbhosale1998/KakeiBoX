@@ -24,9 +24,23 @@ enum class CardShapePreference {
     companion object {
         fun fromStorage(value: String?): CardShapePreference {
             return try {
-                value?.let { valueOf(it) } ?: DEFAULT
+                value?.let { valueOf(it) } ?: PILL
             } catch (e: Exception) {
-                DEFAULT
+                PILL
+            }
+        }
+    }
+}
+
+enum class NavAnimationPreference {
+    MORPHING, ELASTIC_JELLY, LIQUID_RIPPLE, ARCADE_3D;
+
+    companion object {
+        fun fromStorage(value: String?): NavAnimationPreference {
+            return try {
+                value?.let { valueOf(it) } ?: MORPHING
+            } catch (e: Exception) {
+                MORPHING
             }
         }
     }
@@ -35,7 +49,8 @@ enum class CardShapePreference {
 data class ThemeSettings(
     val darkThemePreference: DarkThemePreference = DarkThemePreference.SYSTEM,
     val useDynamicColor: Boolean = true,
-    val navBarStyle: NavBarStyle = NavBarStyle.FULL_WIDTH,
+    val navBarStyle: NavBarStyle = NavBarStyle.FLOATING,
+    val navAnimation: NavAnimationPreference = NavAnimationPreference.MORPHING,
     val remindersEnabled: Boolean = false,
     val currencySymbol: String = "¥",
     val dateFormat: String = "MMM dd, yyyy",
@@ -44,7 +59,7 @@ data class ThemeSettings(
     val tabOrder: List<String> = listOf("salary", "exercise", "journeys", "settings"),
     val restDays: List<String> = listOf("Saturday", "Sunday"),
     val privacyModeEnabled: Boolean = false,
-    val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.SURFACE,
+    val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.PRIMARY_CONTAINER,
     val themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
     val appFont: AppFont = AppFont.NUNITO,
     val backdropPattern: BackdropPattern = BackdropPattern.NONE,
@@ -53,7 +68,8 @@ data class ThemeSettings(
     val touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
     val dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
     val intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT,
-    val earningsCardShape: CardShapePreference = CardShapePreference.DEFAULT,
-    val savingsCardShape: CardShapePreference = CardShapePreference.DEFAULT,
-    val remittanceCardShape: CardShapePreference = CardShapePreference.DEFAULT
+    val earningsCardShape: CardShapePreference = CardShapePreference.PILL,
+    val savingsCardShape: CardShapePreference = CardShapePreference.PILL,
+    val remittanceCardShape: CardShapePreference = CardShapePreference.PILL
 )
+

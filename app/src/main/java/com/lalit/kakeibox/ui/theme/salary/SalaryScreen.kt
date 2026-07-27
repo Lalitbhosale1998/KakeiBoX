@@ -51,6 +51,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.graphics.SolidColor
 import com.personal.kakeibox.ui.salary.SalaryUiState
 import com.personal.kakeibox.ui.salary.SalaryViewModel
+import com.personal.kakeibox.ui.theme.NunitoFontFamily
+import com.personal.kakeibox.ui.theme.FredokaFontFamily
+import com.personal.kakeibox.ui.theme.ComfortaaFontFamily
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
@@ -163,11 +166,12 @@ fun SalaryFilterTabRow(
     val haptic = LocalHapticFeedback.current
     val glowIntensity = LocalGlowIntensity.current
 
-    val tabs = remember {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tabs = remember(primaryColor) {
         listOf(
-            SalaryTabInfo(SalaryFilter.ALL, "All Time", Icons.Outlined.History, Color(0xFF3B82F6)),
-            SalaryTabInfo(SalaryFilter.THIS_YEAR, "This Year", Icons.Outlined.CalendarMonth, Color(0xFF10B981)),
-            SalaryTabInfo(SalaryFilter.HIGH_SAVINGS, "High Savings", Icons.AutoMirrored.Outlined.TrendingUp, Color(0xFF8B5CF6))
+            SalaryTabInfo(SalaryFilter.ALL, "All Time", Icons.Outlined.History, primaryColor),
+            SalaryTabInfo(SalaryFilter.THIS_YEAR, "This Year", Icons.Outlined.CalendarMonth, primaryColor),
+            SalaryTabInfo(SalaryFilter.HIGH_SAVINGS, "High Savings", Icons.AutoMirrored.Outlined.TrendingUp, primaryColor)
         )
     }
 
@@ -206,16 +210,16 @@ fun SalaryFilterTabRow(
     val containerBg = if (isSpaceTerminal) {
         Color(0xFF0F172A)
     } else {
-        MaterialTheme.colorScheme.surfaceContainer
+        MaterialTheme.colorScheme.surfaceContainerLow
     }
 
     val containerBorder = if (isSpaceTerminal) {
         BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
     } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     }
 
-    val shadowElevation = 0.dp
+    val shadowElevation = 8.dp
 
     Surface(
         modifier = modifier
@@ -225,7 +229,7 @@ fun SalaryFilterTabRow(
         color = containerBg,
         border = containerBorder,
         shadowElevation = shadowElevation,
-        tonalElevation = 0.dp
+        tonalElevation = 4.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Sliding background pill
@@ -242,7 +246,7 @@ fun SalaryFilterTabRow(
                     label = "salary_pill_width"
                 )
 
-                val activeTabColor = tabs[selectedIndex].color
+                val activeTabColor = MaterialTheme.colorScheme.primary
                 val targetColor = if (isSpaceTerminal) {
                     Color(0xFF46C2B4)
                 } else {
@@ -342,7 +346,7 @@ fun SalaryFilterTabRow(
                             else MaterialTheme.colorScheme.onPrimary
                         } else {
                             if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f)
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         },
                         label = "salary_content_color"
                     )
@@ -574,6 +578,7 @@ fun SalaryScreen(
                 item {
                     Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
                 }
+
                 // ── Hero Section ──────────────
                 item {
                     AnimatedVisibility(
@@ -581,19 +586,14 @@ fun SalaryScreen(
                         enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
                                 slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
-                        ExpressiveHeroCard(
+                        AuraExpressiveHeroCard(
                             totalSalary = totalSalary ?: 0L,
-                            totalSavings = totalSavings ?: 0L,
+                            thisMonthSalary = currentEntry?.salaryAmount ?: 0L,
                             currentEntry = currentEntry,
-                            currentMonth = uiState.currentMonth,
-                            currentYear = uiState.currentYear,
                             isPrivacyMode = themeSettings.privacyModeEnabled,
                             onEdit = { currentEntry?.let { viewModel.openEditDialog(it) } },
                             isPrimaryContainer = isPrimaryContainer,
-                            themeSettings = themeSettings,
-                            donutMode = uiState.donutMode,
-                            onDonutClick = viewModel::toggleDonutMode,
-                            isHighSavingsActive = uiState.currentFilter == SalaryFilter.HIGH_SAVINGS
+                            themeSettings = themeSettings
                         )
                     }
                 }
@@ -735,6 +735,7 @@ fun SalaryScreen(
             onContainerColor = onContainerColor,
             primaryTextAccent = primaryTextAccent,
             actions = {
+                // Birthday Hub - Tertiary Expressive Accent
                 IconButton(
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -743,17 +744,19 @@ fun SalaryScreen(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)),
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             Icons.Outlined.Cake,
                             contentDescription = "Birthdays Hub",
                             modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.tertiary
                         )
                     }
                 }
+                // History - Secondary Expressive Accent
                 IconButton(
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -762,17 +765,19 @@ fun SalaryScreen(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             Icons.Outlined.History,
                             contentDescription = "History",
                             modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.secondary
                         )
                     }
                 }
+                // Upload - Primary Expressive Accent
                 IconButton(
                     onClick = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -781,14 +786,15 @@ fun SalaryScreen(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             Icons.Default.Upload,
                             contentDescription = "Add Dummy Data",
                             modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -901,6 +907,333 @@ private object AgslShaderHelper {
 }
 
 @Composable
+fun AuraExpressiveHeroCard(
+    totalSalary: Long,
+    thisMonthSalary: Long,
+    currentEntry: SalaryEntry?,
+    isPrivacyMode: Boolean = false,
+    onEdit: () -> Unit,
+    isPrimaryContainer: Boolean = false,
+    themeSettings: ThemeSettings
+) {
+    val haptic = LocalHapticFeedback.current
+    val paydayInfo = remember { DateUtils.calculatePaydayProgress() }
+
+    // 🌊 Payday Progress Arc calculation
+    val animatedProgress by animateFloatAsState(
+        targetValue = paydayInfo.progressRatio,
+        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "payday_progress"
+    )
+
+    // ⚡ Elastic Micro-Press interaction
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val cardScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 400f),
+        label = "hero_card_scale"
+    )
+
+    // 🎆 Approved Feature 1: AGSL Fluid Aurora Shader & Gyroscope Mesh Aura
+    val timeState by rememberInfiniteTransition(label = "agsl_time").animateFloat(
+        initialValue = 0f,
+        targetValue = 6.28f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(10000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "uTime"
+    )
+
+    val isAgslSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+
+    val agslBrush = remember(timeState, isAgslSupported, primaryColor, tertiaryColor) {
+        if (isAgslSupported) {
+            val shaderCode = """
+                uniform float2 uSize;
+                uniform float uTime;
+                uniform float3 uColor1;
+                uniform float3 uColor2;
+                half4 main(float2 fragCoord) {
+                    float2 uv = fragCoord / uSize;
+                    float wave = sin(uv.x * 5.0 + uTime * 1.2) * cos(uv.y * 5.0 + uTime * 0.9) * 0.5 + 0.5;
+                    float3 color = mix(uColor1, uColor2, wave);
+                    return half4(color, 0.15);
+                }
+            """.trimIndent()
+            AgslShaderHelper.createShaderBrush(
+                shaderCode,
+                timeState,
+                floatArrayOf(primaryColor.red, primaryColor.green, primaryColor.blue),
+                floatArrayOf(tertiaryColor.red, tertiaryColor.green, tertiaryColor.blue)
+            )
+        } else {
+            Brush.linearGradient(
+                colors = listOf(
+                    primaryColor.copy(alpha = 0.12f),
+                    tertiaryColor.copy(alpha = 0.12f)
+                )
+            )
+        }
+    }
+
+    // 💎 Approved Feature 3: Holographic Chromatic Prism Foil Sheen
+    val holoTransition = rememberInfiniteTransition(label = "holo_prism")
+    val holoTranslateX by holoTransition.animateFloat(
+        initialValue = -300f,
+        targetValue = 900f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "holo_x"
+    )
+
+    val holoPrismBrush = remember(holoTranslateX, primaryColor, tertiaryColor, secondaryColor, onSurfaceColor) {
+        Brush.linearGradient(
+            colors = listOf(
+                onSurfaceColor,
+                primaryColor,
+                tertiaryColor,
+                secondaryColor,
+                primaryColor,
+                onSurfaceColor
+            ),
+            start = Offset(holoTranslateX, 0f),
+            end = Offset(holoTranslateX + 350f, 100f)
+        )
+    }
+
+    // 🔮 Approved Feature 5: Organic Starburst Shape Morphing on Payday Week
+    val isPaydayWeek = paydayInfo.daysRemaining <= 5L
+    val paydayCornerRadius by animateDpAsState(
+        targetValue = if (isPaydayWeek) 6.dp else 20.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "payday_shape_morph"
+    )
+    val paydayBadgeShape = RoundedCornerShape(
+        topStart = 20.dp,
+        topEnd = paydayCornerRadius,
+        bottomEnd = 20.dp,
+        bottomStart = paydayCornerRadius
+    )
+
+    val cardBg = if (isPrimaryContainer) {
+        androidx.compose.ui.graphics.lerp(
+            MaterialTheme.colorScheme.surface,
+            MaterialTheme.colorScheme.primaryContainer,
+            0.20f
+        )
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerLow
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = cardScale
+                scaleY = cardScale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            },
+        shape = RoundedCornerShape(28.dp),
+        color = cardBg,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp
+    ) {
+        Box(modifier = Modifier.fillMaxWidth().background(agslBrush)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // ── Top Row: Header & Payday Edit Action ──────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "TOTAL CUMULATIVE EARNINGS",
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            )
+                            if (isPaydayWeek) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = "Payday Week Active",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        val headlineStyle = if (!isPrivacyMode) {
+                            MaterialTheme.typography.headlineLarge.copy(brush = holoPrismBrush, alpha = 1.0f, fontFamily = ComfortaaFontFamily)
+                        } else {
+                            MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.onSurface, fontFamily = ComfortaaFontFamily)
+                        }
+                        Text(
+                            text = CurrencyUtils.formatAmount(totalSalary, themeSettings.currencySymbol, isPrivacyMode),
+                            style = headlineStyle,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    if (currentEntry != null) {
+                        IconButton(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onEdit()
+                            },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Record",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                // ── Bottom Metrics Grid: This Month & Payday Countdown ──────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Metric 1: This Month's Salary
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Payments,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "THIS MONTH",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Text(
+                                text = CurrencyUtils.formatAmount(thisMonthSalary, themeSettings.currencySymbol, isPrivacyMode, compact = true),
+                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = ComfortaaFontFamily),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    // Metric 2: Payday Countdown with Morphing Starburst Shape
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = paydayBadgeShape,
+                        color = if (isPaydayWeek) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
+                        border = BorderStroke(
+                            width = if (isPaydayWeek) 1.5.dp else 1.dp,
+                            color = if (isPaydayWeek) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (isPaydayWeek) Icons.Default.AutoAwesome else Icons.Outlined.Schedule,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (isPaydayWeek) "PAYDAY WEEK!" else "NEXT PAYDAY",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+                            Text(
+                                text = if (paydayInfo.daysRemaining == 0L) "Payday Today! 🎉" else "${paydayInfo.daysRemaining} Days Left",
+                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = ComfortaaFontFamily),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            
+                            // 🌊 Fluid Payday Progress Gauge (Month Timeline)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(animatedProgress)
+                                        .clip(RoundedCornerShape(3.dp))
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(
+                                                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f),
+                                                    MaterialTheme.colorScheme.tertiary
+                                                )
+                                            )
+                                        )
+                                )
+                            }
+
+                            Text(
+                                text = "${paydayInfo.nextPayday.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }}, ${paydayInfo.nextPayday.month.name.lowercase().take(3).replaceFirstChar { it.uppercase() }} ${paydayInfo.nextPayday.dayOfMonth} (${(paydayInfo.progressRatio * 100).toInt()}%)",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = ComfortaaFontFamily),
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ExpressiveHeroCard(
     totalSalary: Long,
     totalSavings: Long,
@@ -949,124 +1282,19 @@ fun ExpressiveHeroCard(
         label = "salary_hero_donut_size"
     )
 
-    val infiniteTransition = rememberInfiniteTransition(label = "floating_shapes")
-    val SineInOutEasing = Easing { fraction -> -(kotlin.math.cos(Math.PI * fraction).toFloat() - 1f) / 2f }
-
-    val rotation1 by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(28000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shape_rot_1"
-    )
-    val rotation2 by infiniteTransition.animateFloat(
-        initialValue = 360f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(34000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shape_rot_2"
-    )
-
-    val offsetX1 by infiniteTransition.animateFloat(
-        initialValue = -15f,
-        targetValue = 15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(8000, easing = SineInOutEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "shape_x_1"
-    )
-    val offsetY1 by infiniteTransition.animateFloat(
-        initialValue = -10f,
-        targetValue = 20f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(9500, easing = SineInOutEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "shape_y_1"
-    )
-
-    val offsetX2 by infiniteTransition.animateFloat(
-        initialValue = 20f,
-        targetValue = -10f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(11000, easing = SineInOutEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "shape_x_2"
-    )
-    val offsetY2 by infiniteTransition.animateFloat(
-        initialValue = -15f,
-        targetValue = 15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(8500, easing = SineInOutEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "shape_y_2"
-    )
-
-    val offsetX3 by infiniteTransition.animateFloat(
-        initialValue = -10f,
-        targetValue = 10f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(12000, easing = SineInOutEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "shape_x_3"
-    )
-    val offsetY3 by infiniteTransition.animateFloat(
-        initialValue = 15f,
-        targetValue = -15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(10000, easing = SineInOutEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "shape_y_3"
-    )
-
-    // Using Morph from androidx.graphics.shapes
-    val shape1 = remember {
-        RoundedPolygon(
-            numVertices = 4,
-            radius = 1f,
-            centerX = 0.5f,
-            centerY = 0.5f
-        ) // Pill-like
-    }
-    val shape2 = remember {
-        RoundedPolygon(
-            numVertices = 8, // Blob
-            radius = 1f,
-            centerX = 0.5f,
-            centerY = 0.5f
-        )
-    }
-    val morph = remember(shape1, shape2) { Morph(shape1, shape2) }
-
-    val morphProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = SineInOutEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "morph_progress"
-    )
-    
-    val shapeColor1 = MaterialTheme.colorScheme.primaryContainer
-    val shapeColor2 = MaterialTheme.colorScheme.tertiaryContainer
+    val heroShape = themeSettings.earningsCardShape.toShape(isPressed = false)
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .graphicsLayer {
-                rotationY = rotation
-                cameraDistance = 12f * density
-            }
+            .then(
+                if (rotation != 0f) {
+                    Modifier.graphicsLayer {
+                        rotationY = rotation
+                        cameraDistance = 12f * density
+                    }
+                } else Modifier
+            )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -1074,105 +1302,26 @@ fun ExpressiveHeroCard(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 isFlipped = !isFlipped
             },
-        shape = themeSettings.earningsCardShape.toShape(isPressed = false),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.15f), Color.Transparent))),
-        tonalElevation = 8.dp
+        shape = heroShape,
+        color = if (isPrimaryContainer) {
+            androidx.compose.ui.graphics.lerp(
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.primaryContainer,
+                0.20f
+            )
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 200.dp)
-                .drawBehind {
-                    // Draw morphing background shape
-                    val path = morph.toComposePath(progress = morphProgress)
-                    
-                    val scaleFactor = size.minDimension * 0.9f
-                    
-                    translate(left = size.width / 2f, top = size.height / 2f) {
-                        scale(scaleX = scaleFactor, scaleY = scaleFactor) {
-                            drawPath(
-                                path = path,
-                                brush = Brush.linearGradient(listOf(shapeColor1, shapeColor2))
-                            )
-                        }
-                    }
-                }
                 .padding(vertical = 36.dp, horizontal = 24.dp)
         ) {
-            // Floating Decorative Shapes (Android 17 M3 style)
-            // Shape 1: Pill (Top-Right)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 10.dp, end = 40.dp)
-                    .size(70.dp, 35.dp)
-                    .graphicsLayer {
-                        translationX = offsetX1
-                        translationY = offsetY1
-                        rotationZ = rotation1
-                    }
-                    .background(
-                        color = Color.White.copy(alpha = 0.05f),
-                        shape = RoundedCornerShape(50)
-                    )
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(50))
-            )
-
-            // Shape 2: Pentagon (Bottom-Left)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(bottom = 15.dp, start = 30.dp)
-                    .size(50.dp)
-                    .graphicsLayer {
-                        translationX = offsetX2
-                        translationY = offsetY2
-                        rotationZ = rotation2
-                    }
-                    .background(
-                        color = Color.White.copy(alpha = 0.05f),
-                        shape = RoundedPolygonShape(sides = 5)
-                    )
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedPolygonShape(sides = 5))
-            )
-
-            // Shape 3: 6-Sided Cookie (Bottom-Center/Right)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 10.dp, start = 90.dp)
-                    .size(55.dp)
-                    .graphicsLayer {
-                        translationX = offsetX3
-                        translationY = offsetY3
-                        rotationZ = rotation1 * -0.7f
-                    }
-                    .background(
-                        color = Color.White.copy(alpha = 0.05f),
-                        shape = CookieShape(petals = 6)
-                    )
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), CookieShape(petals = 6))
-            )
-
-            // Shape 4: 7-Sided Cookie (Top-Left/Center)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(top = 15.dp, start = 90.dp)
-                    .size(60.dp)
-                    .graphicsLayer {
-                        translationX = offsetX2 * -0.8f
-                        translationY = offsetY1 * -0.9f
-                        rotationZ = rotation2 * 1.2f
-                    }
-                    .background(
-                        color = Color.White.copy(alpha = 0.05f),
-                        shape = CookieShape(petals = 7)
-                    )
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), CookieShape(petals = 7))
-            )
-
             val isBack = rotation > 90f
             Box(
                 modifier = Modifier.graphicsLayer {
@@ -1205,7 +1354,7 @@ fun ExpressiveHeroCard(
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 2.5.sp,
-                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                 )
                                 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -1220,7 +1369,7 @@ fun ExpressiveHeroCard(
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 Surface(
-                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f),
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                                     shape = RoundedCornerShape(8.dp)
                                 ) {
                                     Row(
@@ -1230,7 +1379,7 @@ fun ExpressiveHeroCard(
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
                                             contentDescription = null,
-                                            tint = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
@@ -1238,7 +1387,7 @@ fun ExpressiveHeroCard(
                                             text = "Cumulative Net Income",
                                             style = MaterialTheme.typography.labelMedium,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             maxLines = 1,
                                             softWrap = false
                                         )
@@ -1253,8 +1402,8 @@ fun ExpressiveHeroCard(
                                             onEdit() 
                                         },
                                         colors = ButtonDefaults.filledTonalButtonColors(
-                                            containerColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
-                                            contentColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                                         ),
                                         shape = RoundedCornerShape(16.dp),
                                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -1297,16 +1446,8 @@ fun ExpressiveHeroCard(
                                     contentAlignment = Alignment.Center,
                                     modifier = Modifier.size(donutSize).padding(4.dp)
                                 ) {
-                                    val trackColor = if (isSystemInDarkTheme()) {
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                                    } else {
-                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
-                                    }
-                                    val progressColor = if (isSystemInDarkTheme()) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.onPrimary
-                                    }
+                                    val trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                    val progressColor = MaterialTheme.colorScheme.primary
                                     
                                     Canvas(modifier = Modifier.fillMaxSize()) {
                                         val stroke = 10.dp.toPx()
@@ -1345,14 +1486,14 @@ fun ExpressiveHeroCard(
                                                             text = "${(savingsRatio * 100).toInt()}%",
                                                             style = MaterialTheme.typography.titleLarge,
                                                             fontWeight = FontWeight.Black,
-                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                                            color = MaterialTheme.colorScheme.onSurface
                                                         )
                                                         Text(
                                                             text = "SAVED",
                                                             style = MaterialTheme.typography.labelSmall,
                                                             fontWeight = FontWeight.Bold,
                                                             fontSize = 8.sp,
-                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
                                                     DonutDisplayMode.ABSOLUTE -> {
@@ -1360,14 +1501,14 @@ fun ExpressiveHeroCard(
                                                             text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode, compact = true),
                                                             style = MaterialTheme.typography.titleMedium,
                                                             fontWeight = FontWeight.Black,
-                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                                            color = MaterialTheme.colorScheme.onSurface
                                                         )
                                                         Text(
                                                             text = "TOTAL",
                                                             style = MaterialTheme.typography.labelSmall,
                                                             fontWeight = FontWeight.Bold,
                                                             fontSize = 8.sp,
-                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
                                                     DonutDisplayMode.REMAINING_DAYS -> {
@@ -1378,14 +1519,14 @@ fun ExpressiveHeroCard(
                                                             text = days.toString(),
                                                             style = MaterialTheme.typography.titleLarge,
                                                             fontWeight = FontWeight.Black,
-                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                                            color = MaterialTheme.colorScheme.onSurface
                                                         )
                                                         Text(
                                                             text = "DAYS LEFT",
                                                             style = MaterialTheme.typography.labelSmall,
                                                             fontWeight = FontWeight.Bold,
                                                             fontSize = 8.sp,
-                                                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
                                                 }
@@ -1406,7 +1547,7 @@ fun ExpressiveHeroCard(
                     ) {
                         // Insight 1: This Month
                         Surface(
-                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(
@@ -1417,7 +1558,7 @@ fun ExpressiveHeroCard(
                                     imageVector = androidx.compose.material.icons.Icons.Default.CalendarToday, 
                                     contentDescription = null, 
                                     modifier = Modifier.size(14.dp),
-                                    tint = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 val thisMonthVal = currentEntry?.salaryAmount ?: 0L
@@ -1425,14 +1566,14 @@ fun ExpressiveHeroCard(
                                     text = "This Month: ${CurrencyUtils.formatAmount(thisMonthVal, themeSettings.currencySymbol, isPrivacyMode, compact = true)}", 
                                     style = MaterialTheme.typography.labelSmall, 
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
 
                         // Insight 2: Top Source
                         Surface(
-                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(
@@ -1443,14 +1584,14 @@ fun ExpressiveHeroCard(
                                     imageVector = androidx.compose.material.icons.Icons.Outlined.WorkOutline, 
                                     contentDescription = null, 
                                     modifier = Modifier.size(14.dp),
-                                    tint = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Top Source: Salary", 
                                     style = MaterialTheme.typography.labelSmall, 
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -1760,10 +1901,15 @@ fun ExpressiveHistoryBentoBox(
         bottomEnd = bottomCornerRadius
     )
 
-    val elevationAnimated by animateDpAsState(
-        targetValue = if (isExpanded) 12.dp else 0.dp,
+    val shadowElevationAnimated by animateDpAsState(
+        targetValue = if (isExpanded) 16.dp else 8.dp,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-        label = "elevation_anim"
+        label = "shadow_elevation_anim"
+    )
+    val tonalElevationAnimated by animateDpAsState(
+        targetValue = if (isExpanded) 8.dp else 4.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "tonal_elevation_anim"
     )
 
     @OptIn(ExperimentalSharedTransitionApi::class)
@@ -1779,10 +1925,10 @@ fun ExpressiveHistoryBentoBox(
                         animatedVisibilityScope = this@AnimatedContent
                     ),
                 shape = cardShape,
-                tonalElevation = elevationAnimated,
-                shadowElevation = elevationAnimated,
-                color = if (expanded) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
+                tonalElevation = tonalElevationAnimated,
+                shadowElevation = shadowElevationAnimated,
+                color = if (expanded) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     isExpanded = !isExpanded
@@ -2003,6 +2149,9 @@ fun ExpressiveSalaryCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         color = containerColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp,
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onEdit()
@@ -2818,23 +2967,32 @@ fun HistoryBottomSheet(
                     }
                 }
 
-                SwipeToDismissBox(
-                    state = swipeState,
-                    enableDismissFromStartToEnd = false,
-                    backgroundContent = {
-                        SalarySwipeDeleteBackground()
-                    },
-                    content = {
-                        ExpressiveSalaryCard(
-                            entry = entry,
-                            isPrivacyMode = isPrivacyMode,
-                            onEdit = { onEdit(entry) },
-                            onDelete = { onDelete(entry) },
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            themeSettings = themeSettings
-                        )
-                    }
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp, horizontal = 2.dp)
+                ) {
+                    SwipeToDismissBox(
+                        state = swipeState,
+                        enableDismissFromStartToEnd = false,
+                        modifier = Modifier.fillMaxWidth(),
+                        backgroundContent = {
+                            if (swipeState.dismissDirection != SwipeToDismissBoxValue.Settled) {
+                                SalarySwipeDeleteBackground()
+                            }
+                        },
+                        content = {
+                            ExpressiveSalaryCard(
+                                entry = entry,
+                                isPrivacyMode = isPrivacyMode,
+                                onEdit = { onEdit(entry) },
+                                onDelete = { onDelete(entry) },
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                themeSettings = themeSettings
+                            )
+                        }
+                    )
+                }
             }
         }
     }
@@ -2878,8 +3036,10 @@ fun InteractiveAnalyticsChart(
 
     Surface(
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -3056,8 +3216,10 @@ fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
 
     Surface(
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
