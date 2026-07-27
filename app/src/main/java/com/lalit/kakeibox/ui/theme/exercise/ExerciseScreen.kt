@@ -199,7 +199,7 @@ fun ExerciseScreen(
                 contentPadding = PaddingValues(
                     start = 16.dp, end = 16.dp,
                     top = innerPadding.calculateTopPadding() + 8.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 80.dp
+                    bottom = innerPadding.calculateBottomPadding() + 150.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
