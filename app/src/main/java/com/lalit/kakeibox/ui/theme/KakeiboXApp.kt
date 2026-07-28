@@ -3,6 +3,7 @@ package com.personal.kakeibox.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -66,6 +68,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.rememberCoroutineScope
+import com.personal.kakeibox.ui.components.ExpressivePolygonLoadingIndicator
+import com.personal.kakeibox.ui.components.ContainedLoadingIndicator
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -296,6 +300,106 @@ fun TopNavSplitButton(
 }
 
 @Composable
+fun ExpressiveActionLoadingFab(
+    currentPage: Int,
+    onActionClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptic = LocalHapticFeedback.current
+    var isLoading by remember { mutableStateOf(false) }
+    var isSuccess by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val fabColor by animateColorAsState(
+        targetValue = when (currentPage) {
+            0 -> MaterialTheme.colorScheme.primary
+            1 -> Color(0xFFE11D48)
+            else -> MaterialTheme.colorScheme.tertiary
+        },
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "fab_color"
+    )
+
+    val iconColor by animateColorAsState(
+        targetValue = when (currentPage) {
+            0 -> MaterialTheme.colorScheme.onPrimary
+            1 -> Color.White
+            else -> MaterialTheme.colorScheme.onTertiary
+        },
+        label = "fab_icon_color"
+    )
+
+    val scale by animateFloatAsState(
+        targetValue = if (isLoading) 0.94f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "fab_scale"
+    )
+
+    Surface(
+        modifier = modifier
+            .size(52.dp)
+            .shadow(10.dp, CircleShape)
+            .clip(CircleShape)
+            .clickable {
+                if (!isLoading) {
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    coroutineScope.launch {
+                        isLoading = true
+                        onActionClick()
+                        kotlinx.coroutines.delay(1200)
+                        isLoading = false
+                        isSuccess = true
+                        kotlinx.coroutines.delay(800)
+                        isSuccess = false
+                    }
+                }
+            }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
+        shape = CircleShape,
+        color = fabColor,
+        contentColor = iconColor,
+        border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.4f))
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            AnimatedContent(
+                targetState = Triple(isLoading, isSuccess, currentPage),
+                transitionSpec = {
+                    (fadeIn(spring(stiffness = Spring.StiffnessMedium)) + scaleIn(initialScale = 0.8f))
+                        .togetherWith(fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(targetScale = 0.8f))
+                },
+                label = "fab_content_transition"
+            ) { (loading, success, page) ->
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (success) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Success",
+                            tint = iconColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        ContainedLoadingIndicator(
+                            modifier = Modifier.size(38.dp),
+                            containerColor = Color.White.copy(alpha = 0.25f),
+                            indicatorColor = iconColor
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun KakeiboXApp(
     viewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity),
     windowSizeClass: WindowSizeClass? = null
@@ -466,15 +570,32 @@ fun KakeiboXApp(
                 }
             }
 
-            // Top M3 Expressive Split Button Navigation Switcher
-            TopNavSplitButton(
-                currentPage = pagerState.currentPage,
-                onPageSelected = { targetPage ->
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(targetPage)
+            // Top Header Suite: Split Button Navigation + Expressive Loading Action FAB
+            Row(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(top = 12.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TopNavSplitButton(
+                    currentPage = pagerState.currentPage,
+                    onPageSelected = { targetPage ->
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(targetPage)
+                        }
                     }
-                },
-            )
+                )
+
+                ExpressiveActionLoadingFab(
+                    currentPage = pagerState.currentPage,
+                    onActionClick = {
+                        // Quick Action Triggered!
+                    }
+                )
+            }
         }
     }
 }

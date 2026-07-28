@@ -28,6 +28,16 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.unit.Dp
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.graphics.shapes.RoundedPolygon
+import androidx.graphics.shapes.CornerRounding
+import androidx.graphics.shapes.Morph
+import androidx.graphics.shapes.toPath
+import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.foundation.Canvas
 import com.personal.kakeibox.data.preferences.CardShapePreference
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -1325,4 +1335,142 @@ fun CardShapePreference.toShape(isPressed: Boolean): Shape {
             RoundedCornerShape(radius.dp)
         }
     }
+}
+
+@Composable
+fun ContainedLoadingIndicator(
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    indicatorColor: Color = MaterialTheme.colorScheme.primary,
+    badgeText: String? = null
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "m3_expressive_contained_loading")
+
+    val morphProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "morph_progress"
+    )
+
+    val rotationAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+
+    val scaleX by infiniteTransition.animateFloat(
+        initialValue = 0.82f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scaleX"
+    )
+
+    val scaleY by infiniteTransition.animateFloat(
+        initialValue = 1.08f,
+        targetValue = 0.82f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scaleY"
+    )
+
+    val polygonOrganicA = remember {
+        RoundedPolygon(
+            numVertices = 4,
+            rounding = CornerRounding(radius = 0.65f, smoothing = 0.95f)
+        )
+    }
+
+    val polygonOrganicB = remember {
+        RoundedPolygon(
+            numVertices = 3,
+            rounding = CornerRounding(radius = 0.75f, smoothing = 1.0f)
+        )
+    }
+
+    val morph = remember {
+        Morph(polygonOrganicA, polygonOrganicB)
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+    ) {
+        // 🌟 Outer Tonal Circular Container
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(containerColor),
+            contentAlignment = Alignment.Center
+        ) {
+            // 🌟 Inner Solid Organic Morphing Shape
+            Canvas(
+                modifier = Modifier
+                    .size(32.dp)
+                    .graphicsLayer {
+                        rotationZ = rotationAngle
+                        this.scaleX = scaleX
+                        this.scaleY = scaleY
+                    }
+            ) {
+                val matrix = android.graphics.Matrix()
+                matrix.setScale(size.width * 0.42f, size.height * 0.42f)
+                matrix.postTranslate(size.width / 2f, size.height / 2f)
+
+                val path = morph.toPath(progress = morphProgress).apply {
+                    transform(matrix)
+                }
+
+                drawPath(
+                    path = path.asComposePath(),
+                    color = indicatorColor
+                )
+            }
+        }
+
+        if (badgeText != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF262626)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = badgeText,
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpressivePolygonLoadingIndicator(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    strokeWidth: Dp = 3.dp
+) {
+    ContainedLoadingIndicator(
+        modifier = modifier,
+        containerColor = color.copy(alpha = 0.25f),
+        indicatorColor = color
+    )
 }
