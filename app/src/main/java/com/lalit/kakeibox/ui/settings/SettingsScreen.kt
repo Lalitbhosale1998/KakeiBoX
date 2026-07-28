@@ -177,7 +177,18 @@ import com.personal.kakeibox.ui.theme.OutfitFontFamily
 import com.personal.kakeibox.ui.theme.PlayfairFontFamily
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.personal.kakeibox.ui.theme.expressiveBackground
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.draw.shadow
 import com.personal.kakeibox.ui.theme.LocalGlowIntensity
+import androidx.graphics.shapes.RoundedPolygon
+import androidx.graphics.shapes.CornerRounding
+import androidx.graphics.shapes.Morph
+import androidx.graphics.shapes.toPath
+import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import com.personal.kakeibox.ui.theme.glow
 import com.personal.kakeibox.data.preferences.GlowIntensity
 import com.personal.kakeibox.data.preferences.BackdropPattern
@@ -318,7 +329,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
-                .padding(top = statusBarsPadding + 76.dp)
+                .padding(top = statusBarsPadding + 92.dp)
                 .padding(bottom = 120.dp), // Space for floating bar
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -1833,286 +1844,181 @@ fun FontOptionCard(
     }
 }
 
+class SettingsTabPolygonShape(
+    private val morph: Morph,
+    private val progress: Float
+) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val matrix = android.graphics.Matrix()
+        matrix.setScale(size.width / 2f, size.height / 2f)
+        matrix.postTranslate(size.width / 2f, size.height / 2f)
+
+        val path = morph.toPath(progress = progress).apply {
+            transform(matrix)
+        }
+        return Outline.Generic(path.asComposePath())
+    }
+}
+
 @Composable
 fun SettingsTabRow(
     selectedTab: String,
     onTabSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
     val haptic = LocalHapticFeedback.current
 
     val tabs = remember {
         listOf(
-            TabInfo("visual", "Visuals", Icons.Outlined.Palette, Color(0xFF8B5CF6)),      // Violet
-            TabInfo("preferences", "Preferences", Icons.Outlined.Settings, Color(0xFF6EE7B7)), // Fresh Mint / Green
-            TabInfo("security", "Security", Icons.Outlined.Fingerprint, Color(0xFFF43F5E)),    // Rose
-            TabInfo("about", "About", Icons.Outlined.Info, Color(0xFF3B82F6))             // Blue
+            TabInfo("visual", "Visuals", Icons.Outlined.Palette, Color(0xFF8B5CF6)),      // Violet Blossom
+            TabInfo("preferences", "Preferences", Icons.Outlined.Settings, Color(0xFF10B981)), // Emerald Hexagon
+            TabInfo("security", "Security", Icons.Outlined.Fingerprint, Color(0xFFF43F5E)),    // Rose Shield
+            TabInfo("about", "About", Icons.Outlined.Info, Color(0xFF3B82F6))             // Blue Arch
         )
     }
 
     val selectedIndex = tabs.indexOfFirst { it.key == selectedTab }.coerceAtLeast(0)
 
-    val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
-
-    // Halo ring pulse animation state
-    val haloProgress = remember { Animatable(0f) }
-    LaunchedEffect(selectedTab) {
-        haloProgress.snapTo(0f)
-        haloProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
-        )
+    // ── Polygon Definitions for Shape Morphing ──
+    val unselectedPolygon = remember {
+        RoundedPolygon(numVertices = 4, rounding = CornerRounding(radius = 0.45f, smoothing = 1f))
     }
-
-    // ── Morphing Outer Corners ──
-    val outerCornerTopStart by animateIntAsState(
-        targetValue = if (selectedIndex == 0) 41 else 32,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "settings_outer_corner_ts"
-    )
-    val outerCornerBottomStart by animateIntAsState(
-        targetValue = if (selectedIndex == 0) 41 else 32,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "settings_outer_corner_bs"
-    )
-    val outerCornerTopEnd by animateIntAsState(
-        targetValue = if (selectedIndex == tabs.lastIndex) 41 else 32,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "settings_outer_corner_te"
-    )
-    val outerCornerBottomEnd by animateIntAsState(
-        targetValue = if (selectedIndex == tabs.lastIndex) 41 else 32,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "settings_outer_corner_be"
-    )
-
-    val outerShape = RoundedCornerShape(
-        topStart = outerCornerTopStart.dp,
-        bottomStart = outerCornerBottomStart.dp,
-        topEnd = outerCornerTopEnd.dp,
-        bottomEnd = outerCornerBottomEnd.dp
-    )
-
-    val containerBg = if (isSpaceTerminal) {
-        Color(0xFF0F172A)
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
+    val blossomStar = remember {
+        RoundedPolygon(numVertices = 4, rounding = CornerRounding(radius = 0.2f, smoothing = 0.85f))
     }
-
-    val containerBorder = if (isSpaceTerminal) {
-        BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.2f))
-    } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+    val hexagonPolygon = remember {
+        RoundedPolygon(numVertices = 6, rounding = CornerRounding(radius = 0.45f, smoothing = 1f))
     }
-
-    val shadowElevation = 8.dp
+    val shieldPolygon = remember {
+        RoundedPolygon(numVertices = 4, rounding = CornerRounding(radius = 0.65f, smoothing = 0.85f))
+    }
+    val archPolygon = remember {
+        RoundedPolygon(numVertices = 8, rounding = CornerRounding(radius = 0.85f, smoothing = 1f))
+    }
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(82.dp),
-        shape = outerShape,
-        color = containerBg,
-        border = containerBorder,
-        shadowElevation = shadowElevation,
+            .height(84.dp),
+        shape = RoundedCornerShape(32.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        shadowElevation = 8.dp,
         tonalElevation = 4.dp
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // ── Morphing Sliding Background Pill (Jelly effect with MaterialTheme.shapes.extraLarge) ──
-            if (tabBounds.size == tabs.size) {
-                val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
-                val animatedX by animateFloatAsState(
-                    targetValue = targetBounds.first,
-                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
-                    label = "settings_pill_x"
-                )
-                val animatedWidth by animateFloatAsState(
-                    targetValue = targetBounds.second,
-                    animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
-                    label = "settings_pill_width"
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .selectableGroup()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            tabs.forEachIndexed { index, tab ->
+                val isSelected = selectedIndex == index
+
+                // Morphing progress for shape transformation
+                val morphProgress by animateFloatAsState(
+                    targetValue = if (isSelected) 1f else 0f,
+                    animationSpec = spring(
+                        dampingRatio = 0.6f,
+                        stiffness = Spring.StiffnessMedium
+                    ),
+                    label = "tab_shape_morph_${tab.key}"
                 )
 
-                val activeTabColor = tabs[selectedIndex].color
-                val targetColor = if (isSpaceTerminal) {
-                    Color(0xFF46C2B4) // Solid Mecha Green in Space Terminal
-                } else {
-                    activeTabColor // Solid Vibrant theme color in Material 3
+                val activePolygon = remember(tab.key) {
+                    when (tab.key) {
+                        "visual" -> blossomStar
+                        "preferences" -> hexagonPolygon
+                        "security" -> shieldPolygon
+                        else -> archPolygon
+                    }
                 }
-                val animatedColor by animateColorAsState(targetColor, label = "settings_pill_color")
 
-                val distance = targetBounds.first - animatedX
-                val absDistance = java.lang.Math.abs(distance)
-                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
-                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+                val morph = remember(tab.key) {
+                    Morph(unselectedPolygon, activePolygon)
+                }
+
+                val tabShape = SettingsTabPolygonShape(morph, morphProgress)
+
+                val tabBgColor by animateColorAsState(
+                    targetValue = if (isSelected) tab.color else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    animationSpec = spring(stiffness = Spring.StiffnessLow),
+                    label = "tab_bg_${tab.key}"
+                )
+
+                val contentColor by animateColorAsState(
+                    targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    label = "tab_content_${tab.key}"
+                )
+
+                val iconScale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.2f else 1f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    label = "tab_icon_scale_${tab.key}"
+                )
+
+                val iconRotation by animateFloatAsState(
+                    targetValue = when {
+                        isSelected && tab.key == "visual" -> 15f
+                        isSelected && tab.key == "preferences" -> 360f
+                        else -> 0f
+                    },
+                    animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
+                    label = "tab_icon_rot_${tab.key}"
+                )
 
                 Box(
                     modifier = Modifier
-                        .padding(8.dp) // Matches Row padding
-                        .offset { IntOffset(java.lang.Math.round(animatedX), 0) }
-                        .width(with(LocalDensity.current) { animatedWidth.toDp() })
+                        .weight(if (isSelected) 1.4f else 1f)
                         .fillMaxHeight()
-                        .graphicsLayer {
-                            scaleX = stretchX
-                            scaleY = squashY
-                            transformOrigin = TransformOrigin(0.5f, 0.5f)
-                        }
-                        .background(animatedColor, MaterialTheme.shapes.extraLarge) // True capsule pill shape
-                )
-            }
-
-            // Tabs Content Row
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .selectableGroup()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                tabs.forEachIndexed { index, tab ->
-                    val isSelected = selectedIndex == index
-
-                    // Adaptive Weight: Selected tab expands slightly to fit label text
-                    val segmentWeight by animateFloatAsState(
-                        targetValue = if (isSelected) 1.5f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "settings_weight_anim"
-                    )
-
-                    // Icon Bounce
-                    val iconScale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.25f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium
-                        ),
-                        label = "settings_icon_scale"
-                    )
-
-                    // Icon custom rotations/micro-interactions
-                    val iconRotation by animateFloatAsState(
-                        targetValue = when {
-                            isSelected && tab.key == "visual" -> 15f
-                            isSelected && tab.key == "preferences" -> 360f // rotate preferences settings cog!
-                            else -> 0f
-                        },
-                        animationSpec = spring(
-                            dampingRatio = if (tab.key == "preferences") 0.6f else 0.4f,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "settings_icon_rot_${tab.key}"
-                    )
-
-                    val labelScale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.05f else 0.95f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "settings_label_scale_${tab.key}"
-                    )
-
-                    // Selected tab content has high contrast on top of the solid pill
-                    val contentColor by animateColorAsState(
-                        targetValue = if (isSelected) {
-                            if (isSpaceTerminal) Color(0xFF0F172A) // Dark Slate on Mecha Green
-                            else MaterialTheme.colorScheme.onPrimary // High contrast on Material 3 active color
-                        } else {
-                            if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f)
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        label = "settings_content_color_${tab.key}"
-                    )
-
+                        .shadow(elevation = if (isSelected) 8.dp else 0.dp, shape = tabShape)
+                        .clip(tabShape)
+                        .background(tabBgColor)
+                        .selectable(
+                            selected = isSelected,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onTabSelected(tab.key)
+                            },
+                            role = Role.Tab
+                        )
+                        .padding(horizontal = 4.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Column(
-                        modifier = Modifier
-                            .weight(segmentWeight)
-                            .fillMaxHeight()
-                            .clip(MaterialTheme.shapes.extraLarge)
-                            .onGloballyPositioned { coordinates ->
-                                val parent = coordinates.parentLayoutCoordinates
-                                if (parent != null) {
-                                    val localPos = parent.localPositionOf(coordinates, Offset.Zero)
-                                    val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
-                                    if (index >= tabBounds.size) {
-                                        tabBounds.add(newBounds)
-                                    } else if (tabBounds[index] != newBounds) {
-                                        tabBounds[index] = newBounds
-                                    }
-                                }
-                            }
-                            .selectable(
-                                selected = isSelected,
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onTabSelected(tab.key)
-                                },
-                                role = Role.Tab
-                            ),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            // Pulsing Halo Ring behind the solid pill
-                            if (isSelected) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .graphicsLayer {
-                                            scaleX = 1.0f + (haloProgress.value * 0.8f)
-                                            scaleY = 1.0f + (haloProgress.value * 0.8f)
-                                            alpha = 1f - haloProgress.value
-                                        }
-                                        .background(
-                                            color = (if (isSpaceTerminal) Color(0xFF46C2B4) else tab.color).copy(alpha = 0.35f),
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
-
-                            Icon(
-                                imageVector = tab.icon,
-                                contentDescription = tab.label,
-                                tint = contentColor,
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .graphicsLayer {
-                                        scaleX = iconScale
-                                        scaleY = iconScale
-                                        rotationZ = iconRotation
-                                    }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(2.dp))
-
-                        AnimatedVisibility(
-                            visible = isSelected,
-                            enter = fadeIn() + expandVertically(),
-                            exit = fadeOut() + shrinkVertically()
-                        ) {
-                            Text(
-                                text = tab.label,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 11.sp,
-                                    letterSpacing = 0.1.sp
-                                ),
-                                color = contentColor,
-                                maxLines = 1,
-                                modifier = Modifier.graphicsLayer {
-                                    scaleX = labelScale
-                                    scaleY = labelScale
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = tab.label,
+                            tint = contentColor,
+                            modifier = Modifier
+                                .size(22.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale
+                                    scaleY = iconScale
+                                    rotationZ = iconRotation
                                 }
-                            )
-                        }
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = tab.label,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                                fontSize = 11.sp
+                            ),
+                            color = contentColor,
+                            maxLines = 1
+                        )
                     }
                 }
             }

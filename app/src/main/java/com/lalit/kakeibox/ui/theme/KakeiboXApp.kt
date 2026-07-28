@@ -570,14 +570,13 @@ fun KakeiboXApp(
                 }
             }
 
-            // Top Header Suite: Split Button Navigation + Expressive Loading Action FAB
+            // Top Header Suite: Left-Aligned Split Button Navigation + Living ContainedLoadingIndicator FAB
             Row(
                 modifier = Modifier
                     .statusBarsPadding()
-                    .padding(top = 12.dp, start = 16.dp, end = 16.dp)
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(top = 12.dp, start = 20.dp, end = 20.dp)
+                    .align(Alignment.TopStart),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TopNavSplitButton(
@@ -588,6 +587,8 @@ fun KakeiboXApp(
                         }
                     }
                 )
+
+                Spacer(modifier = Modifier.width(10.dp))
 
                 ExpressiveActionLoadingFab(
                     currentPage = pagerState.currentPage,
