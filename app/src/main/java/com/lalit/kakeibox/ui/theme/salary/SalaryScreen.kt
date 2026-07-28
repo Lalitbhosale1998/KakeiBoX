@@ -578,7 +578,7 @@ fun SalaryScreen(
             ) {
                 // Header top spacing
                 item {
-                    Spacer(modifier = Modifier.height(statusBarPadding + 16.dp))
+                    Spacer(modifier = Modifier.height(statusBarPadding + 64.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,

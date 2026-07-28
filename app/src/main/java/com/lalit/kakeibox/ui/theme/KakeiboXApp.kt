@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -56,6 +57,16 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -70,9 +81,11 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -108,8 +121,179 @@ import kotlin.math.roundToInt
 
 
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.animation.SharedTransitionLayout
+@Composable
+fun TopNavSplitButton(
+    currentPage: Int,
+    onPageSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptic = LocalHapticFeedback.current
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val tabs = remember {
+        listOf(
+            Triple(0, "Salary", Icons.Filled.Wallet),
+            Triple(1, "Exercise", Icons.Filled.FitnessCenter),
+            Triple(2, "Settings", Icons.Filled.Settings)
+        )
+    }
+
+    val activeTab = tabs.find { it.first == currentPage } ?: tabs[0]
+    val remainingTabs = tabs.filter { it.first != currentPage }
+
+    // Dynamic Corner Morphing: 32.dp when collapsed, 10.dp when expanded
+    val activeEndCorner by animateDpAsState(
+        targetValue = if (isExpanded) 10.dp else 32.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "active_end_corner"
+    )
+
+    Surface(
+        modifier = modifier
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .padding(start = 20.dp, end = 20.dp, top = 10.dp),
+        shape = RoundedCornerShape(32.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
+        tonalElevation = 8.dp,
+        shadowElevation = 10.dp,
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(6.dp)
+        ) {
+            // ── Primary Action Button (Active Tab Display - BIG) ──
+            val activeShape = RoundedCornerShape(
+                topStart = 32.dp,
+                bottomStart = 32.dp,
+                topEnd = activeEndCorner,
+                bottomEnd = activeEndCorner
+            )
+
+            Surface(
+                shape = activeShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier
+                    .clip(activeShape)
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        isExpanded = !isExpanded
+                    }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+                ) {
+                    Icon(
+                        imageVector = activeTab.third,
+                        contentDescription = activeTab.second,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = activeTab.second,
+                        maxLines = 1,
+                        softWrap = false,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        ),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                        contentDescription = "Toggle remaining tabs",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            // ── Secondary Action Buttons (Remaining Tabs - BIG with Horizontal Scroll) ──
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + expandHorizontally(
+                    expandFrom = Alignment.Start,
+                    clip = false,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ),
+                exit = fadeOut() + shrinkHorizontally(
+                    shrinkTowards = Alignment.Start,
+                    clip = false,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.horizontalScroll(rememberScrollState())
+                ) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    remainingTabs.forEachIndexed { index, tab ->
+                        val isLast = index == remainingTabs.size - 1
+                        val tabShape = RoundedCornerShape(
+                            topStart = 10.dp,
+                            bottomStart = 10.dp,
+                            topEnd = if (isLast) 32.dp else 10.dp,
+                            bottomEnd = if (isLast) 32.dp else 10.dp
+                        )
+
+                        Surface(
+                            shape = tabShape,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier
+                                .clip(tabShape)
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    isExpanded = false
+                                    onPageSelected(tab.first)
+                                }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = tab.third,
+                                    contentDescription = tab.second,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = tab.second,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+
+                        if (!isLast) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun KakeiboXApp(
@@ -119,6 +303,8 @@ fun KakeiboXApp(
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+    val coroutineScope = rememberCoroutineScope()
 
     val navBarColor by animateColorAsState(
         targetValue = if (themeSettings.topAppBarBackground == com.personal.kakeibox.data.preferences.TopAppBarBackground.PRIMARY_CONTAINER) {
@@ -269,362 +455,28 @@ fun KakeiboXApp(
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding(), bottom = 0.dp)
         ) {
-            SharedTransitionLayout {
-                NavHost(
-                    navController = navController,
-                startDestination = themeSettings.tabOrder.firstOrNull() ?: NavRoutes.Salary.route,
-                modifier = Modifier.fillMaxSize(),
-                // ── Screen transition animations ──────────────
-            enterTransition = {
-                fadeIn(tween(280)) + slideInVertically(tween(280)) { it / 8 }
-            },
-            exitTransition = {
-                fadeOut(tween(200))
-            },
-            popEnterTransition = {
-                fadeIn(tween(280)) + slideInVertically(tween(280)) { -(it / 8) }
-            },
-            popExitTransition = {
-                fadeOut(tween(200))
-            }
-        ) {
-            composable(NavRoutes.Salary.route) {
-                SalaryScreen()
-            }
-            composable(NavRoutes.Exercise.route) {
-                ExerciseScreen()
-            }
-            composable(NavRoutes.Settings.route) {
-                SettingsScreen()
-            }
-            composable(NavRoutes.Spend.route) {
-                SpendScreen(
-                    animatedVisibilityScope = this@composable,
-                    onNavigateToTransactionDetail = { id ->
-                        navController.navigate(NavRoutes.TransactionDetail.createRoute(id))
-                    }
-                )
-            }
-            composable(NavRoutes.TransactionDetail.route) {
-                val transactionId = it.arguments?.getString("transactionId")?.toIntOrNull()
-                if (transactionId != null) {
-                    TransactionDetailScreen(
-                        transactionId = transactionId,
-                        animatedVisibilityScope = this@composable,
-                        onBack = { navController.popBackStack() }
-                    )
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                when (page) {
+                    0 -> SalaryScreen()
+                    1 -> ExerciseScreen()
+                    2 -> SettingsScreen()
                 }
             }
 
-            }
-        }
-
-        // ── Floating "Bento" Navigation Bar Overlay ──
-        if (!isExpandedScreen) {
-            val tabBounds = remember { mutableStateListOf<Pair<Float, Float>>() }
-            val selectedIndex = remember(currentDestination, bottomNavItems) {
-                bottomNavItems.indexOfFirst { item ->
-                    currentDestination?.hierarchy?.any { it.route == item.route } == true
-                }.coerceAtLeast(0)
-            }
-
-            val outerShape = RoundedCornerShape(percent = 50)
-
-            // 1. 🌈 Dynamic Tab-Specific Ambient Under-Glow Color
-            val activeTabGlowColor by animateColorAsState(
-                targetValue = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
-                    NavRoutes.Salary.route -> Color(0xFF8B5CF6)   // Violet matching Settings
-                    NavRoutes.Exercise.route -> Color(0xFF8B5CF6) // Violet matching Settings
-                    NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Violet
-                    else -> MaterialTheme.colorScheme.primary
+            // Top M3 Expressive Split Button Navigation Switcher
+            TopNavSplitButton(
+                currentPage = pagerState.currentPage,
+                onPageSelected = { targetPage ->
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(targetPage)
+                    }
                 },
-                animationSpec = spring(stiffness = Spring.StiffnessLow),
-                label = "nav_ambient_glow"
             )
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 24.dp)
-            ) {
-                // 1. 🌈 Dynamic Ambient Under-Glow Backdrop Layer
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer {
-                            shadowElevation = 24.dp.toPx()
-                            spotShadowColor = activeTabGlowColor
-                            ambientShadowColor = activeTabGlowColor
-                            shape = outerShape
-                            clip = false
-                        }
-                        .background(
-                            color = activeTabGlowColor.copy(alpha = 0.16f),
-                            shape = outerShape
-                        )
-                )
-
-                Surface(
-                    modifier = Modifier
-                        .height(82.dp),
-                    shape = outerShape,
-                    color = navBarColor,
-                    tonalElevation = 8.dp,
-                    shadowElevation = 16.dp,
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.08f)
-                    )
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        // ── Dynamic Navbar Motion Physics Config ──
-                        val (pillDamping, pillStiffness) = when (themeSettings.navAnimation) {
-                            NavAnimationPreference.MORPHING -> Pair(0.75f, Spring.StiffnessHigh)
-                            NavAnimationPreference.ELASTIC_JELLY -> Pair(0.38f, Spring.StiffnessLow)
-                            NavAnimationPreference.LIQUID_RIPPLE -> Pair(0.85f, Spring.StiffnessLow)
-                            NavAnimationPreference.ARCADE_3D -> Pair(0.6f, Spring.StiffnessMedium)
-                        }
-
-                        // ── Morphing Sliding Background Pill ──
-                        if (tabBounds.size == bottomNavItems.size && themeSettings.navAnimation != NavAnimationPreference.LIQUID_RIPPLE) {
-                            val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
-                            val animatedX by animateFloatAsState(
-                                targetValue = targetBounds.first,
-                                animationSpec = spring(
-                                    dampingRatio = pillDamping,
-                                    stiffness = pillStiffness
-                                ),
-                                label = "pill_x"
-                            )
-                            val animatedWidth by animateFloatAsState(
-                                targetValue = targetBounds.second,
-                                animationSpec = spring(dampingRatio = pillDamping, stiffness = pillStiffness),
-                                label = "pill_width"
-                            )
-                            val targetColor = MaterialTheme.colorScheme.secondaryContainer
-                            val animatedColor by animateColorAsState(targetColor, label = "pill_color")
-
-                            val distance = targetBounds.first - animatedX
-                            val absDistance = java.lang.Math.abs(distance)
-
-                            val stretchX = if (themeSettings.navAnimation == NavAnimationPreference.ELASTIC_JELLY) {
-                                1f + (absDistance / 70f).coerceAtMost(1.1f)
-                            } else if (themeSettings.navAnimation == NavAnimationPreference.MORPHING) {
-                                1f + (absDistance / 200f).coerceAtMost(0.3f)
-                            } else {
-                                1f + (absDistance / 100f).coerceAtMost(0.8f)
-                            }
-
-                            val squashY = if (themeSettings.navAnimation == NavAnimationPreference.ELASTIC_JELLY) {
-                                1f - (absDistance / 220f).coerceAtMost(0.5f)
-                            } else {
-                                1f - (absDistance / 300f).coerceAtMost(0.3f)
-                            }
-
-                            val direction = if (distance > 0) 1f else if (distance < 0) 0f else 0.5f
-
-                            Box(
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .offset { IntOffset(animatedX.roundToInt(), 0) }
-                                    .width(with(LocalDensity.current) { animatedWidth.toDp() })
-                                    .fillMaxHeight()
-                                    .graphicsLayer {
-                                        scaleX = stretchX
-                                        scaleY = squashY
-                                        transformOrigin = TransformOrigin(direction, 0.5f)
-                                    }
-                                    .background(animatedColor, RoundedCornerShape(percent = 50))
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .selectableGroup()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val midIndex = (bottomNavItems.size + 1) / 2
-                            bottomNavItems.forEachIndexed { index, item ->
-                                if (index == midIndex) {
-                                    CentralActionButton(
-                                        currentRoute = currentRoute,
-                                        themeViewModel = viewModel,
-                                        haptic = haptic,
-                                        scale = actionButtonScale,
-                                        weight = actionButtonWeight,
-                                        brush = Brush.linearGradient(listOf(actionColorStart, actionColorEnd)),
-                                        iconColor = actionIconColor,
-                                        modifier = Modifier
-                                            .weight(actionButtonWeight)
-                                            .fillMaxHeight()
-                                    )
-                                }
-                                val isSelected = currentDestination?.hierarchy?.any {
-                                    it.route == item.route
-                                } == true
-
-                                // 4. 🏷️ Expanding Text Capsule: Selected tab weight expands horizontally
-                                val segmentWeight by animateFloatAsState(
-                                    targetValue = if (isSelected) 2.2f else 1.0f,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    ),
-                                    label = "weight_anim"
-                                )
-
-                                val iconScale by animateFloatAsState(
-                                    targetValue = if (isSelected) 1.25f else 0.9f,
-                                    animationSpec = spring(
-                                        dampingRatio = 0.5f,
-                                        stiffness = Spring.StiffnessMedium
-                                    ),
-                                    label = "floating_icon_scale"
-                                )
-
-                                // 3. 🎭 Custom Per-Tab Icon Micro-interactions & 3D Arcade Elevation
-                                val arcadeElevationY by animateFloatAsState(
-                                    targetValue = if (isSelected && themeSettings.navAnimation == NavAnimationPreference.ARCADE_3D) -6f else 0f,
-                                    animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMedium),
-                                    label = "arcade_elevation"
-                                )
-
-                                val iconTranslationY by animateFloatAsState(
-                                    targetValue = (if (isSelected && item.route == NavRoutes.Salary.route) -8f else 0f) + arcadeElevationY,
-                                    animationSpec = spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessLow),
-                                    label = "floating_icon_y_${item.route}"
-                                )
-                                val iconRotation by animateFloatAsState(
-                                    targetValue = when {
-                                        !isSelected -> 0f
-                                        item.route == NavRoutes.Salary.route -> -10f
-                                        item.route == NavRoutes.Exercise.route -> 15f
-                                        item.route == NavRoutes.Settings.route -> 90f
-                                        else -> 0f
-                                    },
-                                    animationSpec = spring(
-                                        dampingRatio = 0.5f,
-                                        stiffness = Spring.StiffnessMedium
-                                    ),
-                                    label = "floating_icon_rot_${item.route}"
-                                )
-
-                                val contentColor by animateColorAsState(
-                                    targetValue = if (isSelected) {
-                                        when (item.route) {
-                                            NavRoutes.Salary.route -> Color(0xFF8B5CF6)
-                                            NavRoutes.Exercise.route -> Color(0xFF8B5CF6)
-                                            NavRoutes.Settings.route -> Color(0xFF8B5CF6)
-                                            else -> MaterialTheme.colorScheme.onSurface
-                                        }
-                                    } else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    label = "content_color_anim"
-                                )
-
-                                // 4. 🏷️ Expanding Text Capsule Layout
-                                Row(
-                                    modifier = Modifier
-                                        .weight(segmentWeight)
-                                        .fillMaxHeight()
-                                        .clip(RoundedCornerShape(percent = 50))
-                                        .onGloballyPositioned { coordinates ->
-                                            val parent = coordinates.parentLayoutCoordinates
-                                            if (parent != null) {
-                                                val localPos = parent.localPositionOf(coordinates, Offset.Zero)
-                                                val newBounds = Pair(localPos.x, coordinates.size.width.toFloat())
-                                                if (index >= tabBounds.size) {
-                                                    tabBounds.add(newBounds)
-                                                } else if (tabBounds[index] != newBounds) {
-                                                    tabBounds[index] = newBounds
-                                                }
-                                            }
-                                        }
-                                        .selectable(
-                                            selected = isSelected,
-                                            onClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                navController.navigate(item.route) {
-                                                    popUpTo(navController.graph.findStartDestination().id) {
-                                                        saveState = true
-                                                    }
-                                                    launchSingleTop = true
-                                                    restoreState = true
-                                                }
-                                            },
-                                            role = Role.Tab
-                                        ),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.size(36.dp)
-                                    ) {
-                                        if (isSelected) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(36.dp)
-                                                    .graphicsLayer {
-                                                        scaleX = 1f + (haloProgress.value * 0.8f)
-                                                        scaleY = 1f + (haloProgress.value * 0.8f)
-                                                        alpha = 1f - haloProgress.value
-                                                    }
-                                                    .background(
-                                                        color = contentColor.copy(alpha = 0.35f),
-                                                        shape = CircleShape
-                                                    )
-                                            )
-                                        }
-
-                                        ExpressiveAnimatedIcon(
-                                            icon = item.icon,
-                                            selectedIcon = item.selectedIcon,
-                                            isSelected = isSelected,
-                                            tint = contentColor,
-                                            unselectedTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(24.dp).graphicsLayer {
-                                                scaleX = iconScale
-                                                scaleY = iconScale
-                                                translationY = iconTranslationY.dp.toPx()
-                                                rotationZ = iconRotation
-                                            }
-                                        )
-                                    }
-
-                                    // 4. 🏷️ Active Label Slides & Fades In Side-by-Side inside expanding capsule
-                                    AnimatedVisibility(
-                                        visible = isSelected,
-                                        enter = fadeIn(spring(stiffness = Spring.StiffnessMedium)) + expandHorizontally(spring(stiffness = Spring.StiffnessMedium)),
-                                        exit = fadeOut(tween(100)) + shrinkHorizontally(tween(100))
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(
-                                                text = stringResource(item.labelRes),
-                                                style = MaterialTheme.typography.labelMedium.copy(
-                                                    fontWeight = FontWeight.ExtraBold,
-                                                    fontSize = 12.sp,
-                                                    letterSpacing = 0.2.sp
-                                                ),
-                                                color = contentColor,
-                                                maxLines = 1
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
-}
 }
 }
 
@@ -641,6 +493,7 @@ fun CentralActionButton(
     iconColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val view = LocalView.current
     if (weight > 0.01f) {
         val scaleAnim = remember { Animatable(1f) }
         LaunchedEffect(currentRoute) {

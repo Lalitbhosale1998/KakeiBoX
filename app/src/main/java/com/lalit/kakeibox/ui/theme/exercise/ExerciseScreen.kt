@@ -204,7 +204,7 @@ fun ExerciseScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(statusBarPadding + 16.dp))
+                    Spacer(modifier = Modifier.height(statusBarPadding + 64.dp))
                 }
 
                 // ── M3 Expressive Active Day Hero Header ───────────

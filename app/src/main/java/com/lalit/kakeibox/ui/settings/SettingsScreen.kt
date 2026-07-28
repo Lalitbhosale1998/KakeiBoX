@@ -10,6 +10,10 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -178,7 +182,6 @@ import com.personal.kakeibox.data.preferences.BackdropPattern
 import com.personal.kakeibox.data.preferences.CardShapePreference
 import com.personal.kakeibox.data.preferences.TouchSynesthesia
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.foundation.BorderStroke
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
 import com.personal.kakeibox.ui.components.ExpressiveTab
@@ -302,42 +305,127 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
-                .padding(top = statusBarsPadding + 16.dp)
+                .padding(top = statusBarsPadding + 76.dp)
                 .padding(bottom = 120.dp), // Space for floating bar
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val context = LocalContext.current
 
-            // Search Bar
-            ExpressiveOutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { 
-                    Text(
-                        "Search settings...",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    ) 
-                },
-                leadingIcon = { 
-                    Icon(
-                        Icons.Filled.Search, 
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    ) 
-                },
-                trailingIcon = if (searchQuery.isNotEmpty()) {
-                    {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Clear")
+            // 🌟 Glassmorphic Floating Search Capsule
+            val bentoIdleColor = androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
+            var isSearchFocused by remember { mutableStateOf(false) }
+            val searchFocusScale by animateFloatAsState(
+                targetValue = if (isSearchFocused) 1.02f else 1f,
+                animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessMedium),
+                label = "search_focus_scale"
+            )
+            val searchBorderColor by animateColorAsState(
+                targetValue = if (isSearchFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f),
+                label = "search_border_color"
+            )
+            val searchClearRotation by animateFloatAsState(
+                targetValue = if (searchQuery.isNotEmpty()) 90f else 0f,
+                animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+                label = "search_clear_rot"
+            )
+
+            Surface(
+                shape = RoundedCornerShape(percent = 50),
+                color = bentoIdleColor,
+                tonalElevation = 4.dp,
+                shadowElevation = 6.dp,
+                border = BorderStroke(1.dp, searchBorderColor),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .graphicsLayer {
+                        scaleX = searchFocusScale
+                        scaleY = searchFocusScale
+                    }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    BasicTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { isSearchFocused = it.isFocused },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        singleLine = true,
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        decorationBox = { innerTextField ->
+                            Box(contentAlignment = Alignment.CenterStart) {
+                                if (searchQuery.isEmpty()) {
+                                    Text(
+                                        text = "Search settings...",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
+                    )
+
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(
+                            onClick = { searchQuery = "" },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .graphicsLayer { rotationZ = searchClearRotation }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Clear",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            modifier = Modifier.padding(start = 4.dp)
+                        ) {
+                            Text(
+                                text = "⌘ K",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
                         }
                     }
-                } else null,
-                shape = MaterialTheme.shapes.large,
-                singleLine = true,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-            )
+                }
+            }
 
             fun shouldShow(title: String, description: String = "", keywords: List<String> = emptyList()): Boolean {
                 if (searchQuery.isBlank()) return true
