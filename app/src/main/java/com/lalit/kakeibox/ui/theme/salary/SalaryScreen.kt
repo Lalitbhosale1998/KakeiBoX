@@ -468,7 +468,7 @@ fun SalaryScreen(
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
-            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.primaryContainer
             TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
         },
         label = "top_app_bar_container_color"

@@ -247,8 +247,15 @@ fun Modifier.expressiveBackground(
             )
             drawRect(brush = gradientBrush)
         } else {
-            // Light mode: solid primaryContainer color
-            drawRect(color = containerColor)
+            val gradientBrush = androidx.compose.ui.graphics.Brush.radialGradient(
+                colors = listOf(
+                    primaryColor.copy(alpha = 0.25f),
+                    containerColor
+                ),
+                center = Offset(size.width * 0.75f, size.height * 0.15f),
+                radius = size.width * 1.3f
+            )
+            drawRect(brush = gradientBrush)
         }
     } else {
         // Standard style: solid surface color

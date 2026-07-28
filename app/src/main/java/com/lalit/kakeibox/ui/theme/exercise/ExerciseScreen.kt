@@ -122,7 +122,7 @@ fun ExerciseScreen(
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
-            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.primaryContainer
             TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
         },
         label = "top_app_bar_container_color"
@@ -746,7 +746,7 @@ fun ExpressiveExerciseHeroHeader(
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -1052,8 +1052,8 @@ fun WorkoutItemCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp,
-            pressedElevation = 0.dp
+            defaultElevation = 6.dp,
+            pressedElevation = 2.dp
         ),
         border = itemBorder,
         onClick = {

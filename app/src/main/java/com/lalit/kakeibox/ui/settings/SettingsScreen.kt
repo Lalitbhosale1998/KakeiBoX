@@ -175,6 +175,8 @@ import com.personal.kakeibox.ui.theme.terminalScanlines
 import com.personal.kakeibox.ui.theme.NunitoFontFamily
 import com.personal.kakeibox.ui.theme.OutfitFontFamily
 import com.personal.kakeibox.ui.theme.PlayfairFontFamily
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.ui.theme.LocalGlowIntensity
 import com.personal.kakeibox.ui.theme.glow
 import com.personal.kakeibox.data.preferences.GlowIntensity
@@ -269,7 +271,7 @@ fun SettingsScreen(
 
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
-            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.primaryContainer
             TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
         },
         label = "top_app_bar_container_color"
@@ -295,8 +297,19 @@ fun SettingsScreen(
 
     val statusBarsPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+
     Scaffold(
-        containerColor = topAppBarContainerColor,
+        modifier = Modifier
+            .fillMaxSize()
+            .expressiveBackground(
+                isDark = isSystemInDarkTheme(),
+                isPrimaryContainer = isPrimaryContainer,
+                primaryColor = MaterialTheme.colorScheme.primary,
+                containerColor = topAppBarContainerColor,
+                pattern = themeSettings.backdropPattern
+            ),
+        containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {}
     ) { innerPadding ->
