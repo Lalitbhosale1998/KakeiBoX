@@ -123,7 +123,7 @@ fun ExerciseScreen(
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
-            TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
+            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
         },
         label = "top_app_bar_container_color"
     )
@@ -204,7 +204,7 @@ fun ExerciseScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
+                    Spacer(modifier = Modifier.height(statusBarPadding + 16.dp))
                 }
 
                 // ── M3 Expressive Active Day Hero Header ───────────
@@ -280,16 +280,6 @@ fun ExerciseScreen(
             }
         }
 
-        ExpressiveCollapsingHeader(
-            title = "Workout",
-            subtitle = "Tracker",
-            scrollOffset = scrollOffset,
-            maxOffset = maxOffsetPx,
-            containerColor = topAppBarContainerColor,
-            onContainerColor = onContainerColor,
-            primaryTextAccent = primaryTextAccent,
-            actions = {}
-        )
     }
 
     if (uiState.showAddEditSheet) {

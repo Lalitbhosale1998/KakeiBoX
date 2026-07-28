@@ -283,11 +283,54 @@ fun SharedTransitionScope.SpendScreen(
                 contentPadding = PaddingValues(
                     start = 16.dp, 
                     end = 16.dp, 
-                    top = innerPadding.calculateTopPadding() + 150.dp + statusBarPadding + 8.dp,
+                    top = innerPadding.calculateTopPadding() + statusBarPadding + 16.dp,
                     bottom = innerPadding.calculateBottomPadding() + 80.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        themeViewModel.toggleBirthdaySheet(true) 
+                    }) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.Cake, 
+                                contentDescription = "Birthdays Hub", 
+                                modifier = Modifier.padding(8.dp),
+                                tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    IconButton(onClick = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.toggleHistorySheet() 
+                    }) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.History, 
+                                contentDescription = "History", 
+                                modifier = Modifier.padding(8.dp),
+                                tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+            }
+
             // ── Bento Box Hero Grid ──────────────────────
             item {
                 AnimatedVisibility(
@@ -474,51 +517,6 @@ fun SharedTransitionScope.SpendScreen(
         }
     }
 
-    ExpressiveCollapsingHeader(
-            title = "Monthly",
-            subtitle = "Spending",
-            scrollOffset = scrollOffset,
-            maxOffset = maxOffsetPx,
-            containerColor = topAppBarContainerColor,
-            onContainerColor = onContainerColor,
-            primaryTextAccent = primaryTextAccent,
-            actions = {
-                IconButton(onClick = { 
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    themeViewModel.toggleBirthdaySheet(true) 
-                }) {
-                    Surface(
-                        shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Cake, 
-                            contentDescription = "Birthdays Hub", 
-                            modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-                IconButton(onClick = { 
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    viewModel.toggleHistorySheet() 
-                }) {
-                    Surface(
-                        shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.History, 
-                            contentDescription = "History", 
-                            modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-            }
-        )
     }
 
     // Sheets & Dialogs

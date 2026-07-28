@@ -197,8 +197,8 @@ fun KakeiboXApp(
 
     val actionColorStart by animateColorAsState(
         targetValue = when (currentRoute) {
-            NavRoutes.Salary.route -> Color(0xFFFFD700)
-            NavRoutes.Exercise.route -> Color(0xFF10B981)
+            NavRoutes.Salary.route -> Color(0xFF8B5CF6)
+            NavRoutes.Exercise.route -> Color(0xFF8B5CF6)
             NavRoutes.Spend.route -> Color(0xFF0D9488)
 
             "commute" -> Color(0xFF0284C7)
@@ -209,8 +209,8 @@ fun KakeiboXApp(
 
     val actionColorEnd by animateColorAsState(
         targetValue = when (currentRoute) {
-            NavRoutes.Salary.route -> Color(0xFFF59E0B)
-            NavRoutes.Exercise.route -> Color(0xFF059669)
+            NavRoutes.Salary.route -> Color(0xFF7C3AED)
+            NavRoutes.Exercise.route -> Color(0xFF7C3AED)
             NavRoutes.Spend.route -> Color(0xFF0F766E)
 
             "commute" -> Color(0xFF0369A1)
@@ -220,10 +220,7 @@ fun KakeiboXApp(
     )
 
     val actionIconColor by animateColorAsState(
-        targetValue = when (currentRoute) {
-            NavRoutes.Salary.route -> Color(0xFF1E293B)
-            else -> Color.White
-        },
+        targetValue = Color.White,
         label = "action_icon_color"
     )
 
@@ -336,8 +333,8 @@ fun KakeiboXApp(
             // 1. 🌈 Dynamic Tab-Specific Ambient Under-Glow Color
             val activeTabGlowColor by animateColorAsState(
                 targetValue = when (bottomNavItems.getOrNull(selectedIndex)?.route) {
-                    NavRoutes.Salary.route -> Color(0xFFFFD700)   // Gold
-                    NavRoutes.Exercise.route -> Color(0xFF10B981) // Mint
+                    NavRoutes.Salary.route -> Color(0xFF8B5CF6)   // Violet matching Settings
+                    NavRoutes.Exercise.route -> Color(0xFF8B5CF6) // Violet matching Settings
                     NavRoutes.Settings.route -> Color(0xFF8B5CF6) // Violet
                     else -> MaterialTheme.colorScheme.primary
                 },
@@ -520,8 +517,8 @@ fun KakeiboXApp(
                                 val contentColor by animateColorAsState(
                                     targetValue = if (isSelected) {
                                         when (item.route) {
-                                            NavRoutes.Salary.route -> Color(0xFFFFD700)
-                                            NavRoutes.Exercise.route -> Color(0xFF10B981)
+                                            NavRoutes.Salary.route -> Color(0xFF8B5CF6)
+                                            NavRoutes.Exercise.route -> Color(0xFF8B5CF6)
                                             NavRoutes.Settings.route -> Color(0xFF8B5CF6)
                                             else -> MaterialTheme.colorScheme.onSurface
                                         }

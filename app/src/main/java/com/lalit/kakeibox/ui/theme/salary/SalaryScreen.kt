@@ -469,7 +469,7 @@ fun SalaryScreen(
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
             TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.background
-            TopAppBarBackground.PRIMARY_CONTAINER -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
+            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
         },
         label = "top_app_bar_container_color"
     )
@@ -576,9 +576,75 @@ fun SalaryScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // Header spacer to place list items under collapsible header
+                // Header top spacing
                 item {
-                    Spacer(modifier = Modifier.height(150.dp + statusBarPadding))
+                    Spacer(modifier = Modifier.height(statusBarPadding + 16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                themeViewModel.toggleBirthdaySheet(true) 
+                            }
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)),
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Cake,
+                                    contentDescription = "Birthdays Hub",
+                                    modifier = Modifier.padding(8.dp),
+                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.toggleHistorySheet() 
+                            }
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.History,
+                                    contentDescription = "History",
+                                    modifier = Modifier.padding(8.dp),
+                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.addDummyData() 
+                            }
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Upload,
+                                    contentDescription = "Add Dummy Data",
+                                    modifier = Modifier.padding(8.dp),
+                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
                 }
 
                 // ── Hero Section (M3 Expressive Carousel Peek) ──────────────
@@ -781,80 +847,6 @@ fun SalaryScreen(
             }
         }
 
-        ExpressiveCollapsingHeader(
-            title = "Monthly",
-            subtitle = "Salary",
-            scrollOffset = scrollOffset,
-            maxOffset = maxOffsetPx,
-            containerColor = topAppBarContainerColor,
-            onContainerColor = onContainerColor,
-            primaryTextAccent = primaryTextAccent,
-            actions = {
-                // Birthday Hub - Tertiary Expressive Accent
-                IconButton(
-                    onClick = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        themeViewModel.toggleBirthdaySheet(true) 
-                    }
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)),
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Cake,
-                            contentDescription = "Birthdays Hub",
-                            modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.tertiary
-                        )
-                    }
-                }
-                // History - Secondary Expressive Accent
-                IconButton(
-                    onClick = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.toggleHistorySheet() 
-                    }
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.History,
-                            contentDescription = "History",
-                            modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                }
-                // Upload - Primary Expressive Accent
-                IconButton(
-                    onClick = { 
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.addDummyData() 
-                    }
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Upload,
-                            contentDescription = "Add Dummy Data",
-                            modifier = Modifier.padding(8.dp),
-                            tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-        )
     }
     }
 

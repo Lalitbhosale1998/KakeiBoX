@@ -31,6 +31,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -288,33 +290,19 @@ fun SettingsScreen(
         label = "settings_top_bar_scrolled_color"
     )
 
+    val statusBarsPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = topAppBarContainerColor,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.settings_title),
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Black
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = topAppBarContainerColor,
-                    scrolledContainerColor = scrolledContainerColor
-                ),
-                scrollBehavior = scrollBehavior
-            )
-        }
+        topBar = {}
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
                 .padding(horizontal = 20.dp)
+                .padding(top = statusBarsPadding + 16.dp)
                 .padding(bottom = 120.dp), // Space for floating bar
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

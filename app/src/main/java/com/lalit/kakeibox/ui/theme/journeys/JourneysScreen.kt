@@ -138,21 +138,11 @@ fun JourneysScreen(
         val sharedTransitionScope = this
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             Column(modifier = Modifier.fillMaxSize()) {
-                ExpressiveCollapsingHeader(
-                    title = "My",
-                    subtitle = "Journeys",
-                    scrollOffset = scrollOffset,
-                    maxOffset = maxOffsetPx,
-                    containerColor = topAppBarContainerColor,
-                    onContainerColor = onContainerColor,
-                    primaryTextAccent = primaryTextAccent,
-                    actions = {}
-                )
                 // Top Tab Selector (Expressive ButtonGroup style)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 16.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     JourneysTabButton(
