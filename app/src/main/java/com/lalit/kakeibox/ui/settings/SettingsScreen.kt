@@ -95,6 +95,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
@@ -468,228 +470,248 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
 
-                // Render content depending on activeTab
-                when (activeTab) {
-                    "visual" -> {
-                        
+                // Render content depending on activeTab with spring motion choreography
+                AnimatedContent(
+                    targetState = activeTab,
+                    transitionSpec = {
+                        (slideInVertically(
+                            animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = 0.75f),
+                            initialOffsetY = { height -> height / 5 }
+                        ) + fadeIn(animationSpec = tween(220)))
+                        .togetherWith(
+                            slideOutVertically(
+                                animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = 0.75f),
+                                targetOffsetY = { height -> -height / 5 }
+                            ) + fadeOut(animationSpec = tween(150))
+                        )
+                    },
+                    label = "settings_tab_content_anim"
+                ) { targetTab ->
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        when (targetTab) {
+                            "visual" -> {
+                                // Theme & Color Group
+                                SettingsGroup(title = "Theme & Color Settings") {
 
-                        // Theme & Color Group
-                        SettingsGroup(title = "Theme & Color Settings") {
+                                    SettingsSelectorRow(
+                                        title = "App Dark Theme",
+                                        description = "Light, dark, or system-adaptive dark mode preference.",
+                                        icon = Icons.Outlined.DarkMode,
+                                        selectedValueLabel = themeSettings.darkThemePreference.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        options = listOf(DarkThemePreference.SYSTEM to "System", DarkThemePreference.LIGHT to "Light", DarkThemePreference.DARK to "Dark"),
+                                        onOptionSelected = { viewModel.setDarkThemePreference(it) },
+                                        accentColor = Color(0xFF3B82F6)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsToggleRow(
+                                        title = "Dynamic Color Tint",
+                                        description = "Extract accent colors from device wallpaper (M3 mode only).",
+                                        icon = Icons.Outlined.Palette,
+                                        checked = themeSettings.useDynamicColor,
+                                        onCheckedChange = { viewModel.setUseDynamicColor(it) },
+                                        accentColor = Color(0xFFD946EF)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsSelectorRow(
+                                        title = "Theme Controls Intensity",
+                                        description = "Control tone saturation and contrast (Neutral, Soft, Bright, Bold).",
+                                        icon = Icons.Outlined.Palette,
+                                        selectedValueLabel = themeSettings.intensityPreset.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        options = listOf(
+                                            ColorIntensityPreset.NEUTRAL to "Neutral",
+                                            ColorIntensityPreset.SOFT to "Soft",
+                                            ColorIntensityPreset.BRIGHT to "Bright",
+                                            ColorIntensityPreset.BOLD to "Bold"
+                                        ),
+                                        onOptionSelected = { viewModel.setIntensityPreset(it) },
+                                        accentColor = Color(0xFF10B981)
+                                    )
+                                }
 
-                            SettingsSelectorRow(
-                                title = "App Dark Theme",
-                                description = "Light, dark, or system-adaptive dark mode preference.",
-                                icon = Icons.Outlined.DarkMode,
-                                selectedValueLabel = themeSettings.darkThemePreference.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(DarkThemePreference.SYSTEM to "System", DarkThemePreference.LIGHT to "Light", DarkThemePreference.DARK to "Dark"),
-                                onOptionSelected = { viewModel.setDarkThemePreference(it) },
-                                accentColor = Color(0xFF3B82F6)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsToggleRow(
-                                title = "Dynamic Color Tint",
-                                description = "Extract accent colors from device wallpaper (M3 mode only).",
-                                icon = Icons.Outlined.Palette,
-                                checked = themeSettings.useDynamicColor,
-                                onCheckedChange = { viewModel.setUseDynamicColor(it) },
-                                accentColor = Color(0xFFD946EF)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Theme Controls Intensity",
-                                description = "Control tone saturation and contrast (Neutral, Soft, Bright, Bold).",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.intensityPreset.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(
-                                    ColorIntensityPreset.NEUTRAL to "Neutral",
-                                    ColorIntensityPreset.SOFT to "Soft",
-                                    ColorIntensityPreset.BRIGHT to "Bright",
-                                    ColorIntensityPreset.BOLD to "Bold"
-                                ),
-                                onOptionSelected = { viewModel.setIntensityPreset(it) },
-                                accentColor = Color(0xFF10B981)
-                            )
-                        }
+                                // Typography & Layout Group
+                                SettingsGroup(title = "Typography & Layout Settings") {
+                                    SettingsSelectorRow(
+                                        title = "App Font Family",
+                                        description = "Choose global typeface applied to all text components.",
+                                        icon = Icons.Outlined.Code,
+                                        selectedValueLabel = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        options = listOf(
+                                            AppFont.NUNITO to "Nunito",
+                                            AppFont.MONOSPACE to "Monospace",
+                                            AppFont.SYSTEM_SANS to "System Sans",
+                                            AppFont.OUTFIT to "Outfit",
+                                            AppFont.PLAYFAIR to "Playfair"
+                                        ),
+                                        onOptionSelected = { viewModel.setAppFont(it) },
+                                        accentColor = Color(0xFFF59E0B)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsSelectorRow(
+                                        title = "Background Style",
+                                        description = "Choose background style for screen canvas backdrop.",
+                                        icon = Icons.Outlined.Dock,
+                                        selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
+                                        options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
+                                         onOptionSelected = { viewModel.setTopAppBarBackground(it) },
+                                        accentColor = Color(0xFF0D9488)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsSelectorRow(
+                                        title = "Navbar Animation",
+                                        description = "Select animation style for the floating navigation bar.",
+                                        icon = Icons.Outlined.AutoMode,
+                                        selectedValueLabel = when (themeSettings.navAnimation) {
+                                            NavAnimationPreference.MORPHING -> "Morphing Inflate"
+                                            NavAnimationPreference.ELASTIC_JELLY -> "Elastic Jelly"
+                                            NavAnimationPreference.LIQUID_RIPPLE -> "Liquid Ripple"
+                                            NavAnimationPreference.ARCADE_3D -> "Elevated 3D"
+                                        },
+                                        options = listOf(
+                                            NavAnimationPreference.MORPHING to "Morphing Inflate",
+                                            NavAnimationPreference.ELASTIC_JELLY to "Elastic Jelly",
+                                            NavAnimationPreference.LIQUID_RIPPLE to "Liquid Ripple",
+                                            NavAnimationPreference.ARCADE_3D to "Elevated 3D"
+                                        ),
+                                         onOptionSelected = { viewModel.setNavAnimation(it) },
+                                        accentColor = Color(0xFFEC4899)
+                                    )
+                                }
 
-                        // Typography & Layout Group
-                        SettingsGroup(title = "Typography & Layout Settings") {
-                            SettingsSelectorRow(
-                                title = "App Font Family",
-                                description = "Choose global typeface applied to all text components.",
-                                icon = Icons.Outlined.Code,
-                                selectedValueLabel = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(
-                                    AppFont.NUNITO to "Nunito",
-                                    AppFont.MONOSPACE to "Monospace",
-                                    AppFont.SYSTEM_SANS to "System Sans",
-                                    AppFont.OUTFIT to "Outfit",
-                                    AppFont.PLAYFAIR to "Playfair"
-                                ),
-                                onOptionSelected = { viewModel.setAppFont(it) },
-                                accentColor = Color(0xFFF59E0B)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Background Style",
-                                description = "Choose background style for screen canvas backdrop.",
-                                icon = Icons.Outlined.Dock,
-                                selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
-                                 onOptionSelected = { viewModel.setTopAppBarBackground(it) },
-                                accentColor = Color(0xFF0D9488)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Navbar Animation",
-                                description = "Select animation style for the floating navigation bar.",
-                                icon = Icons.Outlined.AutoMode,
-                                selectedValueLabel = when (themeSettings.navAnimation) {
-                                    NavAnimationPreference.MORPHING -> "Morphing Inflate"
-                                    NavAnimationPreference.ELASTIC_JELLY -> "Elastic Jelly"
-                                    NavAnimationPreference.LIQUID_RIPPLE -> "Liquid Ripple"
-                                    NavAnimationPreference.ARCADE_3D -> "Elevated 3D"
-                                },
-                                options = listOf(
-                                    NavAnimationPreference.MORPHING to "Morphing Inflate",
-                                    NavAnimationPreference.ELASTIC_JELLY to "Elastic Jelly",
-                                    NavAnimationPreference.LIQUID_RIPPLE to "Liquid Ripple",
-                                    NavAnimationPreference.ARCADE_3D to "Elevated 3D"
-                                ),
-                                 onOptionSelected = { viewModel.setNavAnimation(it) },
-                                accentColor = Color(0xFFEC4899)
-                            )
-                        }
+                            }
+                            "preferences" -> {
+                                SettingsGroup(title = "Regional & Locale Options") {
+                                    SettingsSelectorRow(
+                                        title = "App Language",
+                                        description = "Select localized app string translation language.",
+                                        icon = Icons.Outlined.Language,
+                                        selectedValueLabel = themeSettings.appLanguage.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        options = listOf(AppLanguage.ENGLISH to "English", AppLanguage.JAPANESE to "Japanese"),
+                                        onOptionSelected = { viewModel.setAppLanguage(it) },
+                                        accentColor = Color(0xFF10B981)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsSelectorRow(
+                                        title = "Currency Symbol",
+                                        description = "Define standard monetary symbol applied to entries.",
+                                        icon = Icons.Outlined.Payments,
+                                        selectedValueLabel = themeSettings.currencySymbol,
+                                        options = listOf("₹" to "₹ (Rupee)", "¥" to "¥ (Yen)", "$" to "$ (Dollar)", "€" to "€ (Euro)"),
+                                        onOptionSelected = { viewModel.setCurrencySymbol(it) },
+                                        accentColor = Color(0xFF059669)
+                                    )
+                                }
 
-                    }
-                    "preferences" -> {
-                        SettingsGroup(title = "Regional & Locale Options") {
-                            SettingsSelectorRow(
-                                title = "App Language",
-                                description = "Select localized app string translation language.",
-                                icon = Icons.Outlined.Language,
-                                selectedValueLabel = themeSettings.appLanguage.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(AppLanguage.ENGLISH to "English", AppLanguage.JAPANESE to "Japanese"),
-                                onOptionSelected = { viewModel.setAppLanguage(it) },
-                                accentColor = Color(0xFF10B981)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Currency Symbol",
-                                description = "Define standard monetary symbol applied to entries.",
-                                icon = Icons.Outlined.Payments,
-                                selectedValueLabel = themeSettings.currencySymbol,
-                                options = listOf("₹" to "₹ (Rupee)", "¥" to "¥ (Yen)", "$" to "$ (Dollar)", "€" to "€ (Euro)"),
-                                onOptionSelected = { viewModel.setCurrencySymbol(it) },
-                                accentColor = Color(0xFF059669)
-                            )
-                        }
+                                SettingsGroup(title = "App Customization") {
+                                    SettingsActionRow(
+                                        title = "Reorder Navigation Tabs",
+                                        description = "Manage and drag routes inside bottom layout navbar.",
+                                        icon = Icons.Outlined.Reorder,
+                                        actionLabel = "Manage",
+                                        onClick = { showTabOrderSheet = true },
+                                        accentColor = Color(0xFF06B6D4)
+                                    )
+                                }
+                            }
+                            "security" -> {
+                                SettingsGroup(title = "Privacy & App Lock") {
+                                    SettingsToggleRow(
+                                        title = "Privacy Mode Protection",
+                                        description = "Mask sensitive financial totals with dots on dashboard.",
+                                        icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                        checked = themeSettings.privacyModeEnabled,
+                                        onCheckedChange = { viewModel.setPrivacyModeEnabled(it) },
+                                        accentColor = Color(0xFF64748B)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsToggleRow(
+                                        title = "Biometric Lock Guard",
+                                        description = "Protect account information with fingerprint lock.",
+                                        icon = Icons.Outlined.Fingerprint,
+                                        checked = themeSettings.biometricEnabled,
+                                        onCheckedChange = { viewModel.setBiometricEnabled(it) },
+                                        accentColor = Color(0xFFE11D48)
+                                    )
+                                }
 
-                        SettingsGroup(title = "App Customization") {
-                            SettingsActionRow(
-                                title = "Reorder Navigation Tabs",
-                                description = "Manage and drag routes inside bottom layout navbar.",
-                                icon = Icons.Outlined.Reorder,
-                                actionLabel = "Manage",
-                                onClick = { showTabOrderSheet = true },
-                                accentColor = Color(0xFF06B6D4)
-                            )
-                        }
-                    }
-                    "security" -> {
-                        SettingsGroup(title = "Privacy & App Lock") {
-                            SettingsToggleRow(
-                                title = "Privacy Mode Protection",
-                                description = "Mask sensitive financial totals with dots on dashboard.",
-                                icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                checked = themeSettings.privacyModeEnabled,
-                                onCheckedChange = { viewModel.setPrivacyModeEnabled(it) },
-                                accentColor = Color(0xFF64748B)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsToggleRow(
-                                title = "Biometric Lock Guard",
-                                description = "Protect account information with fingerprint lock.",
-                                icon = Icons.Outlined.Fingerprint,
-                                checked = themeSettings.biometricEnabled,
-                                onCheckedChange = { viewModel.setBiometricEnabled(it) },
-                                accentColor = Color(0xFFE11D48)
-                            )
-                        }
-
-                        SettingsGroup(title = "Data Management") {
-                            SettingsActionRow(
-                                title = "Backup Database",
-                                description = "Export a copy of your local database (.db) file to device storage.",
-                                icon = Icons.Outlined.CloudUpload,
-                                actionLabel = "Backup",
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    backupLauncher.launch("kakeibox_backup.db")
-                                },
-                                accentColor = Color(0xFF4F46E5)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsActionRow(
-                                title = "Restore Database",
-                                description = "Import a previously backed up (.db) file to restore your data.",
-                                icon = Icons.Outlined.FileDownload,
-                                actionLabel = "Restore",
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    restoreLauncher.launch(arrayOf("*/*"))
-                                },
-                                accentColor = Color(0xFF7C3AED)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsActionRow(
-                                title = "Export Financial History",
-                                description = "Download history records, wage totals, and travels as CSV file.",
-                                icon = Icons.Outlined.FileDownload,
-                                actionLabel = "Export",
-                                onClick = {
-                                    viewModel.exportToCsv { csvData ->
-                                        if (csvData != null) {
-                                            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                                type = "text/csv"
-                                                putExtra(android.content.Intent.EXTRA_SUBJECT, "KakeiboX Export")
-                                                putExtra(android.content.Intent.EXTRA_TEXT, csvData)
+                                SettingsGroup(title = "Data Management") {
+                                    SettingsActionRow(
+                                        title = "Backup Database",
+                                        description = "Export a copy of your local database (.db) file to device storage.",
+                                        icon = Icons.Outlined.CloudUpload,
+                                        actionLabel = "Backup",
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            backupLauncher.launch("kakeibox_backup.db")
+                                        },
+                                        accentColor = Color(0xFF4F46E5)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsActionRow(
+                                        title = "Restore Database",
+                                        description = "Import a previously backed up (.db) file to restore your data.",
+                                        icon = Icons.Outlined.FileDownload,
+                                        actionLabel = "Restore",
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            restoreLauncher.launch(arrayOf("*/*"))
+                                        },
+                                        accentColor = Color(0xFF7C3AED)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsActionRow(
+                                        title = "Export Financial History",
+                                        description = "Download history records, wage totals, and travels as CSV file.",
+                                        icon = Icons.Outlined.FileDownload,
+                                        actionLabel = "Export",
+                                        onClick = {
+                                            viewModel.exportToCsv { csvData ->
+                                                if (csvData != null) {
+                                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                                        type = "text/csv"
+                                                        putExtra(android.content.Intent.EXTRA_SUBJECT, "KakeiboX Export")
+                                                        putExtra(android.content.Intent.EXTRA_TEXT, csvData)
+                                                    }
+                                                    context.startActivity(android.content.Intent.createChooser(intent, "Export Data"))
+                                                }
                                             }
-                                            context.startActivity(android.content.Intent.createChooser(intent, "Export Data"))
-                                        }
-                                    }
-                                },
-                                accentColor = Color(0xFF10B981)
-                            )
-                        }
-                    }
-                    "about" -> {
-                        SettingsGroup(title = "Information") {
-                            SettingsActionRow(
-                                title = stringResource(R.string.about_version),
-                                description = stringResource(R.string.about_version_desc),
-                                icon = Icons.Outlined.Info,
-                                onClick = {},
-                                accentColor = Color(0xFF475569)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsActionRow(
-                                title = stringResource(R.string.about_developer),
-                                description = stringResource(R.string.about_developer_desc),
-                                icon = Icons.Outlined.Code,
-                                onClick = {},
-                                accentColor = Color(0xFFF59E0B)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsActionRow(
-                                title = stringResource(R.string.about_github),
-                                description = stringResource(R.string.about_github_desc),
-                                icon = Icons.Outlined.Public,
-                                onClick = {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/Lalitbhosale1998/KakeiBoX"))
-                                    context.startActivity(intent)
-                                },
-                                accentColor = Color(0xFF0284C7)
-                            )
+                                        },
+                                        accentColor = Color(0xFF10B981)
+                                    )
+                                }
+                            }
+                            "about" -> {
+                                SettingsGroup(title = "Information") {
+                                    SettingsActionRow(
+                                        title = stringResource(R.string.about_version),
+                                        description = stringResource(R.string.about_version_desc),
+                                        icon = Icons.Outlined.Info,
+                                        onClick = {},
+                                        accentColor = Color(0xFF475569)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsActionRow(
+                                        title = stringResource(R.string.about_developer),
+                                        description = stringResource(R.string.about_developer_desc),
+                                        icon = Icons.Outlined.Code,
+                                        onClick = {},
+                                        accentColor = Color(0xFFF59E0B)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsActionRow(
+                                        title = stringResource(R.string.about_github),
+                                        description = stringResource(R.string.about_github_desc),
+                                        icon = Icons.Outlined.Public,
+                                        onClick = {
+                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/Lalitbhosale1998/KakeiBoX"))
+                                            context.startActivity(intent)
+                                        },
+                                        accentColor = Color(0xFF0284C7)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -1982,6 +2004,18 @@ private fun BentoNavTile(
         label = "bento_tile_icon_${tab.key}"
     )
 
+    val iconScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.25f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium),
+        label = "bento_tile_icon_scale_${tab.key}"
+    )
+
+    val iconRotation by animateFloatAsState(
+        targetValue = if (isSelected) 360f else 0f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
+        label = "bento_tile_icon_rot_${tab.key}"
+    )
+
     Surface(
         modifier = modifier
             .graphicsLayer {
@@ -2013,7 +2047,13 @@ private fun BentoNavTile(
                     imageVector = tab.icon,
                     contentDescription = tab.label,
                     tint = iconColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier
+                        .size(20.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale
+                            scaleY = iconScale
+                            rotationZ = iconRotation
+                        }
                 )
                 Text(
                     text = tab.label,
