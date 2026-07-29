@@ -509,64 +509,83 @@ fun SalaryScreen(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(
-                            onClick = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                themeViewModel.toggleBirthdaySheet(true) 
-                            }
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isPrimaryContainer) {
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.65f)
+                            },
+                            border = BorderStroke(
+                                1.dp,
+                                if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                                else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            ),
+                            shadowElevation = 4.dp
                         ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)),
-                                modifier = Modifier.size(40.dp)
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Icon(
-                                    Icons.Outlined.Cake,
-                                    contentDescription = "Birthdays Hub",
-                                    modifier = Modifier.padding(8.dp),
-                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.tertiary
+                                IconButton(
+                                    onClick = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        themeViewModel.toggleBirthdaySheet(true) 
+                                    },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Cake,
+                                        contentDescription = "Birthdays Hub",
+                                        modifier = Modifier.size(18.dp),
+                                        tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .width(1.dp)
+                                        .height(16.dp)
+                                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                                 )
-                            }
-                        }
-                        IconButton(
-                            onClick = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.toggleHistorySheet() 
-                            }
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.History,
-                                    contentDescription = "History",
-                                    modifier = Modifier.padding(8.dp),
-                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.secondary
+
+                                IconButton(
+                                    onClick = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.toggleHistorySheet() 
+                                    },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.History,
+                                        contentDescription = "History",
+                                        modifier = Modifier.size(18.dp),
+                                        tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .width(1.dp)
+                                        .height(16.dp)
+                                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                                 )
-                            }
-                        }
-                        IconButton(
-                            onClick = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.addDummyData() 
-                            }
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isPrimaryContainer) MaterialTheme.colorScheme.surface.copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Upload,
-                                    contentDescription = "Add Dummy Data",
-                                    modifier = Modifier.padding(8.dp),
-                                    tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.primary
-                                )
+
+                                IconButton(
+                                    onClick = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.addDummyData() 
+                                    },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Upload,
+                                        contentDescription = "Add Dummy Data",
+                                        modifier = Modifier.size(18.dp),
+                                        tint = if (isPrimaryContainer) onContainerColor else MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }
