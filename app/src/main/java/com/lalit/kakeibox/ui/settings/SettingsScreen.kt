@@ -172,6 +172,9 @@ import com.personal.kakeibox.data.preferences.AppFont
 import com.personal.kakeibox.data.preferences.NavAnimationPreference
 import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.terminalScanlines
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import com.personal.kakeibox.ui.theme.ComfortaaFontFamily
 import com.personal.kakeibox.ui.theme.NunitoFontFamily
 import com.personal.kakeibox.ui.theme.OutfitFontFamily
 import com.personal.kakeibox.ui.theme.PlayfairFontFamily
@@ -1874,163 +1877,169 @@ fun SettingsTabRow(
 
     val tabs = remember {
         listOf(
-            TabInfo("visual", "Visuals", Icons.Outlined.Palette, Color(0xFF8B5CF6)),      // Violet Blossom
-            TabInfo("preferences", "Preferences", Icons.Outlined.Settings, Color(0xFF10B981)), // Emerald Hexagon
-            TabInfo("security", "Security", Icons.Outlined.Fingerprint, Color(0xFFF43F5E)),    // Rose Shield
-            TabInfo("about", "About", Icons.Outlined.Info, Color(0xFF3B82F6))             // Blue Arch
+            BentoTabInfo("visual", "Visuals", "Themes & Styles", Icons.Outlined.Palette),
+            BentoTabInfo("preferences", "Preferences", "Currency & Mode", Icons.Outlined.Settings),
+            BentoTabInfo("security", "Security", "Biometrics & Lock", Icons.Outlined.Fingerprint),
+            BentoTabInfo("about", "About", "KakeiboX v1.0", Icons.Outlined.Info)
         )
     }
 
-    val selectedIndex = tabs.indexOfFirst { it.key == selectedTab }.coerceAtLeast(0)
-
-    // ── Polygon Definitions for Shape Morphing ──
-    val unselectedPolygon = remember {
-        RoundedPolygon(numVertices = 4, rounding = CornerRounding(radius = 0.45f, smoothing = 1f))
-    }
-    val blossomStar = remember {
-        RoundedPolygon(numVertices = 4, rounding = CornerRounding(radius = 0.2f, smoothing = 0.85f))
-    }
-    val hexagonPolygon = remember {
-        RoundedPolygon(numVertices = 6, rounding = CornerRounding(radius = 0.45f, smoothing = 1f))
-    }
-    val shieldPolygon = remember {
-        RoundedPolygon(numVertices = 4, rounding = CornerRounding(radius = 0.65f, smoothing = 0.85f))
-    }
-    val archPolygon = remember {
-        RoundedPolygon(numVertices = 8, rounding = CornerRounding(radius = 0.85f, smoothing = 1f))
-    }
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(84.dp),
-        shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        shadowElevation = 8.dp,
-        tonalElevation = 4.dp
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        // Row 1: Visuals & Preferences
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .selectableGroup()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            tabs.forEachIndexed { index, tab ->
-                val isSelected = selectedIndex == index
+            BentoNavTile(
+                tab = tabs[0],
+                isSelected = selectedTab == tabs[0].key,
+                onClick = { onTabSelected(tabs[0].key) },
+                modifier = Modifier.weight(1f)
+            )
+            BentoNavTile(
+                tab = tabs[1],
+                isSelected = selectedTab == tabs[1].key,
+                onClick = { onTabSelected(tabs[1].key) },
+                modifier = Modifier.weight(1f)
+            )
+        }
 
-                // Morphing progress for shape transformation
-                val morphProgress by animateFloatAsState(
-                    targetValue = if (isSelected) 1f else 0f,
-                    animationSpec = spring(
-                        dampingRatio = 0.6f,
-                        stiffness = Spring.StiffnessMedium
-                    ),
-                    label = "tab_shape_morph_${tab.key}"
-                )
-
-                val activePolygon = remember(tab.key) {
-                    when (tab.key) {
-                        "visual" -> blossomStar
-                        "preferences" -> hexagonPolygon
-                        "security" -> shieldPolygon
-                        else -> archPolygon
-                    }
-                }
-
-                val morph = remember(tab.key) {
-                    Morph(unselectedPolygon, activePolygon)
-                }
-
-                val tabShape = SettingsTabPolygonShape(morph, morphProgress)
-
-                val tabBgColor by animateColorAsState(
-                    targetValue = if (isSelected) tab.color else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                    animationSpec = spring(stiffness = Spring.StiffnessLow),
-                    label = "tab_bg_${tab.key}"
-                )
-
-                val contentColor by animateColorAsState(
-                    targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                    label = "tab_content_${tab.key}"
-                )
-
-                val iconScale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.2f else 1f,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                    label = "tab_icon_scale_${tab.key}"
-                )
-
-                val iconRotation by animateFloatAsState(
-                    targetValue = when {
-                        isSelected && tab.key == "visual" -> 15f
-                        isSelected && tab.key == "preferences" -> 360f
-                        else -> 0f
-                    },
-                    animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
-                    label = "tab_icon_rot_${tab.key}"
-                )
-
-                Box(
-                    modifier = Modifier
-                        .weight(if (isSelected) 1.4f else 1f)
-                        .fillMaxHeight()
-                        .shadow(elevation = if (isSelected) 8.dp else 0.dp, shape = tabShape)
-                        .clip(tabShape)
-                        .background(tabBgColor)
-                        .selectable(
-                            selected = isSelected,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onTabSelected(tab.key)
-                            },
-                            role = Role.Tab
-                        )
-                        .padding(horizontal = 4.dp, vertical = 6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = tab.icon,
-                            contentDescription = tab.label,
-                            tint = contentColor,
-                            modifier = Modifier
-                                .size(22.dp)
-                                .graphicsLayer {
-                                    scaleX = iconScale
-                                    scaleY = iconScale
-                                    rotationZ = iconRotation
-                                }
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = tab.label,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
-                                fontSize = 11.sp
-                            ),
-                            color = contentColor,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
+        // Row 2: Security & About
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            BentoNavTile(
+                tab = tabs[2],
+                isSelected = selectedTab == tabs[2].key,
+                onClick = { onTabSelected(tabs[2].key) },
+                modifier = Modifier.weight(1f)
+            )
+            BentoNavTile(
+                tab = tabs[3],
+                isSelected = selectedTab == tabs[3].key,
+                onClick = { onTabSelected(tabs[3].key) },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
 
-private data class TabInfo(
+@Composable
+private fun BentoNavTile(
+    tab: BentoTabInfo,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptic = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else if (isSelected) 1.02f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 400f),
+        label = "bento_tile_scale_${tab.key}"
+    )
+
+    val containerColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surface
+        },
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "bento_tile_color_${tab.key}"
+    )
+
+    val borderColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+        },
+        label = "bento_tile_border_${tab.key}"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+        label = "bento_tile_content_${tab.key}"
+    )
+
+    val iconColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+        },
+        label = "bento_tile_icon_${tab.key}"
+    )
+
+    Surface(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick()
+            },
+        shape = RoundedCornerShape(22.dp),
+        color = containerColor,
+        border = BorderStroke(if (isSelected) 1.5.dp else 1.dp, borderColor),
+        shadowElevation = if (isSelected) 6.dp else 2.dp,
+        tonalElevation = if (isSelected) 4.dp else 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = tab.icon,
+                    contentDescription = tab.label,
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = tab.label,
+                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = ComfortaaFontFamily),
+                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                    color = contentColor,
+                    maxLines = 1
+                )
+            }
+
+            Text(
+                text = tab.subtitle,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                fontSize = 10.sp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+private data class BentoTabInfo(
     val key: String,
     val label: String,
-    val icon: ImageVector,
-    val color: Color
+    val subtitle: String,
+    val icon: ImageVector
 )
 
 
