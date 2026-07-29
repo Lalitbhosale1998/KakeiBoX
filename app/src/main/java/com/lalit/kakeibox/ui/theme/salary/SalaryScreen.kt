@@ -226,15 +226,15 @@ fun SalaryFilterTabRow(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp),
-        shape = outerShape,
+            .height(64.dp),
+        shape = RoundedCornerShape(32.dp),
         color = containerBg,
         border = containerBorder,
         shadowElevation = shadowElevation,
         tonalElevation = 4.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Sliding background pill
+            // Jelly Spring Sliding Background Pill
             if (tabBounds.size == tabs.size) {
                 val targetBounds = tabBounds.getOrNull(selectedIndex) ?: Pair(0f, 0f)
                 val animatedX by animateFloatAsState(
@@ -249,23 +249,18 @@ fun SalaryFilterTabRow(
                 )
 
                 val activeTabColor = MaterialTheme.colorScheme.primary
-                val targetColor = if (isSpaceTerminal) {
-                    Color(0xFF46C2B4)
-                } else {
-                    activeTabColor
-                }
-                val animatedColor by animateColorAsState(targetColor, label = "salary_pill_color")
+                val animatedColor by animateColorAsState(activeTabColor, label = "salary_pill_color")
 
                 val distance = targetBounds.first - animatedX
                 val absDistance = kotlin.math.abs(distance)
-                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.25f)
-                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.12f)
+                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.2f)
+                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.1f)
 
                 val pillShape = RoundedCornerShape(26.dp)
 
                 Box(
                     modifier = Modifier
-                        .padding(6.dp)
+                        .padding(5.dp)
                         .offset { IntOffset(kotlin.math.round(animatedX).toInt(), 0) }
                         .width(with(LocalDensity.current) { animatedWidth.toDp() })
                         .fillMaxHeight()
@@ -274,88 +269,36 @@ fun SalaryFilterTabRow(
                             scaleY = squashY
                             transformOrigin = TransformOrigin(0.5f, 0.5f)
                         }
-                        .then(
-                            if (glowIntensity != GlowIntensity.OFF && isSpaceTerminal) {
-                                Modifier.glow(
-                                    color = targetColor,
-                                    radius = 8.dp,
-                                    intensity = glowIntensity,
-                                    shape = pillShape
-                                )
-                            } else Modifier
-                        )
                         .background(animatedColor, pillShape)
                 )
             }
 
-            // Tabs Content Row
+            // Tabs Content Row: Side-by-Side Icon + Text
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .selectableGroup()
-                    .padding(6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    .padding(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 tabs.forEachIndexed { index, tab ->
                     val isSelected = selectedIndex == index
 
-                    val segmentWeight by animateFloatAsState(
-                        targetValue = if (isSelected) 1.5f else 1.0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "salary_segment_weight"
-                    )
-
-                    val iconScale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.2f else 1.0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium
-                        ),
-                        label = "salary_icon_scale"
-                    )
-
-                    val iconRotation by animateFloatAsState(
-                        targetValue = if (isSelected) {
-                            when (tab.filter) {
-                                SalaryFilter.HIGH_SAVINGS -> -15f
-                                SalaryFilter.THIS_YEAR -> 10f
-                                else -> 0f
-                            }
-                        } else 0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "salary_icon_rotation"
-                    )
-
-                    val iconTranslationY by animateFloatAsState(
-                        targetValue = if (isSelected) -8f else 0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "salary_icon_translation"
-                    )
-
                     val contentColor by animateColorAsState(
-                        targetValue = if (isSelected) {
-                            if (isSpaceTerminal) Color(0xFF0F172A)
-                            else MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f)
-                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                        },
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         label = "salary_content_color"
                     )
 
-                    Column(
+                    val iconScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.15f else 1.0f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                        label = "salary_icon_scale"
+                    )
+
+                    Row(
                         modifier = Modifier
-                            .weight(segmentWeight)
+                            .weight(1f)
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(26.dp))
                             .onGloballyPositioned { coordinates ->
@@ -376,49 +319,31 @@ fun SalaryFilterTabRow(
                             ) {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onFilterSelected(tab.filter)
-                            },
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            }
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = tab.icon,
                             contentDescription = tab.label,
                             modifier = Modifier
-                                .size(24.dp)
+                                .size(20.dp)
                                 .graphicsLayer {
                                     scaleX = iconScale
                                     scaleY = iconScale
-                                    rotationZ = iconRotation
-                                    translationY = iconTranslationY
-                                    transformOrigin = TransformOrigin(0.5f, 0.5f)
                                 },
                             tint = contentColor
                         )
-                        
-                        val textScale by animateFloatAsState(
-                            targetValue = if (isSelected) 1f else 0.82f,
-                            label = "salary_text_scale"
-                        )
-                        val textAlpha by animateFloatAsState(
-                            targetValue = if (isSelected) 1f else 0.7f,
-                            label = "salary_text_alpha"
-                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
 
                         Text(
                             text = tab.label,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
                             color = contentColor,
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .graphicsLayer {
-                                    scaleX = textScale
-                                    scaleY = textScale
-                                    alpha = textAlpha
-                                    transformOrigin = TransformOrigin(0.5f, 0f)
-                                },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            maxLines = 1
                         )
                     }
                 }
@@ -658,33 +583,56 @@ fun SalaryScreen(
                         val currentYearVal = remember(currentCal) { currentCal.get(java.util.Calendar.YEAR) }
                         val currentMonthVal = remember(currentCal) { currentCal.get(java.util.Calendar.MONTH) + 1 }
 
-                        val monthEntries = remember(allEntries, currentEntry, currentYearVal) {
-                            (1..12).map { monthNum ->
-                                allEntries.find { it.month == monthNum && it.year == currentYearVal }
-                                    ?: if (currentEntry?.month == monthNum && currentEntry?.year == currentYearVal) currentEntry!!
-                                    else com.personal.kakeibox.data.entity.SalaryEntry(
-                                        id = -monthNum,
+                        val monthEntries = remember(allEntries, currentEntry, currentYearVal, currentMonthVal) {
+                            if (allEntries.isEmpty()) {
+                                listOf(
+                                    currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
+                                        id = -currentMonthVal,
                                         year = currentYearVal,
-                                        month = monthNum,
+                                        month = currentMonthVal,
                                         salaryAmount = 0L,
                                         savingsAmount = 0L,
                                         remittanceAmount = 0L,
                                         remainingAmount = 0L,
                                         note = ""
                                     )
+                                )
+                            } else {
+                                val sortedReal = allEntries.sortedByDescending { it.year * 100 + it.month }
+                                val containsCurrent = sortedReal.any { it.month == currentMonthVal && it.year == currentYearVal }
+                                if (containsCurrent) {
+                                    sortedReal
+                                } else {
+                                    val currentPlaceholder = currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
+                                        id = -currentMonthVal,
+                                        year = currentYearVal,
+                                        month = currentMonthVal,
+                                        salaryAmount = 0L,
+                                        savingsAmount = 0L,
+                                        remittanceAmount = 0L,
+                                        remainingAmount = 0L,
+                                        note = ""
+                                    )
+                                    (listOf(currentPlaceholder) + sortedReal).sortedByDescending { it.year * 100 + it.month }
+                                }
                             }
                         }
 
-                        val initialPage = remember(currentMonthVal) { (currentMonthVal - 1).coerceIn(0, 11) }
+                        val initialPage = remember(monthEntries, currentMonthVal, currentYearVal) {
+                            val idx = monthEntries.indexOfFirst { it.month == currentMonthVal && it.year == currentYearVal }
+                            if (idx >= 0) idx else 0
+                        }
+
                         val pagerState = rememberPagerState(
                             initialPage = initialPage,
-                            pageCount = { 12 }
+                            pageCount = { monthEntries.size }
                         )
 
                         HorizontalPager(
                             state = pagerState,
                             contentPadding = PaddingValues(horizontal = 32.dp),
                             pageSpacing = 10.dp,
+                            userScrollEnabled = monthEntries.size > 1,
                             modifier = Modifier.fillMaxWidth()
                         ) { page ->
                             val entry = monthEntries[page]
@@ -973,6 +921,19 @@ fun AuraExpressiveHeroCard(
         label = "payday_progress"
     )
 
+    // 🌊 Dynamic This Month Progress calculation
+    val targetMonthlySalary = if (totalSalary > 0L) (totalSalary / 12f).coerceAtLeast(300000f) else 300000f
+    val thisMonthRatio = if (thisMonthSalary > 0L) {
+        (thisMonthSalary.toFloat() / targetMonthlySalary).coerceIn(0.05f, 1f)
+    } else {
+        0f
+    }
+    val animatedThisMonthProgress by animateFloatAsState(
+        targetValue = thisMonthRatio,
+        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "this_month_progress"
+    )
+
     // ⚡ Elastic Micro-Press interaction
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1080,6 +1041,18 @@ fun AuraExpressiveHeroCard(
         MaterialTheme.colorScheme.surfaceContainerLow
     }
 
+    // 🌊 Living Payday Progress Pulse
+    val paydayPulseTransition = rememberInfiniteTransition(label = "payday_pulse")
+    val paydayPulseScale by paydayPulseTransition.animateFloat(
+        initialValue = 0.94f,
+        targetValue = 1.06f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "payday_scale_pulse"
+    )
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -1137,11 +1110,27 @@ fun AuraExpressiveHeroCard(
                         } else {
                             MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.onSurface, fontFamily = ComfortaaFontFamily)
                         }
-                        Text(
-                            text = CurrencyUtils.formatAmount(totalSalary, themeSettings.currencySymbol, isPrivacyMode),
-                            style = headlineStyle,
-                            fontWeight = FontWeight.Bold
-                        )
+
+                        // 🎬 Approved Feature 4: Number-Scrolling Currency Animation (Odometer Effect)
+                        AnimatedContent(
+                            targetState = totalSalary,
+                            transitionSpec = {
+                                if (targetState > initialState) {
+                                    (slideInVertically { height -> height } + fadeIn())
+                                        .togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                                } else {
+                                    (slideInVertically { height -> -height } + fadeIn())
+                                        .togetherWith(slideOutVertically { height -> height } + fadeOut())
+                                }
+                            },
+                            label = "total_salary_odometer"
+                        ) { targetTotal ->
+                            Text(
+                                text = CurrencyUtils.formatAmount(targetTotal, themeSettings.currencySymbol, isPrivacyMode),
+                                style = headlineStyle,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
 
                     if (currentEntry != null) {
@@ -1163,22 +1152,20 @@ fun AuraExpressiveHeroCard(
                     }
                 }
 
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
-                // ── Bottom Metrics Grid: This Month & Payday Countdown ──────────
+                // ── Bottom Metrics Grid: Symmetrical Bento Cards with Micro-Padding Tweak ──────────
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Metric 1: This Month's Salary
+                    // Metric 1: This Month's Salary (Symmetrical Bento Card with 24.dp rounded corners & 18.dp padding)
                     Surface(
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedCornerShape(24.dp),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(18.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1189,34 +1176,103 @@ fun AuraExpressiveHeroCard(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
+                                
+                                val nowCal = remember { java.util.Calendar.getInstance() }
+                                val nowYear = remember(nowCal) { nowCal.get(java.util.Calendar.YEAR) }
+                                val nowMonth = remember(nowCal) { nowCal.get(java.util.Calendar.MONTH) + 1 }
+                                val isCurrentMonth = currentEntry?.let { it.month == nowMonth && it.year == nowYear } ?: true
+                                val monthName = remember(currentEntry) {
+                                    val m = currentEntry?.month ?: nowMonth
+                                    when (m) {
+                                        1 -> "JANUARY"
+                                        2 -> "FEBRUARY"
+                                        3 -> "MARCH"
+                                        4 -> "APRIL"
+                                        5 -> "MAY"
+                                        6 -> "JUNE"
+                                        7 -> "JULY"
+                                        8 -> "AUGUST"
+                                        9 -> "SEPTEMBER"
+                                        10 -> "OCTOBER"
+                                        11 -> "NOVEMBER"
+                                        12 -> "DECEMBER"
+                                        else -> "THIS MONTH"
+                                    }
+                                }
+                                val dynamicMonthLabel = if (isCurrentMonth) "THIS MONTH" else "$monthName SALARY"
+
                                 Text(
-                                    text = "THIS MONTH",
+                                    text = dynamicMonthLabel,
                                     style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
+
+                            // 🎬 Number-Scrolling Odometer Animation for This Month Amount
+                            AnimatedContent(
+                                targetState = thisMonthSalary,
+                                transitionSpec = {
+                                    (fadeIn() + slideInVertically { it / 2 })
+                                        .togetherWith(fadeOut() + slideOutVertically { -it / 2 })
+                                },
+                                label = "this_month_odometer"
+                            ) { targetAmount ->
+                                Text(
+                                    text = CurrencyUtils.formatAmount(targetAmount, themeSettings.currencySymbol, isPrivacyMode, compact = true),
+                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = ComfortaaFontFamily),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                            ) {
+                                if (animatedThisMonthProgress > 0f) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .fillMaxWidth(animatedThisMonthProgress)
+                                            .clip(RoundedCornerShape(3.dp))
+                                            .background(
+                                                Brush.horizontalGradient(
+                                                    listOf(
+                                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                                        MaterialTheme.colorScheme.primary
+                                                    )
+                                                )
+                                            )
+                                    )
+                                }
+                            }
+
                             Text(
-                                text = CurrencyUtils.formatAmount(thisMonthSalary, themeSettings.currencySymbol, isPrivacyMode, compact = true),
-                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = ComfortaaFontFamily),
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = if (thisMonthSalary == 0L) "0% Logged This Month" else "${(thisMonthRatio * 100).toInt()}% of Monthly Target",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = ComfortaaFontFamily),
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
                         }
                     }
 
-                    // Metric 2: Payday Countdown with Morphing Starburst Shape
+                    // Metric 2: Payday Countdown (Symmetrical Bento Card with 24.dp rounded corners & 18.dp padding)
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = paydayBadgeShape,
                         color = if (isPaydayWeek) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
                         border = BorderStroke(
                             width = if (isPaydayWeek) 1.5.dp else 1.dp,
-                            color = if (isPaydayWeek) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)
+                            color = if (isPaydayWeek) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)
                         )
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(18.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1241,7 +1297,7 @@ fun AuraExpressiveHeroCard(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             
-                            // 🌊 Fluid Payday Progress Gauge (Month Timeline)
+                            // 🎬 Approved Feature 5: Living Payday Progress Pulse
                             Spacer(modifier = Modifier.height(2.dp))
                             Box(
                                 modifier = Modifier
@@ -1255,6 +1311,9 @@ fun AuraExpressiveHeroCard(
                                         .fillMaxHeight()
                                         .fillMaxWidth(animatedProgress)
                                         .clip(RoundedCornerShape(3.dp))
+                                        .graphicsLayer {
+                                            scaleY = paydayPulseScale
+                                        }
                                         .background(
                                             Brush.horizontalGradient(
                                                 listOf(
@@ -3126,8 +3185,8 @@ fun InteractiveAnalyticsChart(
                     val chartHeight = size.height
                     val barGroupCount = last6.size
                     val groupWidth = chartWidth / barGroupCount
-                    val barWidth = groupWidth * 0.32f
-                    val gap = groupWidth * 0.08f
+                    val barWidth = (groupWidth * 0.32f).coerceAtMost(32.dp.toPx())
+                    val gap = (groupWidth * 0.08f).coerceAtMost(16.dp.toPx())
 
                     last6.forEachIndexed { idx, entry ->
                         val groupCenterX = idx * groupWidth + (groupWidth / 2)

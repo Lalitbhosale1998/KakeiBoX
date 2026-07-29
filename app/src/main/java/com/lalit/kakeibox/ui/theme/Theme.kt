@@ -236,13 +236,18 @@ fun Modifier.expressiveBackground(
 ): Modifier = this.drawBehind {
     if (isPrimaryContainer) {
         if (isDark) {
-            // Draw premium dark mode gradient: deep primary accent fading to dark background
+            val darkBaseColor = androidx.compose.ui.graphics.lerp(
+                containerColor,
+                primaryColor,
+                0.12f
+            )
+            // Draw premium dark mode gradient: deep primary accent fading to harmonized dark background
             val gradientBrush = androidx.compose.ui.graphics.Brush.radialGradient(
                 colors = listOf(
-                    primaryColor.copy(alpha = 0.12f), // soft glowing accent
-                    containerColor // dark surface
+                    primaryColor.copy(alpha = 0.20f),
+                    darkBaseColor
                 ),
-                center = Offset(size.width * 0.75f, size.height * 0.15f), // top-right glow
+                center = Offset(size.width * 0.75f, size.height * 0.15f),
                 radius = size.width * 1.3f
             )
             drawRect(brush = gradientBrush)

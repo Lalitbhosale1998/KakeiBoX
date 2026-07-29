@@ -12,10 +12,9 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep Room entities and DAOs for R8 shrinking
+-keep class com.personal.kakeibox.data.entity.** { *; }
+-keep class com.personal.kakeibox.data.dao.** { *; }
+-keepclassmembers class * extends androidx.room.RoomDatabase { *; }
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.Nonnull

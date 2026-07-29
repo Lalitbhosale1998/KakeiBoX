@@ -570,7 +570,7 @@ fun KakeiboXApp(
                 }
             }
 
-            // Top Header Suite: Left-Aligned Split Button Navigation + Living ContainedLoadingIndicator FAB
+            // Top Header Suite: Left-Aligned Split Button Navigation
             Row(
                 modifier = Modifier
                     .statusBarsPadding()
@@ -585,15 +585,6 @@ fun KakeiboXApp(
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(targetPage)
                         }
-                    }
-                )
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                ExpressiveActionLoadingFab(
-                    currentPage = pagerState.currentPage,
-                    onActionClick = {
-                        // Quick Action Triggered!
                     }
                 )
             }
