@@ -97,7 +97,7 @@ object ThemePalettes {
     val EmeraldZenLight: ColorScheme = lightColorScheme(
         primary = Color(0xFF059669),
         onPrimary = Color(0xFFFFFFFF),
-        primaryContainer = Color(0xD1FAE5),
+        primaryContainer = Color(0xFFD1FAE5),
         onPrimaryContainer = Color(0xFF022C1E),
         secondary = Color(0xFFD97706),
         onSecondary = Color(0xFFFFFFFF),
@@ -105,7 +105,7 @@ object ThemePalettes {
         onSecondaryContainer = Color(0xFF451A03),
         tertiary = Color(0xFF0891B2),
         onTertiary = Color(0xFFFFFFFF),
-        tertiaryContainer = Color(0xE0F2FE),
+        tertiaryContainer = Color(0xFFE0F2FE),
         onTertiaryContainer = Color(0xFF0C4A6E),
         background = Color(0xFFF0FDF4),
         onBackground = Color(0xFF064E3B),
