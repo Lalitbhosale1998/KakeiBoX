@@ -520,7 +520,8 @@ fun SettingsScreen(
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL to "Sunset Coral 🌅",
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS to "Tokyo Glass 💎"
                                         ),
-                                         onOptionSelected = { viewModel.setThemeFlavor(it) },
+                                        selectedOption = themeSettings.themeFlavor,
+                                        onOptionSelected = { viewModel.setThemeFlavor(it) },
                                         accentColor = Color(0xFF00F2FE)
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
@@ -2308,7 +2309,8 @@ fun <T> SettingsSelectorRow(
     options: List<Pair<T, String>>,
     onOptionSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
-    accentColor: Color? = null
+    accentColor: Color? = null,
+    selectedOption: T? = null
 ) {
     val haptic = LocalHapticFeedback.current
     val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
@@ -2428,7 +2430,17 @@ fun <T> SettingsSelectorRow(
                         )
 
                         options.forEach { (value, label) ->
-                            val isSelected = selectedValueLabel == label
+                            val normSelected = selectedValueLabel.trim().replace("_", " ").lowercase()
+                            val normLabel = label.trim().replace("_", " ").lowercase()
+
+                            val isSelected = when {
+                                selectedOption != null && value == selectedOption -> true
+                                selectedValueLabel == label -> true
+                                normSelected == normLabel -> true
+                                normLabel.startsWith(normSelected) || normSelected.startsWith(normLabel) -> true
+                                normLabel.contains(normSelected) || normSelected.contains(normLabel) -> true
+                                else -> false
+                            }
                             val optionBg = if (isSelected) {
                                 if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer
                             } else Color.Transparent
