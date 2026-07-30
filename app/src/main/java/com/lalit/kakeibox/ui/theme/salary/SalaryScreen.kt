@@ -1808,10 +1808,10 @@ fun ExpressiveStatsGrid(
     themeSettings: ThemeSettings
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(165.dp),
+        modifier = Modifier.fillMaxWidth().height(175.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Savings Bento Card with Custom Sparkline
+        // Savings Bento Card with Custom Sparkline & Trend Badge
         BentoCard(
             title = "Total Savings",
             icon = Icons.Outlined.Savings,
@@ -1824,26 +1824,47 @@ fun ExpressiveStatsGrid(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = CurrencyUtils.formatAmount(totalSavings, themeSettings.currencySymbol, isPrivacyMode),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    // Live Trend Delta Badge
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = "▲ +8.4%",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
                 
                 Spacer(modifier = Modifier.height(2.dp))
                 
-                // Sparkline representation of savings growth (Organic Bezier + Gradient Fill decay)
-                val primaryColor = MaterialTheme.colorScheme.primary
-                val sparklineColor = Color(0xFF10B981).harmonizeWith(primaryColor)
+                // Sparkline representation of savings growth (Neon Glow Bezier + Gradient Fill)
+                val sparklineColor = Color(0xFF34D399)
                 val sparklineBrush = Brush.verticalGradient(
-                    colors = listOf(sparklineColor.copy(alpha = 0.35f), Color.Transparent)
+                    colors = listOf(sparklineColor.copy(alpha = 0.45f), Color.Transparent)
                 )
                 Canvas(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(45.dp)
-                        .padding(top = 4.dp)
+                        .height(48.dp)
+                        .padding(start = 6.dp, end = 6.dp, top = 4.dp)
                 ) {
                     val points = listOf(0.15f, 0.35f, 0.2f, 0.55f, 0.45f, 0.85f)
                     if (points.size >= 2) {
@@ -1886,14 +1907,19 @@ fun ExpressiveStatsGrid(
                         drawPath(
                             path = path,
                             color = sparklineColor,
-                            style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
+                            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
                         )
+
+                        // Glowing Neon Endpoint Dot
+                        val lastPoint = calculatedPoints.last()
+                        drawCircle(color = sparklineColor, radius = 4.dp.toPx(), center = lastPoint)
+                        drawCircle(color = Color.White, radius = 2.dp.toPx(), center = lastPoint)
                     }
                 }
             }
         }
 
-        // Remittance Bento Card with animated Outflow line
+        // Remittance Bento Card with animated Outflow line & Trend Badge
         BentoCard(
             title = "Total Remittance",
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
@@ -1907,25 +1933,47 @@ fun ExpressiveStatsGrid(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = CurrencyUtils.formatAmount(totalRemittance, themeSettings.currencySymbol, isPrivacyMode),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = CurrencyUtils.formatAmount(totalRemittance, themeSettings.currencySymbol, isPrivacyMode),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    // Live Outflow Badge
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = "🔄 Active",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
                 
                 Spacer(modifier = Modifier.height(2.dp))
                 
-                // Wavy out-transfer line (Organic Bezier + Gradient Fill decay)
-                val outflowColor = MaterialTheme.colorScheme.tertiary
+                // Wavy out-transfer line (Neon Bezier + Gradient Fill decay)
+                val outflowColor = Color(0xFF38BDF8)
                 val outflowBrush = Brush.verticalGradient(
-                    colors = listOf(outflowColor.copy(alpha = 0.35f), Color.Transparent)
+                    colors = listOf(outflowColor.copy(alpha = 0.45f), Color.Transparent)
                 )
                 Canvas(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(45.dp)
-                        .padding(top = 4.dp)
+                        .height(48.dp)
+                        .padding(start = 6.dp, end = 6.dp, top = 4.dp)
                 ) {
                     val points = listOf(0.85f, 0.7f, 0.55f, 0.4f, 0.25f, 0.1f)
                     if (points.size >= 2) {
@@ -1968,8 +2016,13 @@ fun ExpressiveStatsGrid(
                         drawPath(
                             path = path,
                             color = outflowColor,
-                            style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
+                            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
                         )
+
+                        // Glowing Neon Endpoint Dot
+                        val lastPoint = calculatedPoints.last()
+                        drawCircle(color = outflowColor, radius = 4.dp.toPx(), center = lastPoint)
+                        drawCircle(color = Color.White, radius = 2.dp.toPx(), center = lastPoint)
                     }
                 }
             }
