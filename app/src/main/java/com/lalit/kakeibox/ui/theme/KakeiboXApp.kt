@@ -157,21 +157,28 @@ fun TopNavSplitButton(
         label = "active_end_corner"
     )
 
+    // 180-degree spring rotation for chevron
+    val rotationChevron by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessLow),
+        label = "top_nav_chevron_rot"
+    )
+
     Surface(
         modifier = modifier
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(start = 20.dp, end = 20.dp, top = 10.dp),
         shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
-        tonalElevation = 8.dp,
-        shadowElevation = 10.dp,
-        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 6.dp,
+        tonalElevation = 0.dp,
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(6.dp)
         ) {
-            // ── Primary Action Button (Active Tab Display - BIG) ──
+            // ── Primary Action Button (Active Tab Display with Dual-Tone Gradient & Live Route Badge) ──
             val activeShape = RoundedCornerShape(
                 topStart = 32.dp,
                 bottomStart = 32.dp,
@@ -182,6 +189,7 @@ fun TopNavSplitButton(
             Surface(
                 shape = activeShape,
                 color = MaterialTheme.colorScheme.primaryContainer,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
                 modifier = Modifier
                     .clip(activeShape)
                     .clickable {
@@ -191,13 +199,21 @@ fun TopNavSplitButton(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
                 ) {
+                    // Live Active Focus Indicator Dot
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     Icon(
                         imageVector = activeTab.third,
                         contentDescription = activeTab.second,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -205,17 +221,21 @@ fun TopNavSplitButton(
                         maxLines = 1,
                         softWrap = false,
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = 18.sp,
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.ExtraBold
                         ),
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                        imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Toggle remaining tabs",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(20.dp)
+                            .graphicsLayer {
+                                rotationZ = rotationChevron
+                            }
                     )
                 }
             }
