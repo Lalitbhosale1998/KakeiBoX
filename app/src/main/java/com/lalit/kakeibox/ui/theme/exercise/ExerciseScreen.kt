@@ -242,7 +242,7 @@ fun ExerciseScreen(
                 } else if (uiState.exercises.isEmpty()) {
                     item {
                         ExpressiveEmptyState(
-                            message = "No workouts logged for ${uiState.selectedDay}",
+                            message = "${strings.noWorkoutsLogged} ${uiState.selectedDay}",
                             icon = "🏋️",
                             color = onContainerColor
                         )
@@ -273,6 +273,7 @@ fun ExerciseScreen(
                         WorkoutItemCard(
                             exercise = exercise,
                             completedSets = completedSetsMap[exercise.id] ?: emptySet(),
+                            appLanguage = themeSettings.appLanguage,
                             onToggleSet = { setNum ->
                                 val currentCompleted = completedSetsMap[exercise.id] ?: emptySet()
                                 val newCompleted = if (currentCompleted.contains(setNum)) {
@@ -304,6 +305,7 @@ fun ExerciseScreen(
                 ExerciseAddEditSheet(
                     exercise = uiState.selectedExercise,
                     selectedDay = uiState.selectedDay,
+                    appLanguage = themeSettings.appLanguage,
                     onSave = { name, sets, reps, description, day ->
                         viewModel.saveExercise(name, sets, reps, description, day)
                     },
@@ -1016,13 +1018,14 @@ fun ExpressiveExerciseHeroHeader(
 fun WorkoutItemCard(
     exercise: ExerciseEntry,
     completedSets: Set<Int>,
+    appLanguage: com.personal.kakeibox.data.preferences.AppLanguage,
     onToggleSet: (Int) -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
-    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
+    val strings = getAppStrings(appLanguage)
     var isExpanded by remember { mutableStateOf(false) }
 
     val nameLower = exercise.name.lowercase()
@@ -1371,11 +1374,12 @@ fun WorkoutItemCard(
 fun ExerciseAddEditSheet(
     exercise: ExerciseEntry?,
     selectedDay: String,
+    appLanguage: com.personal.kakeibox.data.preferences.AppLanguage,
     onSave: (name: String, sets: Int, reps: Int, description: String, day: String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
-    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
+    val strings = getAppStrings(appLanguage)
 
     var name by remember { mutableStateOf(exercise?.name ?: "") }
     var sets by remember { mutableStateOf(exercise?.sets ?: 3) }
