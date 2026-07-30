@@ -68,6 +68,7 @@ data class ThemeSettings(
     val touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
     val dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
     val intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT,
+    val themeFlavor: ThemeFlavor = ThemeFlavor.DYNAMIC_MATERIAL,
     val earningsCardShape: CardShapePreference = CardShapePreference.PILL,
     val savingsCardShape: CardShapePreference = CardShapePreference.PILL,
     val remittanceCardShape: CardShapePreference = CardShapePreference.PILL

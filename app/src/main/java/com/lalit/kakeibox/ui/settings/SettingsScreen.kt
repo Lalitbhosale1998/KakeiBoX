@@ -497,6 +497,28 @@ fun SettingsScreen(
                                 SettingsGroup(title = "Theme & Color Settings") {
 
                                     SettingsSelectorRow(
+                                        title = "Theme Aesthetic Flavor",
+                                        description = "Choose curated M3 Expressive design color palette.",
+                                        icon = Icons.Outlined.Palette,
+                                        selectedValueLabel = when (themeSettings.themeFlavor) {
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL -> "Dynamic Material"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.MIDNIGHT_OBSIDIAN -> "Midnight Obsidian"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.EMERALD_ZEN -> "Emerald Zen"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL -> "Sunset Coral"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS -> "Tokyo Glass"
+                                        },
+                                        options = listOf(
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL to "Dynamic Material",
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.MIDNIGHT_OBSIDIAN to "Midnight Obsidian 🌌",
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.EMERALD_ZEN to "Emerald Zen 🌿",
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL to "Sunset Coral 🌅",
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS to "Tokyo Glass 💎"
+                                        ),
+                                        onOptionSelected = { viewModel.setThemeFlavor(it) },
+                                        accentColor = Color(0xFF00F2FE)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsSelectorRow(
                                         title = "App Dark Theme",
                                         description = "Light, dark, or system-adaptive dark mode preference.",
                                         icon = Icons.Outlined.DarkMode,

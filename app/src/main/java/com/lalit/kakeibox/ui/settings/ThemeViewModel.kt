@@ -215,6 +215,12 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun setThemeFlavor(flavor: com.personal.kakeibox.data.preferences.ThemeFlavor) {
+        viewModelScope.launch {
+            preferencesRepository.setThemeFlavor(flavor)
+        }
+    }
+
     fun setTopAppBarBackground(background: TopAppBarBackground) {
         viewModelScope.launch {
             preferencesRepository.setTopAppBarBackground(background)

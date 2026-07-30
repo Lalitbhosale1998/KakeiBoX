@@ -28,6 +28,7 @@ import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.AppFont
 import com.personal.kakeibox.data.preferences.DynamicTonalStyle
 import com.personal.kakeibox.data.preferences.ColorIntensityPreset
+import com.personal.kakeibox.data.preferences.ThemeFlavor
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -466,6 +467,7 @@ fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
+    themeFlavor: ThemeFlavor = ThemeFlavor.DYNAMIC_MATERIAL,
     appFont: AppFont = AppFont.NUNITO,
     touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
     glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
@@ -475,9 +477,10 @@ fun KakeiboXTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
+    val customFlavorScheme = ThemePalettes.getColorScheme(themeFlavor, darkTheme)
     val colorScheme = when {
+        customFlavorScheme != null -> customFlavorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         dynamicColor -> {
