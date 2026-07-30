@@ -253,13 +253,18 @@ fun Modifier.expressiveBackground(
             )
             drawRect(brush = gradientBrush)
         } else {
+            val luminousPastel = androidx.compose.ui.graphics.lerp(
+                containerColor,
+                primaryColor,
+                0.06f
+            )
             val gradientBrush = androidx.compose.ui.graphics.Brush.radialGradient(
                 colors = listOf(
-                    primaryColor.copy(alpha = 0.25f),
+                    luminousPastel,
                     containerColor
                 ),
                 center = Offset(size.width * 0.75f, size.height * 0.15f),
-                radius = size.width * 1.3f
+                radius = size.width * 1.4f
             )
             drawRect(brush = gradientBrush)
         }

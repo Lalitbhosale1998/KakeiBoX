@@ -512,16 +512,15 @@ fun SalaryScreen(
                         Surface(
                             shape = CircleShape,
                             color = if (isPrimaryContainer) {
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)
+                                MaterialTheme.colorScheme.primaryContainer
                             } else {
-                                MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.65f)
+                                MaterialTheme.colorScheme.surfaceContainerHigh
                             },
                             border = BorderStroke(
                                 1.dp,
-                                if (isPrimaryContainer) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
-                                else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                             ),
-                            shadowElevation = 4.dp
+                            shadowElevation = 0.dp
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
