@@ -501,12 +501,13 @@ fun SettingsScreen(
                     ) {
                         when (targetTab) {
                             "visual" -> {
+                                val strings = getAppStrings(themeSettings.appLanguage)
                                 // Theme & Color Group
-                                SettingsGroup(title = "Theme & Color Settings") {
+                                SettingsGroup(title = strings.themeColorSettings) {
 
                                     SettingsSelectorRow(
-                                        title = "Theme Aesthetic Flavor",
-                                        description = "Choose curated M3 Expressive design color palette.",
+                                        title = strings.themeFlavorTitle,
+                                        description = strings.themeFlavorDesc,
                                         icon = Icons.Outlined.Palette,
                                         selectedValueLabel = when (themeSettings.themeFlavor) {
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL -> "Dynamic Material"
@@ -641,10 +642,10 @@ fun SettingsScreen(
                                 }
 
                                 // Typography & Layout Group
-                                SettingsGroup(title = "Typography & Layout Settings") {
+                                SettingsGroup(title = strings.typographyLayoutSettings) {
                                     SettingsSelectorRow(
-                                        title = "App Font Family",
-                                        description = "Choose global typeface applied to all text components.",
+                                        title = strings.appFontFamily,
+                                        description = strings.chooseGlobalTypeface,
                                         icon = Icons.Outlined.Code,
                                         selectedValueLabel = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
                                         options = listOf(
@@ -659,8 +660,8 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsSelectorRow(
-                                        title = "Background Style",
-                                        description = "Choose background style for screen canvas backdrop.",
+                                        title = strings.backgroundStyle,
+                                        description = strings.chooseBackgroundStyle,
                                         icon = Icons.Outlined.Dock,
                                         selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
                                         options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
@@ -669,8 +670,8 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsSelectorRow(
-                                        title = "Navbar Animation",
-                                        description = "Select animation style for the floating navigation bar.",
+                                        title = strings.navbarAnimation,
+                                        description = strings.selectNavbarAnimation,
                                         icon = Icons.Outlined.AutoMode,
                                         selectedValueLabel = when (themeSettings.navAnimation) {
                                             NavAnimationPreference.MORPHING -> "Morphing Inflate"
@@ -727,10 +728,11 @@ fun SettingsScreen(
                                 }
                             }
                             "security" -> {
-                                SettingsGroup(title = "Privacy & App Lock") {
+                                val strings = getAppStrings(themeSettings.appLanguage)
+                                SettingsGroup(title = strings.privacyAppLock) {
                                     SettingsToggleRow(
-                                        title = "Privacy Mode Protection",
-                                        description = "Mask sensitive financial totals with dots on dashboard.",
+                                        title = strings.privacyModeProtection,
+                                        description = strings.maskSensitiveTotals,
                                         icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                         checked = themeSettings.privacyModeEnabled,
                                         onCheckedChange = { viewModel.setPrivacyModeEnabled(it) },
@@ -738,8 +740,8 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsToggleRow(
-                                        title = "Biometric Lock Guard",
-                                        description = "Protect account information with fingerprint lock.",
+                                        title = strings.biometricLockGuard,
+                                        description = strings.protectAccountBiometrics,
                                         icon = Icons.Outlined.Fingerprint,
                                         checked = themeSettings.biometricEnabled,
                                         onCheckedChange = { viewModel.setBiometricEnabled(it) },
@@ -747,10 +749,10 @@ fun SettingsScreen(
                                     )
                                 }
 
-                                SettingsGroup(title = "Data Management") {
+                                SettingsGroup(title = strings.dataManagement) {
                                     SettingsActionRow(
-                                        title = "Backup Database",
-                                        description = "Export a copy of your local database (.db) file to device storage.",
+                                        title = strings.backupDatabase,
+                                        description = strings.exportLocalDbCopy,
                                         icon = Icons.Outlined.CloudUpload,
                                         actionLabel = "Backup",
                                         onClick = {
@@ -761,8 +763,8 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
-                                        title = "Restore Database",
-                                        description = "Import a previously backed up (.db) file to restore your data.",
+                                        title = strings.restoreDatabase,
+                                        description = strings.importBackupDbFile,
                                         icon = Icons.Outlined.FileDownload,
                                         actionLabel = "Restore",
                                         onClick = {
@@ -773,8 +775,8 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
-                                        title = "Export Financial History",
-                                        description = "Download history records, wage totals, and travels as CSV file.",
+                                        title = strings.exportFinancialHistory,
+                                        description = strings.downloadCsvHistory,
                                         icon = Icons.Outlined.FileDownload,
                                         actionLabel = "Export",
                                         onClick = {
