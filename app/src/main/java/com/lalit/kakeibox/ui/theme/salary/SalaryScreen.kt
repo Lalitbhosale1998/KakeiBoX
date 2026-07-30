@@ -230,8 +230,8 @@ fun SalaryFilterTabRow(
         shape = RoundedCornerShape(32.dp),
         color = containerBg,
         border = containerBorder,
-        shadowElevation = shadowElevation,
-        tonalElevation = 4.dp
+        shadowElevation = 6.dp,
+        tonalElevation = 0.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Jelly Spring Sliding Background Pill
@@ -248,13 +248,13 @@ fun SalaryFilterTabRow(
                     label = "salary_pill_width"
                 )
 
-                val activeTabColor = MaterialTheme.colorScheme.primary
+                val activeTabColor = MaterialTheme.colorScheme.primaryContainer
                 val animatedColor by animateColorAsState(activeTabColor, label = "salary_pill_color")
 
                 val distance = targetBounds.first - animatedX
                 val absDistance = kotlin.math.abs(distance)
-                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.2f)
-                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.1f)
+                val stretchX = 1f + (absDistance / 200f).coerceAtMost(0.15f)
+                val squashY = 1f - (absDistance / 600f).coerceAtMost(0.08f)
 
                 val pillShape = RoundedCornerShape(26.dp)
 
@@ -270,6 +270,7 @@ fun SalaryFilterTabRow(
                             transformOrigin = TransformOrigin(0.5f, 0.5f)
                         }
                         .background(animatedColor, pillShape)
+                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f), pillShape)
                 )
             }
 
@@ -286,7 +287,7 @@ fun SalaryFilterTabRow(
                     val isSelected = selectedIndex == index
 
                     val contentColor by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         label = "salary_content_color"
                     )
 
