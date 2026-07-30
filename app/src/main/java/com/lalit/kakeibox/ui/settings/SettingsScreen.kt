@@ -565,13 +565,13 @@ fun SettingsScreen(
                                                         }
                                                         Column {
                                                             Text(
-                                                                text = "Dynamic Color Saturation",
+                                                                text = strings.dynamicColorSaturation,
                                                                 style = MaterialTheme.typography.titleMedium,
                                                                 fontWeight = FontWeight.Bold,
                                                                 color = MaterialTheme.colorScheme.onSurface
                                                             )
                                                             Text(
-                                                                text = "Fine-tune wallpaper extraction intensity.",
+                                                                text = strings.fineTuneWallpaper,
                                                                 style = MaterialTheme.typography.bodySmall,
                                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                                             )
@@ -607,8 +607,8 @@ fun SettingsScreen(
                                         }
                                     }
                                     SettingsSelectorRow(
-                                        title = "App Dark Theme",
-                                        description = "Light, dark, or system-adaptive dark mode preference.",
+                                        title = strings.darkThemeTitle,
+                                        description = strings.darkThemeDesc,
                                         icon = Icons.Outlined.DarkMode,
                                         selectedValueLabel = themeSettings.darkThemePreference.name.lowercase().replaceFirstChar { it.uppercase() },
                                         options = listOf(DarkThemePreference.SYSTEM to "System", DarkThemePreference.LIGHT to "Light", DarkThemePreference.DARK to "Dark"),
@@ -617,8 +617,8 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsToggleRow(
-                                        title = "Dynamic Color Tint",
-                                        description = "Extract accent colors from device wallpaper (M3 mode only).",
+                                        title = strings.dynamicColorTint,
+                                        description = strings.extractAccentWallpaper,
                                         icon = Icons.Outlined.Palette,
                                         checked = themeSettings.useDynamicColor,
                                         onCheckedChange = { viewModel.setUseDynamicColor(it) },
@@ -626,8 +626,8 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsSelectorRow(
-                                        title = "Theme Controls Intensity",
-                                        description = "Control tone saturation and contrast (Neutral, Soft, Bright, Bold).",
+                                        title = strings.themeControlsIntensity,
+                                        description = strings.controlToneSaturation,
                                         icon = Icons.Outlined.Palette,
                                         selectedValueLabel = themeSettings.intensityPreset.name.lowercase().replaceFirstChar { it.uppercase() },
                                         options = listOf(
@@ -796,26 +796,27 @@ fun SettingsScreen(
                                 }
                             }
                             "about" -> {
-                                SettingsGroup(title = "Information") {
+                                val strings = getAppStrings(themeSettings.appLanguage)
+                                SettingsGroup(title = strings.informationTitle) {
                                     SettingsActionRow(
-                                        title = stringResource(R.string.about_version),
-                                        description = stringResource(R.string.about_version_desc),
+                                        title = strings.aboutVersion,
+                                        description = strings.aboutVersionDesc,
                                         icon = Icons.Outlined.Info,
                                         onClick = {},
                                         accentColor = Color(0xFF475569)
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
-                                        title = stringResource(R.string.about_developer),
-                                        description = stringResource(R.string.about_developer_desc),
+                                        title = strings.aboutDeveloper,
+                                        description = strings.aboutDeveloperDesc,
                                         icon = Icons.Outlined.Code,
                                         onClick = {},
                                         accentColor = Color(0xFFF59E0B)
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
-                                        title = stringResource(R.string.about_github),
-                                        description = stringResource(R.string.about_github_desc),
+                                        title = strings.aboutGithub,
+                                        description = strings.aboutGithubDesc,
                                         icon = Icons.Outlined.Public,
                                         onClick = {
                                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/Lalitbhosale1998/KakeiBoX"))

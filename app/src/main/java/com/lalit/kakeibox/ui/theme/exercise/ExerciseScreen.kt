@@ -84,6 +84,7 @@ fun ExerciseScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val haptic = LocalHapticFeedback.current
+    val strings = getAppStrings(themeSettings.appLanguage)
 
     val completedSetsMap = remember(uiState.selectedDay) { mutableStateMapOf<Int, Set<Int>>() }
     
@@ -176,7 +177,15 @@ fun ExerciseScreen(
         currentColorScheme
     }
 
-    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    val daysOfWeek = listOf(
+        strings.dayMonday,
+        strings.dayTuesday,
+        strings.dayWednesday,
+        strings.dayThursday,
+        strings.dayFriday,
+        strings.daySaturday,
+        strings.daySunday
+    )
 
     Box(
         modifier = Modifier
@@ -1013,6 +1022,7 @@ fun WorkoutItemCard(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
     var isExpanded by remember { mutableStateOf(false) }
 
     val nameLower = exercise.name.lowercase()
@@ -1188,7 +1198,7 @@ fun WorkoutItemCard(
                                 lineHeight = 16.sp
                             )
                             Text(
-                                text = "SETS",
+                                text = strings.sets,
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Bold,
@@ -1220,7 +1230,7 @@ fun WorkoutItemCard(
                                 lineHeight = 16.sp
                             )
                             Text(
-                                text = "REPS",
+                                text = strings.reps,
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Bold,
@@ -1365,6 +1375,7 @@ fun ExerciseAddEditSheet(
     onDismiss: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
+    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
 
     var name by remember { mutableStateOf(exercise?.name ?: "") }
     var sets by remember { mutableStateOf(exercise?.sets ?: 3) }
@@ -1388,7 +1399,15 @@ fun ExerciseAddEditSheet(
         }
     }
 
-    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    val daysOfWeek = listOf(
+        strings.dayMonday,
+        strings.dayTuesday,
+        strings.dayWednesday,
+        strings.dayThursday,
+        strings.dayFriday,
+        strings.daySaturday,
+        strings.daySunday
+    )
 
     Column(
         modifier = Modifier
@@ -1407,12 +1426,12 @@ fun ExerciseAddEditSheet(
         ) {
             Column {
                 Text(
-                    text = if (exercise == null) "New Workout" else "Edit Workout",
+                    text = if (exercise == null) strings.newWorkout else strings.editWorkout,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Black
                 )
                 Text(
-                    text = "Define workout target & parameters",
+                    text = strings.defineWorkoutDesc,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
@@ -1454,7 +1473,7 @@ fun ExerciseAddEditSheet(
         ExpressiveOutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Workout Name", fontWeight = FontWeight.Bold) },
+            label = { Text(strings.workoutName, fontWeight = FontWeight.Bold) },
             placeholder = { Text("e.g. Incline Bench Press", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -1584,7 +1603,7 @@ fun ExerciseAddEditSheet(
         ExpressiveOutlinedTextField(
             value = description,
             onValueChange = { description = it },
-            label = { Text("Instructions / Notes", fontWeight = FontWeight.Bold) },
+            label = { Text(strings.instructions, fontWeight = FontWeight.Bold) },
             placeholder = { Text("e.g. Keep chest up, squeeze shoulder blades together", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
             modifier = Modifier.fillMaxWidth(),
             maxLines = 3
@@ -1593,7 +1612,7 @@ fun ExerciseAddEditSheet(
         // Day of Week selector row (Inline day switcher!)
         Column {
             Text(
-                text = "SCHEDULE DAY",
+                text = strings.scheduleDay,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary,
@@ -1644,7 +1663,7 @@ fun ExerciseAddEditSheet(
                 onClick = onDismiss,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Cancel", fontWeight = FontWeight.Black)
+                Text(strings.cancel, fontWeight = FontWeight.Black)
             }
             ExpressiveButton(
                 onClick = {
@@ -1656,7 +1675,7 @@ fun ExerciseAddEditSheet(
                 enabled = name.isNotBlank(),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Save", fontWeight = FontWeight.Black)
+                Text(strings.save, fontWeight = FontWeight.Black)
             }
         }
     }

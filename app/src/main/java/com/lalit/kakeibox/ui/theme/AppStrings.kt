@@ -94,7 +94,24 @@ data class AppStrings(
     val restoreDatabase: String,
     val importBackupDbFile: String,
     val exportFinancialHistory: String,
-    val downloadCsvHistory: String
+    val downloadCsvHistory: String,
+    // About section
+    val informationTitle: String,
+    val aboutVersion: String,
+    val aboutVersionDesc: String,
+    val aboutDeveloper: String,
+    val aboutDeveloperDesc: String,
+    val aboutGithub: String,
+    val aboutGithubDesc: String,
+    // Exercise sheet
+    val defineWorkoutDesc: String,
+    val dayMonday: String,
+    val dayTuesday: String,
+    val dayWednesday: String,
+    val dayThursday: String,
+    val dayFriday: String,
+    val daySaturday: String,
+    val daySunday: String
 )
 
 val EnglishStrings = AppStrings(
@@ -189,7 +206,24 @@ val EnglishStrings = AppStrings(
     restoreDatabase = "Restore Database",
     importBackupDbFile = "Import a previously backed up (.db) file to restore your data.",
     exportFinancialHistory = "Export Financial History",
-    downloadCsvHistory = "Download history records, wage totals, and travels as CSV file."
+    downloadCsvHistory = "Download history records, wage totals, and travels as CSV file.",
+    // About section
+    informationTitle = "Information",
+    aboutVersion = "Version",
+    aboutVersionDesc = "v1.0.0 Stable",
+    aboutDeveloper = "Developer",
+    aboutDeveloperDesc = "Lalit",
+    aboutGithub = "GitHub",
+    aboutGithubDesc = "Source Code",
+    // Exercise sheet
+    defineWorkoutDesc = "Define workout target & parameters",
+    dayMonday = "Monday",
+    dayTuesday = "Tuesday",
+    dayWednesday = "Wednesday",
+    dayThursday = "Thursday",
+    dayFriday = "Friday",
+    daySaturday = "Saturday",
+    daySunday = "Sunday"
 )
 
 val JapaneseStrings = AppStrings(
@@ -284,7 +318,24 @@ val JapaneseStrings = AppStrings(
     restoreDatabase = "データベース復元",
     importBackupDbFile = "バックアップファイルからデータを復元します。",
     exportFinancialHistory = "履歴データCSV出力",
-    downloadCsvHistory = "給与・支出履歴をCSVファイルとして保存します。"
+    downloadCsvHistory = "給与・支出履歴をCSVファイルとして保存します。",
+    // About section
+    informationTitle = "アプリ情報",
+    aboutVersion = "バージョン",
+    aboutVersionDesc = "v1.0.0 安定版",
+    aboutDeveloper = "開発者",
+    aboutDeveloperDesc = "Lalit",
+    aboutGithub = "GitHub",
+    aboutGithubDesc = "ソースコード",
+    // Exercise sheet
+    defineWorkoutDesc = "ワークアウト目標を設定します",
+    dayMonday = "月曜日",
+    dayTuesday = "火曜日",
+    dayWednesday = "水曜日",
+    dayThursday = "木曜日",
+    dayFriday = "金曜日",
+    daySaturday = "土曜日",
+    daySunday = "日曜日"
 )
 
 fun getAppStrings(language: AppLanguage): AppStrings {
