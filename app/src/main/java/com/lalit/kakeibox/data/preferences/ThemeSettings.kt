@@ -69,6 +69,7 @@ data class ThemeSettings(
     val dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
     val intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT,
     val themeFlavor: ThemeFlavor = ThemeFlavor.DYNAMIC_MATERIAL,
+    val dynamicColorChromaScale: Float = 1.0f,
     val earningsCardShape: CardShapePreference = CardShapePreference.PILL,
     val savingsCardShape: CardShapePreference = CardShapePreference.PILL,
     val remittanceCardShape: CardShapePreference = CardShapePreference.PILL

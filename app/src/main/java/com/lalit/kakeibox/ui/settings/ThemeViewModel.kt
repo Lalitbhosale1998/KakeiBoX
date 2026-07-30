@@ -221,6 +221,12 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun setDynamicColorChromaScale(scale: Float) {
+        viewModelScope.launch {
+            preferencesRepository.setDynamicColorChromaScale(scale)
+        }
+    }
+
     fun setTopAppBarBackground(background: TopAppBarBackground) {
         viewModelScope.launch {
             preferencesRepository.setTopAppBarBackground(background)

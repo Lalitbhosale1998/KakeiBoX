@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -32,6 +33,7 @@ private object Keys {
     val DYNAMIC_TONAL_STYLE = stringPreferencesKey("dynamic_tonal_style")
     val INTENSITY_PRESET = stringPreferencesKey("intensity_preset")
     val THEME_FLAVOR = stringPreferencesKey("theme_flavor")
+    val DYNAMIC_COLOR_CHROMA_SCALE = floatPreferencesKey("dynamic_color_chroma_scale")
     val EARNINGS_CARD_SHAPE = stringPreferencesKey("earnings_card_shape")
     val NAV_ANIMATION = stringPreferencesKey("nav_animation")
     val SAVINGS_CARD_SHAPE = stringPreferencesKey("savings_card_shape")
@@ -93,6 +95,7 @@ class UserPreferencesRepository @Inject constructor(
             dynamicTonalStyle = DynamicTonalStyle.fromStorage(prefs[Keys.DYNAMIC_TONAL_STYLE]),
             intensityPreset = ColorIntensityPreset.fromStorage(prefs[Keys.INTENSITY_PRESET]),
             themeFlavor = ThemeFlavor.fromStorage(prefs[Keys.THEME_FLAVOR]),
+            dynamicColorChromaScale = prefs[Keys.DYNAMIC_COLOR_CHROMA_SCALE] ?: 1.0f,
             earningsCardShape = CardShapePreference.fromStorage(prefs[Keys.EARNINGS_CARD_SHAPE]),
             savingsCardShape = CardShapePreference.fromStorage(prefs[Keys.SAVINGS_CARD_SHAPE]),
             remittanceCardShape = CardShapePreference.fromStorage(prefs[Keys.REMITTANCE_CARD_SHAPE])
@@ -181,6 +184,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setThemeFlavor(flavor: ThemeFlavor) {
         dataStore.edit { it[Keys.THEME_FLAVOR] = flavor.name }
+    }
+
+    suspend fun setDynamicColorChromaScale(scale: Float) {
+        dataStore.edit { it[Keys.DYNAMIC_COLOR_CHROMA_SCALE] = scale }
     }
 
     suspend fun setEarningsCardShape(shape: CardShapePreference) {

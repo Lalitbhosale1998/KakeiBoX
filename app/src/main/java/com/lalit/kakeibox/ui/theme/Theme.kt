@@ -462,12 +462,30 @@ private fun getWallpaperSeedColor(context: android.content.Context, fallbackColo
 }
 
 
+fun ColorScheme.scaleChroma(factor: Float): ColorScheme {
+    if (factor == 1.0f) return this
+    fun adjustColor(color: Color): Color {
+        val hct = Hct.fromInt(color.toArgb())
+        val newChroma = (hct.chroma * factor).coerceIn(0.0, 130.0)
+        return Color(Hct.from(hct.hue, newChroma, hct.tone).toInt())
+    }
+    return copy(
+        primary = adjustColor(primary),
+        secondary = adjustColor(secondary),
+        tertiary = adjustColor(tertiary),
+        primaryContainer = adjustColor(primaryContainer),
+        secondaryContainer = adjustColor(secondaryContainer),
+        tertiaryContainer = adjustColor(tertiaryContainer)
+    )
+}
+
 @Composable
 fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
     themeFlavor: ThemeFlavor = ThemeFlavor.DYNAMIC_MATERIAL,
+    dynamicColorChromaScale: Float = 1.0f,
     appFont: AppFont = AppFont.NUNITO,
     touchSynesthesia: TouchSynesthesia = TouchSynesthesia.SUBTLE,
     glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,
@@ -478,7 +496,7 @@ fun KakeiboXTheme(
 ) {
     val context = LocalContext.current
     val customFlavorScheme = ThemePalettes.getColorScheme(themeFlavor, darkTheme)
-    val colorScheme = when {
+    val rawColorScheme = when {
         customFlavorScheme != null -> customFlavorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -503,6 +521,12 @@ fun KakeiboXTheme(
         }
         darkTheme -> DarkColors
         else -> LightColors
+    }
+    
+    val colorScheme = if (themeFlavor == ThemeFlavor.DYNAMIC_MATERIAL) {
+        rawColorScheme.scaleChroma(dynamicColorChromaScale)
+    } else {
+        rawColorScheme
     }
 
     val shapes = KakeiboXShapes

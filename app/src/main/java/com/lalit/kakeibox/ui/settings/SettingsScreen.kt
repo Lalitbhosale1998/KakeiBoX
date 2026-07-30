@@ -67,6 +67,12 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.Code
@@ -514,10 +520,88 @@ fun SettingsScreen(
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL to "Sunset Coral 🌅",
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS to "Tokyo Glass 💎"
                                         ),
-                                        onOptionSelected = { viewModel.setThemeFlavor(it) },
+                                         onOptionSelected = { viewModel.setThemeFlavor(it) },
                                         accentColor = Color(0xFF00F2FE)
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+
+                                    AnimatedVisibility(
+                                        visible = themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL,
+                                        enter = expandVertically() + fadeIn(),
+                                        exit = shrinkVertically() + fadeOut()
+                                    ) {
+                                        Column {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(36.dp)
+                                                                .clip(CircleShape)
+                                                                .background(Color(0xFF10B981).copy(alpha = 0.15f)),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Outlined.Tune,
+                                                                contentDescription = null,
+                                                                tint = Color(0xFF10B981),
+                                                                modifier = Modifier.size(20.dp)
+                                                            )
+                                                        }
+                                                        Column {
+                                                            Text(
+                                                                text = "Dynamic Color Saturation",
+                                                                style = MaterialTheme.typography.titleMedium,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.onSurface
+                                                            )
+                                                            Text(
+                                                                text = "Fine-tune wallpaper extraction intensity.",
+                                                                style = MaterialTheme.typography.bodySmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+                                                    }
+                                                    Surface(
+                                                        shape = CircleShape,
+                                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                    ) {
+                                                        Text(
+                                                            text = "${(themeSettings.dynamicColorChromaScale * 100).toInt()}%",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            fontWeight = FontWeight.Bold,
+                                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                                        )
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Slider(
+                                                    value = themeSettings.dynamicColorChromaScale,
+                                                    onValueChange = { viewModel.setDynamicColorChromaScale(it) },
+                                                    valueRange = 0.4f..1.6f,
+                                                    steps = 11,
+                                                    colors = SliderDefaults.colors(
+                                                        thumbColor = Color(0xFF10B981),
+                                                        activeTrackColor = Color(0xFF10B981)
+                                                    ),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+                                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                        }
+                                    }
                                     SettingsSelectorRow(
                                         title = "App Dark Theme",
                                         description = "Light, dark, or system-adaptive dark mode preference.",

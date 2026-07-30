@@ -63,6 +63,7 @@ fun KakeiboXAppRoot() {
         dynamicColor = useDynamicColor,
         themeStyle = themeSettings.themeStyle,
         themeFlavor = themeSettings.themeFlavor,
+        dynamicColorChromaScale = themeSettings.dynamicColorChromaScale,
         appFont = themeSettings.appFont,
         touchSynesthesia = themeSettings.touchSynesthesia,
         glowIntensity = themeSettings.glowIntensity,
