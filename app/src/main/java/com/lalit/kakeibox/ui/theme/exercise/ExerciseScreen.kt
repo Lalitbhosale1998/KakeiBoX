@@ -1456,7 +1456,7 @@ fun ExerciseAddEditSheet(
             singleLine = true
         )
 
-        // Sets & Reps Stepper Block (Glass capsules)
+        // Sets & Reps Stepper Block (High-Contrast M3 Cards)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -1465,23 +1465,23 @@ fun ExerciseAddEditSheet(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                shadowElevation = 8.dp,
-                tonalElevation = 4.dp
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                shadowElevation = 0.dp,
+                tonalElevation = 0.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "SETS",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.2.sp
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -1491,16 +1491,17 @@ fun ExerciseAddEditSheet(
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 if (sets > 1) sets--
                             },
-                            modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+                            modifier = Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                         ) {
-                            Icon(Icons.Default.Remove, contentDescription = "Decrease sets", modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Remove, contentDescription = "Decrease sets", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp))
                         }
                         
                         Text(
                             text = sets.toString(),
-                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 24.sp),
+                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 26.sp),
                             fontWeight = FontWeight.Black,
-                            modifier = Modifier.width(32.dp),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.width(36.dp),
                             textAlign = TextAlign.Center
                         )
 
@@ -1509,9 +1510,9 @@ fun ExerciseAddEditSheet(
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 if (sets < 100) sets++
                             },
-                            modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+                            modifier = Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Increase sets", modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Add, contentDescription = "Increase sets", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -1521,23 +1522,23 @@ fun ExerciseAddEditSheet(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                shadowElevation = 8.dp,
-                tonalElevation = 4.dp
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                shadowElevation = 0.dp,
+                tonalElevation = 0.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "REPS",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.2.sp
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -1547,16 +1548,17 @@ fun ExerciseAddEditSheet(
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 if (reps > 1) reps--
                             },
-                            modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+                            modifier = Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                         ) {
-                            Icon(Icons.Default.Remove, contentDescription = "Decrease reps", modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Remove, contentDescription = "Decrease reps", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp))
                         }
                         
                         Text(
                             text = reps.toString(),
-                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 24.sp),
+                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 26.sp),
                             fontWeight = FontWeight.Black,
-                            modifier = Modifier.width(32.dp),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.width(36.dp),
                             textAlign = TextAlign.Center
                         )
 
@@ -1565,9 +1567,9 @@ fun ExerciseAddEditSheet(
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 if (reps < 100) reps++
                             },
-                            modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+                            modifier = Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Increase reps", modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Add, contentDescription = "Increase reps", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -1590,8 +1592,8 @@ fun ExerciseAddEditSheet(
                 text = "SCHEDULE DAY",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                letterSpacing = 1.sp,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = 1.2.sp,
                 modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
             )
             LazyRow(
@@ -1600,24 +1602,27 @@ fun ExerciseAddEditSheet(
             ) {
                 items(daysOfWeek) { day ->
                     val isSelected = day == dayOfWeek
-                    val dayColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
-                    val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                    val dayBg = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
+                    val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                     
                     Surface(
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             dayOfWeek = day
                         },
-                        shape = RoundedCornerShape(14.dp),
-                        color = dayColor,
+                        shape = RoundedCornerShape(16.dp),
+                        color = dayBg,
                         contentColor = textColor,
-                        border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)) else null
+                        border = BorderStroke(
+                            1.dp,
+                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+                        )
                     ) {
                         Text(
                             text = day.substring(0, 3).uppercase(),
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Black,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                         )
                     }
                 }
@@ -1641,13 +1646,13 @@ fun ExerciseAddEditSheet(
                 onClick = {
                     if (name.isNotBlank()) {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onSave(name, sets, reps, description, dayOfWeek)
+                        onSave(name.trim(), sets, reps, description.trim(), dayOfWeek)
                     }
                 },
-                modifier = Modifier.weight(1f),
-                enabled = name.isNotBlank()
+                enabled = name.isNotBlank(),
+                modifier = Modifier.weight(1f)
             ) {
-                Text("Save", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary)
+                Text("Save", fontWeight = FontWeight.Black)
             }
         }
     }

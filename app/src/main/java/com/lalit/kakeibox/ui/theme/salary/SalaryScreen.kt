@@ -2609,7 +2609,8 @@ fun ExpressiveAddEditSheet(
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -2629,24 +2630,25 @@ fun ExpressiveAddEditSheet(
             }
         }
         
-        // 2. Hero Amount Island (Bento Card, Focused Scaling)
-        val salaryElevation by animateDpAsState(if (isSalaryFocused) 12.dp else 0.dp, label = "salary_elevation")
-        val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.04f else 1f, label = "salary_scale")
+        // 2. Hero Amount Island (Bento Card, Focused Scaling with High-Contrast M3 Theme)
+        val salaryElevation by animateDpAsState(if (isSalaryFocused) 8.dp else 2.dp, label = "salary_elevation")
+        val salaryScale by animateFloatAsState(if (isSalaryFocused) 1.02f else 1f, label = "salary_scale")
         
         Surface(
             color = if (isSalaryFocused) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
             shadowElevation = salaryElevation,
+            tonalElevation = 0.dp,
             modifier = Modifier
                 .fillMaxWidth()
                 .graphicsLayer(scaleX = salaryScale, scaleY = salaryScale),
             border = BorderStroke(
-                width = 1.dp,
-                color = if (isSalaryFocused) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
+                width = if (isSalaryFocused) 2.dp else 1.dp,
+                color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
         ) {
             Column(
-                modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                modifier = Modifier.padding(vertical = 28.dp, horizontal = 24.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -2663,7 +2665,7 @@ fun ExpressiveAddEditSheet(
                     onValueChange = onSalaryChange,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(top = 10.dp)
                         .onFocusChanged { 
                             if (it.isFocused != isSalaryFocused) {
                                 isSalaryFocused = it.isFocused 
@@ -2671,6 +2673,7 @@ fun ExpressiveAddEditSheet(
                             }
                         },
                     textStyle = MaterialTheme.typography.displayLarge.copy(
+                        fontSize = 42.sp,
                         fontWeight = FontWeight.Black,
                         textAlign = TextAlign.Center,
                         color = if (isSalaryFocused) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
@@ -2687,17 +2690,16 @@ fun ExpressiveAddEditSheet(
                                 text = themeSettings.currencySymbol,
                                 style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Black,
-                                color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                                color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Box(contentAlignment = Alignment.Center) {
                                 if (uiState.inputSalary.isEmpty()) {
                                     Text(
                                         text = "0",
-                                        style = MaterialTheme.typography.displayLarge,
+                                        style = MaterialTheme.typography.displayLarge.copy(fontSize = 42.sp),
                                         fontWeight = FontWeight.Black,
-                                        color = if (isSalaryFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f) 
-                                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
                                     )
                                 }
                                 innerTextField()
