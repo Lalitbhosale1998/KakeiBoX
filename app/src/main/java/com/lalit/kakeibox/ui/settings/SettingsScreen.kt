@@ -1,5 +1,7 @@
 package com.personal.kakeibox.ui.settings
 
+import com.personal.kakeibox.ui.theme.getAppStrings
+import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.Animatable
@@ -689,20 +691,22 @@ fun SettingsScreen(
 
                             }
                             "preferences" -> {
-                                SettingsGroup(title = "Regional & Locale Options") {
+                                val strings = getAppStrings(themeSettings.appLanguage)
+                                SettingsGroup(title = strings.regionalLocaleOptions) {
                                     SettingsSelectorRow(
-                                        title = "App Language",
-                                        description = "Select localized app string translation language.",
+                                        title = strings.appLanguage,
+                                        description = strings.selectLanguageDesc,
                                         icon = Icons.Outlined.Language,
                                         selectedValueLabel = themeSettings.appLanguage.name.lowercase().replaceFirstChar { it.uppercase() },
-                                        options = listOf(AppLanguage.ENGLISH to "English", AppLanguage.JAPANESE to "Japanese"),
+                                        options = listOf(AppLanguage.ENGLISH to "English", AppLanguage.JAPANESE to "日本語"),
                                         onOptionSelected = { viewModel.setAppLanguage(it) },
+                                        selectedOption = themeSettings.appLanguage,
                                         accentColor = Color(0xFF10B981)
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsSelectorRow(
-                                        title = "Currency Symbol",
-                                        description = "Define standard monetary symbol applied to entries.",
+                                        title = strings.currencySymbol,
+                                        description = strings.defineCurrencyDesc,
                                         icon = Icons.Outlined.Payments,
                                         selectedValueLabel = themeSettings.currencySymbol,
                                         options = listOf("₹" to "₹ (Rupee)", "¥" to "¥ (Yen)", "$" to "$ (Dollar)", "€" to "€ (Euro)"),
@@ -711,10 +715,10 @@ fun SettingsScreen(
                                     )
                                 }
 
-                                SettingsGroup(title = "App Customization") {
+                                SettingsGroup(title = strings.appCustomization) {
                                     SettingsActionRow(
-                                        title = "Reorder Navigation Tabs",
-                                        description = "Manage and drag routes inside bottom layout navbar.",
+                                        title = strings.reorderNavTabs,
+                                        description = strings.manageNavTabsDesc,
                                         icon = Icons.Outlined.Reorder,
                                         actionLabel = "Manage",
                                         onClick = { showTabOrderSheet = true },
@@ -2003,13 +2007,14 @@ fun SettingsTabRow(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
 
-    val tabs = remember {
+    val tabs = remember(strings) {
         listOf(
-            BentoTabInfo("visual", "Visuals", "Themes & Styles", Icons.Outlined.Palette),
-            BentoTabInfo("preferences", "Preferences", "Currency & Mode", Icons.Outlined.Settings),
-            BentoTabInfo("security", "Security", "Biometrics & Lock", Icons.Outlined.Fingerprint),
-            BentoTabInfo("about", "About", "KakeiboX v1.0", Icons.Outlined.Info)
+            BentoTabInfo("visual", strings.visuals, strings.themesAndStyles, Icons.Outlined.Palette),
+            BentoTabInfo("preferences", strings.preferences, strings.currencyAndMode, Icons.Outlined.Settings),
+            BentoTabInfo("security", strings.security, strings.biometricsAndLock, Icons.Outlined.Fingerprint),
+            BentoTabInfo("about", strings.about, strings.version, Icons.Outlined.Info)
         )
     }
 

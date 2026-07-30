@@ -1,6 +1,8 @@
 @file:Suppress("DEPRECATION")
 package com.personal.kakeibox.ui.salary
 
+import com.personal.kakeibox.ui.theme.getAppStrings
+import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -1807,13 +1809,14 @@ fun ExpressiveStatsGrid(
     bentoIdleColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     themeSettings: ThemeSettings
 ) {
+    val strings = getAppStrings(themeSettings.appLanguage)
     Row(
         modifier = Modifier.fillMaxWidth().height(175.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Savings Bento Card with Custom Sparkline & Trend Badge
         BentoCard(
-            title = "Total Savings",
+            title = strings.totalSavings,
             icon = Icons.Outlined.Savings,
             idleContainerColor = bentoIdleColor,
             idleContentColor = MaterialTheme.colorScheme.onSurface,
@@ -1921,7 +1924,7 @@ fun ExpressiveStatsGrid(
 
         // Remittance Bento Card with animated Outflow line & Trend Badge
         BentoCard(
-            title = "Total Remittance",
+            title = strings.totalRemittance,
             icon = Icons.AutoMirrored.Outlined.ExitToApp,
             idleContainerColor = bentoIdleColor,
             idleContentColor = MaterialTheme.colorScheme.onSurface,

@@ -7,6 +7,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import com.personal.kakeibox.ui.theme.getAppStrings
+import com.personal.kakeibox.ui.theme.LocalThemeSettings
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
@@ -136,11 +138,13 @@ fun TopNavSplitButton(
     val haptic = LocalHapticFeedback.current
     var isExpanded by remember { mutableStateOf(false) }
 
-    val tabs = remember {
+    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
+
+    val tabs = remember(strings) {
         listOf(
-            Triple(0, "Salary", Icons.Filled.Wallet),
-            Triple(1, "Exercise", Icons.Filled.FitnessCenter),
-            Triple(2, "Settings", Icons.Filled.Settings)
+            Triple(0, strings.salary, Icons.Filled.Wallet),
+            Triple(1, strings.exercise, Icons.Filled.FitnessCenter),
+            Triple(2, strings.settings, Icons.Filled.Settings)
         )
     }
 

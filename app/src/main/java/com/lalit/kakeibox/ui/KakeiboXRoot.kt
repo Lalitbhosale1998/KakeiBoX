@@ -68,7 +68,8 @@ fun KakeiboXAppRoot() {
         touchSynesthesia = themeSettings.touchSynesthesia,
         glowIntensity = themeSettings.glowIntensity,
         dynamicTonalStyle = themeSettings.dynamicTonalStyle,
-        intensityPreset = themeSettings.intensityPreset
+        intensityPreset = themeSettings.intensityPreset,
+        themeSettings = themeSettings
     ) {
         val infiniteTransition = rememberInfiniteTransition(label = "ambient_bg")
         val baseColor = MaterialTheme.colorScheme.background

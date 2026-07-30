@@ -1,5 +1,7 @@
 package com.personal.kakeibox.ui.exercise
 
+import com.personal.kakeibox.ui.theme.getAppStrings
+import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -717,12 +719,14 @@ fun ExpressiveExerciseHeroHeader(
         }
     }
 
+    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
+
     // Detect predominant active focus for selected day
-    val activeFocusBadge = remember(isRestDay, exercises) {
+    val activeFocusBadge = remember(isRestDay, exercises, strings) {
         if (isRestDay) {
             "😴 REST & RECOVERY DAY"
         } else if (exercises.isEmpty()) {
-            "🏋️ SCHEDULE WORKOUTS"
+            "🏋️ " + strings.scheduleWorkouts
         } else {
             val categories = exercises.map { ex ->
                 val nameLower = ex.name.lowercase()
@@ -795,7 +799,7 @@ fun ExpressiveExerciseHeroHeader(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Add",
+                            text = strings.save,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                         )
                     }
@@ -826,12 +830,12 @@ fun ExpressiveExerciseHeroHeader(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
-                                text = "$totalWorkouts Workouts",
+                                text = "$totalWorkouts ${strings.workouts}",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = if (isRestDay) "Rest Day" else "$totalCompletedSets Sets Done",
+                                text = if (isRestDay) "Rest Day" else "$totalCompletedSets ${strings.setsDone}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
@@ -863,7 +867,7 @@ fun ExpressiveExerciseHeroHeader(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (isRestDay) "Rest Mode" else "Active",
+                                text = if (isRestDay) "Rest Mode" else strings.active,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold
                             )

@@ -1,5 +1,6 @@
 package com.personal.kakeibox.ui.theme
 
+import com.personal.kakeibox.data.preferences.ThemeSettings
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -124,6 +125,7 @@ private val DarkColors = darkColorScheme(
 val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle.M3_EXPRESSIVE }
 val LocalTouchSynesthesia = staticCompositionLocalOf { TouchSynesthesia.SUBTLE }
 val LocalGlowIntensity = staticCompositionLocalOf { GlowIntensity.SUBTLE }
+val LocalThemeSettings = staticCompositionLocalOf { ThemeSettings() }
 
 
 private fun getTypography(appFont: AppFont): androidx.compose.material3.Typography {
@@ -497,6 +499,7 @@ fun KakeiboXTheme(
     dynamicTonalStyle: DynamicTonalStyle = DynamicTonalStyle.TONAL_SPOT,
     colorSeed: Color? = null,
     intensityPreset: ColorIntensityPreset = ColorIntensityPreset.SOFT,
+    themeSettings: ThemeSettings = ThemeSettings(),
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -541,7 +544,8 @@ fun KakeiboXTheme(
     CompositionLocalProvider(
         LocalThemeStyle provides themeStyle,
         LocalTouchSynesthesia provides touchSynesthesia,
-        LocalGlowIntensity provides glowIntensity
+        LocalGlowIntensity provides glowIntensity,
+        LocalThemeSettings provides themeSettings
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
