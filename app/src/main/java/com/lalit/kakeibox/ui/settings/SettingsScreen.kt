@@ -515,13 +515,17 @@ fun SettingsScreen(
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.EMERALD_ZEN -> "Emerald Zen"
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL -> "Sunset Coral"
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS -> "Tokyo Glass"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SHU_NURI -> "朱塗り Shu-Nuri"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.O_MIKI -> "御神酒 O-Miki"
                                         },
                                         options = listOf(
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL to "Dynamic Material",
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.MIDNIGHT_OBSIDIAN to "Midnight Obsidian 🌌",
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.EMERALD_ZEN to "Emerald Zen 🌿",
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL to "Sunset Coral 🌅",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS to "Tokyo Glass 💎"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS to "Tokyo Glass 💎",
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SHU_NURI to "朱塗り Shu-Nuri 🩩",
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.O_MIKI to "御神酒 O-Miki 🎏"
                                         ),
                                         selectedOption = themeSettings.themeFlavor,
                                         onOptionSelected = { viewModel.setThemeFlavor(it) },
@@ -2398,8 +2402,8 @@ fun <T> SettingsSelectorRow(
             }
 
             if (expanded) {
-                val sheetBgColor = if (isSpaceTerminal) Color(0xFF0C1020) else MaterialTheme.colorScheme.surfaceContainerHigh
-                val sheetShape = if (isSpaceTerminal) MaterialTheme.shapes.medium.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp)) else MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp))
+                val sheetBgColor = if (isSpaceTerminal) Color(0xFF0C1020) else MaterialTheme.colorScheme.surfaceContainerLow
+                val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
                 ModalBottomSheet(
                     onDismissRequest = { expanded = false },
@@ -2408,11 +2412,11 @@ fun <T> SettingsSelectorRow(
                     dragHandle = {
                         Box(
                             modifier = Modifier
-                                .padding(vertical = 12.dp)
+                                .padding(top = 12.dp, bottom = 8.dp)
                                 .width(36.dp)
                                 .height(4.dp)
                                 .background(
-                                    color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant,
+                                    color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
                                     shape = CircleShape
                                 )
                         )
@@ -2421,21 +2425,24 @@ fun <T> SettingsSelectorRow(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .padding(horizontal = 24.dp, vertical = 12.dp)
                             .navigationBarsPadding()
                     ) {
                         Text(
                             text = title,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
-                            color = if (isSpaceTerminal) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.onSurface
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSpaceTerminal) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(bottom = if (description.isNotEmpty()) 4.dp else 16.dp)
                         )
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
-                        )
+                        if (description.isNotEmpty()) {
+                            Text(
+                                text = description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                        }
 
                         options.forEach { (value, label) ->
                             val normSelected = selectedValueLabel.trim().replace("_", " ").lowercase()
@@ -2450,16 +2457,18 @@ fun <T> SettingsSelectorRow(
                                 else -> false
                             }
                             val optionBg = if (isSelected) {
-                                if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer
-                            } else Color.Transparent
+                                if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                if (isSpaceTerminal) Color(0xFF1E293B).copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.45f)
+                            }
 
                             val optionTextColor = if (isSelected) {
-                                if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
+                                if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.onPrimaryContainer
                             } else {
                                 if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurface
                             }
 
-                            val itemShape = MaterialTheme.shapes.medium
+                            val itemShape = RoundedCornerShape(20.dp)
 
                             Surface(
                                 onClick = {
@@ -2477,21 +2486,21 @@ fun <T> SettingsSelectorRow(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                                        .padding(horizontal = 20.dp, vertical = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
                                         text = label,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                         color = optionTextColor
                                     )
                                     if (isSelected) {
                                         Icon(
                                             imageVector = Icons.Outlined.Check,
                                             contentDescription = "Selected",
-                                            tint = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary,
+                                            tint = optionTextColor,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }

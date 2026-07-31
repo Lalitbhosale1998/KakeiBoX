@@ -4,7 +4,9 @@ enum class BackdropPattern {
     NONE,
     RADAR_DOTS,
     BLUEPRINT_GRID,
-    COCKPIT_STRIPES;
+    COCKPIT_STRIPES,
+    WATER_RIPPLE,   // 朱塗り — horizontal sine-wave lines (still water)
+    WEAVE_DOTS;     // 御神酒 — hexagonal honeycomb dot grid (barrel straw weave)
 
     companion object {
         fun fromStorage(value: String?): BackdropPattern {

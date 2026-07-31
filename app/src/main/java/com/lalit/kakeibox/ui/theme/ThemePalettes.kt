@@ -236,13 +236,134 @@ object ThemePalettes {
         outlineVariant = Color(0xFFBAE6FD)
     )
 
+
+    // ── 5. 朱塗り Shu-Nuri (Vermilion Lacquer — Miyajima Torii Gate) ─────────
+    val ShuNuriDark: ColorScheme = darkColorScheme(
+        primary             = Color(0xFFD44000),    // Cinnabar Vermilion — torii pillars
+        onPrimary           = Color(0xFF3D0C00),
+        primaryContainer    = Color(0xFF7A1F00),
+        onPrimaryContainer  = Color(0xFFFFCFBB),
+        secondary           = Color(0xFF5B8FA8),    // Steel Sea Blue — calm water
+        onSecondary         = Color(0xFF0D2533),
+        secondaryContainer  = Color(0xFF1A3D52),
+        onSecondaryContainer= Color(0xFFBEDFEF),
+        tertiary            = Color(0xFFB0D4E8),    // Powder Sky — open horizon
+        onTertiary          = Color(0xFF0C2233),
+        tertiaryContainer   = Color(0xFF1A3A4D),
+        onTertiaryContainer = Color(0xFFD6ECF7),
+        background          = Color(0xFF0C0A08),    // Deep charcoal-slate, warm dark
+        onBackground        = Color(0xFFF5EEE8),
+        surface             = Color(0xFF13100E),    // Dark wood/lacquer surface
+        onSurface           = Color(0xFFF5EEE8),
+        surfaceVariant      = Color(0xFF2A1F18),
+        onSurfaceVariant    = Color(0xFFC4A99A),
+        surfaceContainerLowest  = Color(0xFF080605),
+        surfaceContainerLow     = Color(0xFF100D0B),
+        surfaceContainer        = Color(0xFF1E1915),
+        surfaceContainerHigh    = Color(0xFF29211C),
+        surfaceContainerHighest = Color(0xFF352A23),
+        surfaceBright       = Color(0xFF3D302A),
+        surfaceDim          = Color(0xFF0A0806),
+        outline             = Color(0xFF4A3020),    // Dark terracotta
+        outlineVariant      = Color(0xFF2E1E12)
+    )
+
+    val ShuNuriLight: ColorScheme = lightColorScheme(
+        primary             = Color(0xFFC0340A),    // Rich vermilion
+        onPrimary           = Color(0xFFFFFFFF),
+        primaryContainer    = Color(0xFFFFCFBB),
+        onPrimaryContainer  = Color(0xFF3D0C00),
+        secondary           = Color(0xFF4A7A94),    // Deep sea blue
+        onSecondary         = Color(0xFFFFFFFF),
+        secondaryContainer  = Color(0xFFD0EAF5),
+        onSecondaryContainer= Color(0xFF0D2533),
+        tertiary            = Color(0xFF4F7D9A),    // Mountain mist
+        onTertiary          = Color(0xFFFFFFFF),
+        tertiaryContainer   = Color(0xFFD6ECF7),
+        onTertiaryContainer = Color(0xFF0C2233),
+        background          = Color(0xFFF5F0EC),    // Warm rice paper
+        onBackground        = Color(0xFF1E1209),
+        surface             = Color(0xFFFDFAF7),    // Washi paper white
+        onSurface           = Color(0xFF1E1209),
+        surfaceVariant      = Color(0xFFEEE4DC),
+        onSurfaceVariant    = Color(0xFF5C3E30),
+        surfaceContainerLowest  = Color(0xFFFFFFFF),
+        surfaceContainerLow     = Color(0xFFF8F3EF),
+        surfaceContainer        = Color(0xFFF0E9E3),
+        surfaceContainerHigh    = Color(0xFFE8DDD5),
+        surfaceContainerHighest = Color(0xFFE0D0C6),
+        outline             = Color(0xFF8A6550),
+        outlineVariant      = Color(0xFFD4B9A8)
+    )
+
+    // ── 6. 御神酒 O-Miki (Sacred Sake — Meiji Kazaridaru Barrels) ─────────────
+    val OMikiDark: ColorScheme = darkColorScheme(
+        primary             = Color(0xFFDC143C),    // Bold crimson — red barrel bands
+        onPrimary           = Color(0xFF42000F),
+        primaryContainer    = Color(0xFF70001E),
+        onPrimaryContainer  = Color(0xFFFFB3C0),
+        secondary           = Color(0xFF4CAF7D),    // Shrine forest green
+        onSecondary         = Color(0xFF00331C),
+        secondaryContainer  = Color(0xFF004D2B),
+        onSecondaryContainer= Color(0xFFA8F0C6),
+        tertiary            = Color(0xFFD4A853),    // Golden straw/rope
+        onTertiary          = Color(0xFF3A2500),
+        tertiaryContainer   = Color(0xFF593A00),
+        onTertiaryContainer = Color(0xFFFFDFA0),
+        background          = Color(0xFF0E0808),    // Deep espresso
+        onBackground        = Color(0xFFF7EDEA),
+        surface             = Color(0xFF160D0D),    // Dark lacquered wood
+        onSurface           = Color(0xFFF7EDEA),
+        surfaceVariant      = Color(0xFF2C1515),
+        onSurfaceVariant    = Color(0xFFD4A5A5),
+        surfaceContainerLowest  = Color(0xFF090505),
+        surfaceContainerLow     = Color(0xFF120A0A),
+        surfaceContainer        = Color(0xFF1C1010),
+        surfaceContainerHigh    = Color(0xFF261616),
+        surfaceContainerHighest = Color(0xFF311D1D),
+        surfaceBright       = Color(0xFF3D2525),
+        surfaceDim          = Color(0xFF0B0606),
+        outline             = Color(0xFF5C2020),    // Dark crimson border
+        outlineVariant      = Color(0xFF3A1515)
+    )
+
+    val OMikiLight: ColorScheme = lightColorScheme(
+        primary             = Color(0xFFC4122E),    // Deep crimson
+        onPrimary           = Color(0xFFFFFFFF),
+        primaryContainer    = Color(0xFFFFD6DC),
+        onPrimaryContainer  = Color(0xFF42000F),
+        secondary           = Color(0xFF1E5C3C),    // Dark shrine green
+        onSecondary         = Color(0xFFFFFFFF),
+        secondaryContainer  = Color(0xFFB8EDD0),
+        onSecondaryContainer= Color(0xFF00331C),
+        tertiary            = Color(0xFF9A6E0A),    // Warm gold
+        onTertiary          = Color(0xFFFFFFFF),
+        tertiaryContainer   = Color(0xFFFFE0A0),
+        onTertiaryContainer = Color(0xFF3A2500),
+        background          = Color(0xFFFFF8F0),    // Warm ivory cream — barrel canvas
+        onBackground        = Color(0xFF1E0808),
+        surface             = Color(0xFFFFFCF8),    // Pure ivory
+        onSurface           = Color(0xFF1E0808),
+        surfaceVariant      = Color(0xFFEFDDD8),
+        onSurfaceVariant    = Color(0xFF5C2828),
+        surfaceContainerLowest  = Color(0xFFFFFFFF),
+        surfaceContainerLow     = Color(0xFFFFF5F0),
+        surfaceContainer        = Color(0xFFFFEDE5),
+        surfaceContainerHigh    = Color(0xFFF5DDD5),
+        surfaceContainerHighest = Color(0xFFEBCEC5),
+        outline             = Color(0xFF9A4040),
+        outlineVariant      = Color(0xFFDDB0A8)
+    )
+
     fun getColorScheme(flavor: ThemeFlavor, isDark: Boolean): ColorScheme? {
         return when (flavor) {
-            ThemeFlavor.DYNAMIC_MATERIAL -> null // Handled by Material You / fallback
-            ThemeFlavor.MIDNIGHT_OBSIDIAN -> if (isDark) MidnightObsidianDark else MidnightObsidianLight
-            ThemeFlavor.EMERALD_ZEN -> if (isDark) EmeraldZenDark else EmeraldZenLight
-            ThemeFlavor.SUNSET_CORAL -> if (isDark) SunsetCoralDark else SunsetCoralLight
-            ThemeFlavor.TOKYO_GLASS -> if (isDark) TokyoGlassDark else TokyoGlassLight
+            ThemeFlavor.DYNAMIC_MATERIAL    -> null
+            ThemeFlavor.MIDNIGHT_OBSIDIAN   -> if (isDark) MidnightObsidianDark else MidnightObsidianLight
+            ThemeFlavor.EMERALD_ZEN         -> if (isDark) EmeraldZenDark else EmeraldZenLight
+            ThemeFlavor.SUNSET_CORAL        -> if (isDark) SunsetCoralDark else SunsetCoralLight
+            ThemeFlavor.TOKYO_GLASS         -> if (isDark) TokyoGlassDark else TokyoGlassLight
+            ThemeFlavor.SHU_NURI            -> if (isDark) ShuNuriDark else ShuNuriLight
+            ThemeFlavor.O_MIKI              -> if (isDark) OMikiDark else OMikiLight
         }
     }
 }

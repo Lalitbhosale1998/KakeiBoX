@@ -333,6 +333,54 @@ fun Modifier.expressiveBackground(
             }
             drawPath(path = path, color = stripeColor)
         }
+        BackdropPattern.WATER_RIPPLE -> {
+            // 朱塗り: Subtle horizontal sine-wave lines — still water under the Torii gate
+            val rippleColor = if (isDark) {
+                primaryColor.copy(alpha = 0.07f)
+            } else {
+                Color(0xFF5B8FA8).copy(alpha = 0.06f)
+            }
+            val waveHeight = 3.dp.toPx()
+            val waveLength = 80.dp.toPx()
+            val rowSpacing = 22.dp.toPx()
+            var y = rowSpacing
+            while (y < size.height) {
+                val path = Path()
+                path.moveTo(0f, y)
+                var x = 0f
+                while (x < size.width + waveLength) {
+                    val phase = (x / waveLength) * 2f * Math.PI.toFloat()
+                    val yOff = kotlin.math.sin(phase.toDouble()).toFloat() * waveHeight
+                    path.lineTo(x, y + yOff)
+                    x += 2.dp.toPx()
+                }
+                drawPath(path = path, color = rippleColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1f))
+                y += rowSpacing
+            }
+        }
+        BackdropPattern.WEAVE_DOTS -> {
+            // 御神酒: Hexagonal honeycomb dot grid — barrel straw weave abstraction
+            val dotColor = if (isDark) {
+                primaryColor.copy(alpha = 0.10f)
+            } else {
+                Color(0xFF9A4040).copy(alpha = 0.06f)
+            }
+            val dotRadius = 2.dp.toPx()
+            val colSpacing = 18.dp.toPx()
+            val rowSpacing = 16.dp.toPx()
+            var row = 0
+            var y = 0f
+            while (y < size.height) {
+                val xOffset = if (row % 2 == 0) 0f else colSpacing / 2f
+                var x = xOffset
+                while (x < size.width) {
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(x, y))
+                    x += colSpacing
+                }
+                y += rowSpacing
+                row++
+            }
+        }
     }
 }
 
@@ -381,6 +429,44 @@ fun Modifier.backdropPattern(pattern: BackdropPattern): Modifier = this.drawBehi
                 xOffset += stripeGap
             }
             drawPath(path = path, color = stripeColor)
+        }
+        BackdropPattern.WATER_RIPPLE -> {
+            val rippleColor = Color(0xFF5B8FA8).copy(alpha = 0.06f)
+            val waveHeight = 3.dp.toPx()
+            val waveLength = 80.dp.toPx()
+            val rowSpacing = 22.dp.toPx()
+            var y = rowSpacing
+            while (y < size.height) {
+                val path = Path()
+                path.moveTo(0f, y)
+                var x = 0f
+                while (x < size.width + waveLength) {
+                    val phase = (x / waveLength) * 2f * Math.PI.toFloat()
+                    val yOff = kotlin.math.sin(phase.toDouble()).toFloat() * waveHeight
+                    path.lineTo(x, y + yOff)
+                    x += 2.dp.toPx()
+                }
+                drawPath(path = path, color = rippleColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1f))
+                y += rowSpacing
+            }
+        }
+        BackdropPattern.WEAVE_DOTS -> {
+            val dotColor = Color(0xFF9A4040).copy(alpha = 0.06f)
+            val dotRadius = 2.dp.toPx()
+            val colSpacing = 18.dp.toPx()
+            val rowSpacing = 16.dp.toPx()
+            var row = 0
+            var y = 0f
+            while (y < size.height) {
+                val xOffset = if (row % 2 == 0) 0f else colSpacing / 2f
+                var x = xOffset
+                while (x < size.width) {
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(x, y))
+                    x += colSpacing
+                }
+                y += rowSpacing
+                row++
+            }
         }
     }
 }
@@ -587,7 +673,26 @@ fun KakeiboXTheme(
         rawColorScheme
     }
 
-    val shapes = KakeiboXShapes
+    // Per-flavor shape tokens: architectural (Shu-Nuri), pillow-round (O-Miki), default (all others)
+    val shapes = when (themeFlavor) {
+        ThemeFlavor.SHU_NURI -> Shapes(
+            // Torii gate geometry — angular, architectural, minimal radius
+            extraSmall = RoundedCornerShape(4.dp),
+            small      = RoundedCornerShape(6.dp),
+            medium     = RoundedCornerShape(8.dp),
+            large      = RoundedCornerShape(10.dp),
+            extraLarge = RoundedCornerShape(12.dp)
+        )
+        ThemeFlavor.O_MIKI -> Shapes(
+            // Barrel silhouette — very round, pillow-like, celebratory
+            extraSmall = RoundedCornerShape(16.dp),
+            small      = RoundedCornerShape(20.dp),
+            medium     = RoundedCornerShape(24.dp),
+            large      = RoundedCornerShape(28.dp),
+            extraLarge = RoundedCornerShape(32.dp)
+        )
+        else -> KakeiboXShapes
+    }
     val selectedFont = appFont
     val typography = getTypography(selectedFont)
 

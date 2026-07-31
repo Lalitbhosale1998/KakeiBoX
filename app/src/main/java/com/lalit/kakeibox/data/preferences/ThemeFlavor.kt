@@ -5,7 +5,9 @@ enum class ThemeFlavor {
     MIDNIGHT_OBSIDIAN,
     EMERALD_ZEN,
     SUNSET_CORAL,
-    TOKYO_GLASS;
+    TOKYO_GLASS,
+    SHU_NURI,     // 朱塗り — Vermilion Lacquer (Miyajima Torii Gate)
+    O_MIKI;       // 御神酒 — Sacred Sake (Meiji Kazaridaru Barrels)
 
     companion object {
         fun fromStorage(value: String?): ThemeFlavor {
