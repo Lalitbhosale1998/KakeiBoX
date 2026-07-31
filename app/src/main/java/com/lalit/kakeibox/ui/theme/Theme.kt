@@ -619,60 +619,57 @@ fun KakeiboXTheme(
         else -> LightColors
     }
     
-    val colorScheme = if (themeFlavor == ThemeFlavor.DYNAMIC_MATERIAL) {
-        val scaled = rawColorScheme.scaleChroma(dynamicColorChromaScale)
-        if (darkTheme) {
-            // ── M3E Compliance: Chromatic Neutral Surfaces ───────────────────────────
-            // Extract seed hue from the Monet primary for proper tonal derivation.
-            // M3E surfaces must be seed-hue-tinted neutrals (chroma 4-6), NOT achromatic black.
-            val seedHct = Hct.fromInt(scaled.primary.toArgb())
-            val seedHue = seedHct.hue
+    // Apply dynamicColorChromaScale across all theme schemes and flavors
+    val scaled = rawColorScheme.scaleChroma(dynamicColorChromaScale)
 
-            // Neutral: very low chroma (4) — barely perceptible hue tint on surfaces
-            // Neutral Variant: slightly higher chroma (8) — for variant/outline tokens
-            fun ns(tone: Double) = Color(Hct.from(seedHue, 4.0, tone).toInt())   // neutral surface
-            fun nv(tone: Double) = Color(Hct.from(seedHue, 8.0, tone).toInt())   // neutral variant
+    val colorScheme = if (darkTheme) {
+        // ── M3E Compliance: Chromatic Neutral Surfaces ───────────────────────────
+        // Extract seed hue from the Monet primary for proper tonal derivation.
+        // M3E surfaces must be seed-hue-tinted neutrals (chroma 4-6), NOT achromatic black.
+        val seedHct = Hct.fromInt(rawColorScheme.primary.toArgb())
+        val seedHue = seedHct.hue
 
-            // ── M3E Compliance: Guarded Primary Chroma Boost ─────────────────────────
-            // Only boost if already-low chroma (< 80). Cap at 110 to preserve
-            // primary → onPrimary contrast ratio (WCAG AA).
-            val boostedPrimary = run {
-                val targetChroma = if (seedHct.chroma < 80.0) {
-                    (seedHct.chroma * 1.15).coerceAtMost(110.0)
-                } else {
-                    seedHct.chroma // Already vivid — no boost needed
-                }
-                Color(Hct.from(seedHue, targetChroma, seedHct.tone).toInt())
+        // Scale neutral surface hue tints dynamically with saturation slider
+        val surfChroma = (4.0 * dynamicColorChromaScale).coerceIn(0.0, 20.0)
+        val varChroma = (8.0 * dynamicColorChromaScale).coerceIn(0.0, 30.0)
+
+        fun ns(tone: Double) = Color(Hct.from(seedHue, surfChroma, tone).toInt())   // neutral surface
+        fun nv(tone: Double) = Color(Hct.from(seedHue, varChroma, tone).toInt())   // neutral variant
+
+        // ── M3E Compliance: Guarded Primary Chroma Boost with Saturation Slider ────
+        val boostedPrimary = run {
+            val baseChroma = seedHct.chroma * dynamicColorChromaScale
+            val targetChroma = if (baseChroma < 80.0) {
+                (baseChroma * 1.15).coerceAtMost(120.0)
+            } else {
+                baseChroma.coerceAtMost(120.0)
             }
-
-            scaled.copy(
-                // Fix 3: Guarded vivid primary
-                primary                 = boostedPrimary,
-
-                // Fix 1: M3E dark tone targets — chromatic neutrals from seed hue
-                surface                 = ns(6.0),
-                background              = ns(6.0),
-                surfaceDim              = ns(4.0),
-                surfaceContainerLowest  = ns(4.0),
-                surfaceContainerLow     = ns(10.0),
-                surfaceContainer        = ns(12.0),
-                surfaceContainerHigh    = ns(17.0),
-                surfaceContainerHighest = ns(22.0),
-                surfaceBright           = ns(24.0),
-
-                // Fix 2: Re-tune onSurface family for new dark surfaces
-                // These were calibrated for Monet's tinted surfaces — must match our new base
-                onSurface               = ns(90.0),
-                onSurfaceVariant        = nv(80.0),
-                surfaceVariant          = nv(30.0),
-                outline                 = nv(60.0),
-                outlineVariant          = nv(30.0),
-            )
-        } else {
-            scaled
+            Color(Hct.from(seedHue, targetChroma, seedHct.tone).toInt())
         }
+
+        scaled.copy(
+            primary                 = boostedPrimary,
+
+            // M3E dark tone targets — chromatic neutrals from seed hue
+            surface                 = ns(6.0),
+            background              = ns(6.0),
+            surfaceDim              = ns(4.0),
+            surfaceContainerLowest  = ns(4.0),
+            surfaceContainerLow     = ns(10.0),
+            surfaceContainer        = ns(12.0),
+            surfaceContainerHigh    = ns(17.0),
+            surfaceContainerHighest = ns(22.0),
+            surfaceBright           = ns(24.0),
+
+            // Re-tune onSurface family for new dark surfaces
+            onSurface               = ns(90.0),
+            onSurfaceVariant        = nv(80.0),
+            surfaceVariant          = nv(30.0),
+            outline                 = nv(60.0),
+            outlineVariant          = nv(30.0),
+        )
     } else {
-        rawColorScheme
+        scaled
     }
 
     // Per-flavor shape tokens: architectural (Shu-Nuri), pillow-round (O-Miki), default (all others)
