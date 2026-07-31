@@ -91,7 +91,13 @@ fun KakeiboXAppRoot() {
                 .background(ambientColor)
                 .backdropPattern(themeSettings.backdropPattern)
         ) {
-            if (!themeSettings.biometricEnabled || isAuthenticated) {
+            if (!themeSettings.isSetupComplete) {
+                com.personal.kakeibox.ui.setup.SetupScreen(
+                    themeSettings = themeSettings,
+                    themeViewModel = themeViewModel,
+                    onSetupComplete = { themeViewModel.setSetupComplete(true) }
+                )
+            } else if (!themeSettings.biometricEnabled || isAuthenticated) {
                 val windowSizeClass = calculateWindowSizeClass(context as Activity)
                 KakeiboXApp(windowSizeClass = windowSizeClass)
             } else {

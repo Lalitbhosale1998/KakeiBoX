@@ -72,6 +72,7 @@ data class ThemeSettings(
     val dynamicColorChromaScale: Float = 1.0f,
     val earningsCardShape: CardShapePreference = CardShapePreference.PILL,
     val savingsCardShape: CardShapePreference = CardShapePreference.PILL,
-    val remittanceCardShape: CardShapePreference = CardShapePreference.PILL
+    val remittanceCardShape: CardShapePreference = CardShapePreference.PILL,
+    val isSetupComplete: Boolean = true
 )
 

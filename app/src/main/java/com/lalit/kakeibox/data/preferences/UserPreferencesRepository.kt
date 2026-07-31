@@ -38,6 +38,7 @@ private object Keys {
     val NAV_ANIMATION = stringPreferencesKey("nav_animation")
     val SAVINGS_CARD_SHAPE = stringPreferencesKey("savings_card_shape")
     val REMITTANCE_CARD_SHAPE = stringPreferencesKey("remittance_card_shape")
+    val IS_SETUP_COMPLETE = booleanPreferencesKey("is_setup_complete")
 }
 
 @Singleton
@@ -98,7 +99,8 @@ class UserPreferencesRepository @Inject constructor(
             dynamicColorChromaScale = prefs[Keys.DYNAMIC_COLOR_CHROMA_SCALE] ?: 1.0f,
             earningsCardShape = CardShapePreference.fromStorage(prefs[Keys.EARNINGS_CARD_SHAPE]),
             savingsCardShape = CardShapePreference.fromStorage(prefs[Keys.SAVINGS_CARD_SHAPE]),
-            remittanceCardShape = CardShapePreference.fromStorage(prefs[Keys.REMITTANCE_CARD_SHAPE])
+            remittanceCardShape = CardShapePreference.fromStorage(prefs[Keys.REMITTANCE_CARD_SHAPE]),
+            isSetupComplete = prefs[Keys.IS_SETUP_COMPLETE] ?: false
         )
     }
 
@@ -188,6 +190,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setDynamicColorChromaScale(scale: Float) {
         dataStore.edit { it[Keys.DYNAMIC_COLOR_CHROMA_SCALE] = scale }
+    }
+
+    suspend fun setSetupComplete(completed: Boolean) {
+        dataStore.edit { it[Keys.IS_SETUP_COMPLETE] = completed }
     }
 
     suspend fun setEarningsCardShape(shape: CardShapePreference) {

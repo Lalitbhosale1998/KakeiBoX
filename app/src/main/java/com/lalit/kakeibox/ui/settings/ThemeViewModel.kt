@@ -227,6 +227,12 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun setSetupComplete(completed: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.setSetupComplete(completed)
+        }
+    }
+
     fun setTopAppBarBackground(background: TopAppBarBackground) {
         viewModelScope.launch {
             preferencesRepository.setTopAppBarBackground(background)

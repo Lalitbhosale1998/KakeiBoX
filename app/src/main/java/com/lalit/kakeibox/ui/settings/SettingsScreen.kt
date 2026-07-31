@@ -638,10 +638,19 @@ fun SettingsScreen(
                                             ColorIntensityPreset.NEUTRAL to "Neutral",
                                             ColorIntensityPreset.SOFT to "Soft",
                                             ColorIntensityPreset.BRIGHT to "Bright",
-                                            ColorIntensityPreset.BOLD to "Bold"
+                                        ColorIntensityPreset.BOLD to "Bold"
                                         ),
                                         onOptionSelected = { viewModel.setIntensityPreset(it) },
                                         accentColor = Color(0xFF10B981)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                    SettingsActionRow(
+                                        title = "Launch Setup Wizard 🪄",
+                                        description = "Re-run the M3 Expressive onboarding flow",
+                                        icon = Icons.Outlined.Tune,
+                                        actionLabel = "Start",
+                                        onClick = { viewModel.setSetupComplete(false) },
+                                        accentColor = Color(0xFF8B5CF6)
                                     )
                                 }
 
