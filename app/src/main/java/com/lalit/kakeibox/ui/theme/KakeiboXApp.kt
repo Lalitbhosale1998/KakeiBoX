@@ -42,6 +42,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.draw.rotate
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Settings
@@ -138,7 +141,8 @@ fun TopNavSplitButton(
     val haptic = LocalHapticFeedback.current
     var isExpanded by remember { mutableStateOf(false) }
 
-    val strings = getAppStrings(LocalThemeSettings.current.appLanguage)
+    val themeSettings = LocalThemeSettings.current
+    val strings = getAppStrings(themeSettings.appLanguage)
 
     val tabs = remember(strings) {
         listOf(
@@ -151,6 +155,28 @@ fun TopNavSplitButton(
     val activeTab = tabs.find { it.first == currentPage } ?: tabs[0]
     val remainingTabs = tabs.filter { it.first != currentPage }
 
+    // Dynamic Corner Morphing for Morphing FAB per Tab
+    val fabCornerTopStart = when (currentPage) {
+        0 -> 20.dp
+        1 -> 14.dp
+        else -> 32.dp
+    }
+    val fabCornerTopEnd = when (currentPage) {
+        0 -> 20.dp
+        1 -> 36.dp
+        else -> 8.dp
+    }
+
+    val fabTopStartAnim by animateDpAsState(targetValue = fabCornerTopStart, animationSpec = spring(stiffness = Spring.StiffnessLow), label = "fab_ts")
+    val fabTopEndAnim by animateDpAsState(targetValue = fabCornerTopEnd, animationSpec = spring(stiffness = Spring.StiffnessLow), label = "fab_te")
+
+    // Continuous 360° rotation animation for Morphing FAB
+    val fabRotation by animateFloatAsState(
+        targetValue = currentPage * 360f + (if (isExpanded) 180f else 0f),
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "nav_fab_spin"
+    )
+
     // Dynamic Corner Morphing: 32.dp when collapsed, 10.dp when expanded
     val activeEndCorner by animateDpAsState(
         targetValue = if (isExpanded) 10.dp else 32.dp,
@@ -161,161 +187,257 @@ fun TopNavSplitButton(
         label = "active_end_corner"
     )
 
-    // 180-degree spring rotation for chevron
     val rotationChevron by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
         animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessLow),
         label = "top_nav_chevron_rot"
     )
 
-    Surface(
-        modifier = modifier
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(start = 20.dp, end = 20.dp, top = 10.dp),
-        shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shadowElevation = 6.dp,
-        tonalElevation = 0.dp,
-        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(6.dp)
+    if (themeSettings.navBarStyle == NavBarStyle.EXPANDED_SEGMENTED) {
+        // 📱 Option B: Expanded M3 Segmented Bar (All 3 tabs visible at once)
+        Surface(
+            modifier = modifier
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp),
+            shape = RoundedCornerShape(32.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
+            shadowElevation = 8.dp,
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
         ) {
-            // ── Primary Action Button (Active Tab Display with Dual-Tone Gradient & Live Route Badge) ──
-            val activeShape = RoundedCornerShape(
-                topStart = 32.dp,
-                bottomStart = 32.dp,
-                topEnd = activeEndCorner,
-                bottomEnd = activeEndCorner
-            )
-
-            Surface(
-                shape = activeShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+            Row(
                 modifier = Modifier
-                    .clip(activeShape)
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        isExpanded = !isExpanded
-                    }
+                    .fillMaxWidth()
+                    .padding(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
-                ) {
-                    // Live Active Focus Indicator Dot
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                tabs.forEach { (index, title, icon) ->
+                    val isSelected = index == currentPage
+                    val tabScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.03f else 1.0f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                        label = "tab_seg_s_$index"
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
 
-                    Icon(
-                        imageVector = activeTab.third,
-                        contentDescription = activeTab.second,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = activeTab.second,
-                        maxLines = 1,
-                        softWrap = false,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        ),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Toggle remaining tabs",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    Surface(
                         modifier = Modifier
-                            .size(20.dp)
+                            .weight(1f)
+                            .height(48.dp)
                             .graphicsLayer {
-                                rotationZ = rotationChevron
+                                scaleX = tabScale
+                                scaleY = tabScale
                             }
-                    )
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onPageSelected(index)
+                            },
+                        shape = RoundedCornerShape(24.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                        border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)) else null
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = title,
+                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
+                    }
                 }
             }
-
-            // ── Secondary Action Buttons (Remaining Tabs - BIG with Horizontal Scroll) ──
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = fadeIn() + expandHorizontally(
-                    expandFrom = Alignment.Start,
-                    clip = false,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow
-                    )
-                ),
-                exit = fadeOut() + shrinkHorizontally(
-                    shrinkTowards = Alignment.Start,
-                    clip = false,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                )
+        }
+    } else {
+        // 🛸 Option A: Floating Capsule Dock with Morphing FAB
+        Surface(
+            modifier = modifier
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(start = 20.dp, end = 20.dp, top = 10.dp),
+            shape = RoundedCornerShape(32.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shadowElevation = 6.dp,
+            tonalElevation = 0.dp,
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(6.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.horizontalScroll(rememberScrollState())
-                ) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    remainingTabs.forEachIndexed { index, tab ->
-                        val isLast = index == remainingTabs.size - 1
-                        val tabShape = RoundedCornerShape(
-                            topStart = 10.dp,
-                            bottomStart = 10.dp,
-                            topEnd = if (isLast) 32.dp else 10.dp,
-                            bottomEnd = if (isLast) 32.dp else 10.dp
-                        )
+                // ── Primary Action Button (Active Tab Display) ──
+                val activeShape = RoundedCornerShape(
+                    topStart = 32.dp,
+                    bottomStart = 32.dp,
+                    topEnd = activeEndCorner,
+                    bottomEnd = activeEndCorner
+                )
 
-                        Surface(
-                            shape = tabShape,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
+                Surface(
+                    shape = activeShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                    modifier = Modifier
+                        .clip(activeShape)
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            isExpanded = !isExpanded
+                        }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
+                    ) {
+                        Box(
                             modifier = Modifier
-                                .clip(tabShape)
-                                .clickable {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    isExpanded = false
-                                    onPageSelected(tab.first)
+                                .size(8.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Icon(
+                            imageVector = activeTab.third,
+                            contentDescription = activeTab.second,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = activeTab.second,
+                            maxLines = 1,
+                            softWrap = false,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            ),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Toggle remaining tabs",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .graphicsLayer {
+                                    rotationZ = rotationChevron
                                 }
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                        )
+                    }
+                }
+
+                // ── Secondary Action Buttons (Remaining Tabs) ──
+                AnimatedVisibility(
+                    visible = isExpanded,
+                    enter = fadeIn() + expandHorizontally(
+                        expandFrom = Alignment.Start,
+                        clip = false,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ),
+                    exit = fadeOut() + shrinkHorizontally(
+                        shrinkTowards = Alignment.Start,
+                        clip = false,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.horizontalScroll(rememberScrollState())
+                    ) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        remainingTabs.forEachIndexed { index, tab ->
+                            val isLast = index == remainingTabs.size - 1
+                            val tabShape = RoundedCornerShape(
+                                topStart = 10.dp,
+                                bottomStart = 10.dp,
+                                topEnd = if (isLast) 32.dp else 10.dp,
+                                bottomEnd = if (isLast) 32.dp else 10.dp
+                            )
+
+                            Surface(
+                                shape = tabShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier
+                                    .clip(tabShape)
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        isExpanded = false
+                                        onPageSelected(tab.first)
+                                    }
                             ) {
-                                Icon(
-                                    imageVector = tab.third,
-                                    contentDescription = tab.second,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = tab.second,
-                                    maxLines = 1,
-                                    softWrap = false,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = tab.third,
+                                        contentDescription = tab.second,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = tab.second,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
+                            if (!isLast) {
+                                Spacer(modifier = Modifier.width(6.dp))
                             }
                         }
+                    }
+                }
 
-                        if (!isLast) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                        }
+                // ── 🌀 Right Side 360° Counter-Rotating Morphing FAB ──
+                Spacer(modifier = Modifier.weight(1f))
+                Surface(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .rotate(fabRotation)
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            isExpanded = !isExpanded
+                        },
+                    shape = RoundedCornerShape(
+                        topStart = fabTopStartAnim,
+                        topEnd = fabTopEndAnim,
+                        bottomStart = 10.dp,
+                        bottomEnd = 20.dp
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    shadowElevation = 4.dp
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .rotate(-fabRotation),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.Close else Icons.Default.Menu,
+                            contentDescription = "Action FAB",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
             }
