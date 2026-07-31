@@ -651,7 +651,7 @@ fun SalaryScreen(
 
                         HorizontalPager(
                             state = pagerState,
-                            contentPadding = PaddingValues(horizontal = 32.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp),
                             pageSpacing = 10.dp,
                             userScrollEnabled = monthEntries.size > 1,
                             modifier = Modifier.fillMaxWidth()
