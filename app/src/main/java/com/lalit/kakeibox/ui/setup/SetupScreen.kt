@@ -45,49 +45,44 @@ fun SetupScreen(
     onSetupComplete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 6 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 5 })
     val coroutineScope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
 
-    // Dynamic Corner Morphing for Next FAB Button:
+    // Dynamic Corner Morphing for Next FAB Button (5 Pages total):
     // Page 0 (Welcome): Circle (50.dp)
     // Page 1 (Lang/Currency): Squircle (20.dp)
     // Page 2 (Theme/Font): Organic Leaf (14.dp, 36.dp, 14.dp, 36.dp)
-    // Page 3 (Work/Rest): Pill Asymmetric (28.dp, 10.dp, 28.dp, 10.dp)
-    // Page 4 (Security): Clamshell (32.dp, 8.dp, 8.dp, 32.dp)
-    // Page 5 (Finish): Full Pill (32.dp)
+    // Page 3 (Security): Clamshell (32.dp, 8.dp, 8.dp, 32.dp)
+    // Page 4 (Finish): Full Pill (32.dp)
     val page = pagerState.currentPage
 
     val targetTopStart = when (page) {
         0 -> 50.dp
         1 -> 20.dp
         2 -> 14.dp
-        3 -> 28.dp
-        4 -> 32.dp
+        3 -> 32.dp
         else -> 32.dp
     }
     val targetTopEnd = when (page) {
         0 -> 50.dp
         1 -> 20.dp
         2 -> 36.dp
-        3 -> 10.dp
-        4 -> 8.dp
+        3 -> 8.dp
         else -> 32.dp
     }
     val targetBottomStart = when (page) {
         0 -> 50.dp
         1 -> 20.dp
         2 -> 14.dp
-        3 -> 28.dp
-        4 -> 8.dp
+        3 -> 8.dp
         else -> 32.dp
     }
     val targetBottomEnd = when (page) {
         0 -> 50.dp
         1 -> 20.dp
         2 -> 36.dp
-        3 -> 10.dp
-        4 -> 32.dp
+        3 -> 32.dp
         else -> 32.dp
     }
 
@@ -131,7 +126,7 @@ fun SetupScreen(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                     ) {
                         Text(
-                            text = "STEP ${pagerState.currentPage + 1} OF 6",
+                            text = "STEP ${pagerState.currentPage + 1} OF 5",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
@@ -142,7 +137,7 @@ fun SetupScreen(
 
                     // Segmented Dots Indicator
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        repeat(6) { idx ->
+                        repeat(5) { idx ->
                             val isActive = idx == pagerState.currentPage
                             val dotWidth by animateDpAsState(
                                 targetValue = if (isActive) 24.dp else 8.dp,
@@ -177,9 +172,8 @@ fun SetupScreen(
                             0 -> WelcomeStep()
                             1 -> LangCurrencyStep(themeSettings, themeViewModel)
                             2 -> ThemeFontStep(themeSettings, themeViewModel)
-                            3 -> WorkRestStep(themeSettings, themeViewModel)
-                            4 -> SecurityPrivacyStep(themeSettings, themeViewModel)
-                            5 -> FinishStep(themeSettings, onSetupComplete)
+                            3 -> SecurityPrivacyStep(themeSettings, themeViewModel)
+                            4 -> FinishStep(themeSettings, onSetupComplete)
                         }
                     }
                 }
@@ -229,7 +223,7 @@ fun SetupScreen(
                                 .rotate(animatedRotation) // Outer container spins 360°
                                 .clickable {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    if (pagerState.currentPage < 5) {
+                                    if (pagerState.currentPage < 4) {
                                         coroutineScope.launch {
                                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                                         }
@@ -258,7 +252,7 @@ fun SetupScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     AnimatedContent(
-                                        targetState = pagerState.currentPage == 5,
+                                        targetState = pagerState.currentPage == 4,
                                         transitionSpec = { (fadeIn() + scaleIn()).togetherWith(fadeOut() + scaleOut()) },
                                         label = "icon_completion_morph"
                                     ) { isFinish ->
@@ -272,7 +266,7 @@ fun SetupScreen(
                                                 )
                                                 Spacer(modifier = Modifier.width(6.dp))
                                                 Text(
-                                                    text = "Enter KakeiboX",
+                                                    text = "Enter Vitta",
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 15.sp,
                                                     color = MaterialTheme.colorScheme.onPrimary
@@ -700,39 +694,311 @@ private fun WelcomeStep() {
 
 @Composable
 private fun LangCurrencyStep(themeSettings: ThemeSettings, viewModel: ThemeViewModel) {
+    val haptic = LocalHapticFeedback.current
+    val infiniteTransition = rememberInfiniteTransition(label = "lang_hero_morph")
+    val morphCorner by infiniteTransition.animateFloat(
+        initialValue = 18f,
+        targetValue = 46f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "l_corner"
+    )
+    val morphRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(16000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "l_rot"
+    )
+
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("Language & Currency", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("Customize your regional localization and currency symbol.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text("App Language", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            FilterChip(
-                selected = themeSettings.appLanguage == AppLanguage.ENGLISH,
-                onClick = { viewModel.setAppLanguage(AppLanguage.ENGLISH) },
-                label = { Text("English 🇺🇸") }
+        // 🏛️ Top-Left Aligned Editorial Header Hierarchy
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
+            Text(
+                text = "Regional &",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.onSurface
             )
-            FilterChip(
-                selected = themeSettings.appLanguage == AppLanguage.JAPANESE,
-                onClick = { viewModel.setAppLanguage(AppLanguage.JAPANESE) },
-                label = { Text("日本語 🇯🇵") }
+            Text(
+                text = "Localization",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontWeight = FontWeight.Black
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Set your preferred app language & primary currency format.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        // 🎨 Floating Glass Bento Card Container
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            // Background Morphing Currency Shape Accent
+            Box(
+                modifier = Modifier
+                    .size(190.dp)
+                    .rotate(morphRotation)
+                    .clip(RoundedCornerShape(morphCorner.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
+                            )
+                        )
+                    )
+            )
 
-        Text("Currency Symbol", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("¥", "$", "€", "₹", "£").forEach { sym ->
-                FilterChip(
-                    selected = themeSettings.currencySymbol == sym,
-                    onClick = { viewModel.setCurrencySymbol(sym) },
-                    label = { Text(sym, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
-                )
+            // 💳 Card-in-Card Bento Container
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                shadowElevation = 14.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // App Language Section
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("🌐", fontSize = 18.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "APP LANGUAGE",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        val haptic = LocalHapticFeedback.current
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val isEnglish = themeSettings.appLanguage == AppLanguage.ENGLISH
+                            val engScale by animateFloatAsState(
+                                targetValue = if (isEnglish) 1.04f else 1.0f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                                label = "eng_scale"
+                            )
+                            val engTopStart by animateDpAsState(targetValue = if (isEnglish) 22.dp else 14.dp, label = "eng_ts")
+                            val engBottomEnd by animateDpAsState(targetValue = if (isEnglish) 22.dp else 14.dp, label = "eng_be")
+
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(54.dp)
+                                    .graphicsLayer {
+                                        scaleX = engScale
+                                        scaleY = engScale
+                                    }
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.setAppLanguage(AppLanguage.ENGLISH)
+                                    },
+                                shape = RoundedCornerShape(
+                                    topStart = engTopStart,
+                                    topEnd = 12.dp,
+                                    bottomStart = 12.dp,
+                                    bottomEnd = engBottomEnd
+                                ),
+                                color = if (isEnglish) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+                                border = BorderStroke(
+                                    if (isEnglish) 2.dp else 1.dp,
+                                    if (isEnglish) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                ),
+                                shadowElevation = if (isEnglish) 6.dp else 0.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    AnimatedVisibility(
+                                        visible = isEnglish,
+                                        enter = fadeIn() + scaleIn(),
+                                        exit = fadeOut() + scaleOut()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "English 🇺🇸",
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isEnglish) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+
+                            val isJapanese = themeSettings.appLanguage == AppLanguage.JAPANESE
+                            val japScale by animateFloatAsState(
+                                targetValue = if (isJapanese) 1.04f else 1.0f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                                label = "jap_scale"
+                            )
+                            val japTopStart by animateDpAsState(targetValue = if (isJapanese) 22.dp else 14.dp, label = "jap_ts")
+                            val japBottomEnd by animateDpAsState(targetValue = if (isJapanese) 22.dp else 14.dp, label = "jap_be")
+
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(54.dp)
+                                    .graphicsLayer {
+                                        scaleX = japScale
+                                        scaleY = japScale
+                                    }
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.setAppLanguage(AppLanguage.JAPANESE)
+                                    },
+                                shape = RoundedCornerShape(
+                                    topStart = japTopStart,
+                                    topEnd = 12.dp,
+                                    bottomStart = 12.dp,
+                                    bottomEnd = japBottomEnd
+                                ),
+                                color = if (isJapanese) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+                                border = BorderStroke(
+                                    if (isJapanese) 2.dp else 1.dp,
+                                    if (isJapanese) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                ),
+                                shadowElevation = if (isJapanese) 6.dp else 0.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    AnimatedVisibility(
+                                        visible = isJapanese,
+                                        enter = fadeIn() + scaleIn(),
+                                        exit = fadeOut() + scaleOut()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "日本語 🇯🇵",
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isJapanese) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                    // Currency Symbol Section
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("💱", fontSize = 18.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "PRIMARY CURRENCY SYMBOL",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        val currencySymbols = listOf("¥", "$", "€", "₹", "£")
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            currencySymbols.forEach { sym ->
+                                val isSelected = themeSettings.currencySymbol == sym
+                                val curScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.08f else 1.0f,
+                                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                                    label = "cur_s_$sym"
+                                )
+                                val curTopStart by animateDpAsState(targetValue = if (isSelected) 22.dp else 12.dp, label = "cur_ts_$sym")
+                                val curBottomEnd by animateDpAsState(targetValue = if (isSelected) 22.dp else 12.dp, label = "cur_be_$sym")
+
+                                Surface(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(56.dp)
+                                        .graphicsLayer {
+                                            scaleX = curScale
+                                            scaleY = curScale
+                                        }
+                                        .clickable {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.setCurrencySymbol(sym)
+                                        },
+                                    shape = RoundedCornerShape(
+                                        topStart = curTopStart,
+                                        topEnd = 10.dp,
+                                        bottomStart = 10.dp,
+                                        bottomEnd = curBottomEnd
+                                    ),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLow,
+                                    border = BorderStroke(
+                                        if (isSelected) 2.dp else 1.dp,
+                                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                    ),
+                                    shadowElevation = if (isSelected) 8.dp else 0.dp
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = sym,
+                                            fontWeight = FontWeight.Black,
+                                            fontSize = 20.sp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -740,86 +1006,265 @@ private fun LangCurrencyStep(themeSettings: ThemeSettings, viewModel: ThemeViewM
 
 @Composable
 private fun ThemeFontStep(themeSettings: ThemeSettings, viewModel: ThemeViewModel) {
+    val haptic = LocalHapticFeedback.current
+    val infiniteTransition = rememberInfiniteTransition(label = "theme_hero_morph")
+    val morphCorner by infiniteTransition.animateFloat(
+        initialValue = 24f,
+        targetValue = 54f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "t_corner"
+    )
+    val morphRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(18000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "t_rot"
+    )
+
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("Theme & Typography", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("Pick your favorite Material 3 design flavor & font family.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text("Design Flavor", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = themeSettings.themeFlavor == ThemeFlavor.DYNAMIC_MATERIAL,
-                onClick = { viewModel.setThemeFlavor(ThemeFlavor.DYNAMIC_MATERIAL) },
-                label = { Text("Dynamic Wallpaper") }
+        // 🏛️ Top-Left Aligned Editorial Header Hierarchy
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
+            Text(
+                text = "Theme &",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.onSurface
             )
-            FilterChip(
-                selected = themeSettings.themeFlavor == ThemeFlavor.SHU_NURI,
-                onClick = { viewModel.setThemeFlavor(ThemeFlavor.SHU_NURI) },
-                label = { Text("朱塗り Shu-Nuri") }
+            Text(
+                text = "Expressive Style",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontWeight = FontWeight.Black
+                ),
+                color = MaterialTheme.colorScheme.primary
             )
-            FilterChip(
-                selected = themeSettings.themeFlavor == ThemeFlavor.O_MIKI,
-                onClick = { viewModel.setThemeFlavor(ThemeFlavor.O_MIKI) },
-                label = { Text("御神酒 O-Miki") }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text("Font Family", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = themeSettings.appFont == AppFont.GOOGLE_SANS_FLEX,
-                onClick = { viewModel.setAppFont(AppFont.GOOGLE_SANS_FLEX) },
-                label = { Text("Google Sans Rounded 🌟") }
-            )
-            FilterChip(
-                selected = themeSettings.appFont == AppFont.NUNITO,
-                onClick = { viewModel.setAppFont(AppFont.NUNITO) },
-                label = { Text("Nunito") }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Pick your Material 3 design flavor & font family.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
 
-@Composable
-private fun WorkRestStep(themeSettings: ThemeSettings, viewModel: ThemeViewModel) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text("Work & Rest Days", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("Configure your weekly rest days for salary and habit tracking.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // 🎨 Open Canvas Floating Options (No Bento Box Container!)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            // Background Floating Morphing Palette Accent Shape
+            Box(
+                modifier = Modifier
+                    .size(210.dp)
+                    .rotate(morphRotation)
+                    .clip(RoundedCornerShape(morphCorner.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                            )
+                        )
+                    )
+            )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            // 🌟 Open Canvas Floating Selection List
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Section 1: Design Flavor
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🎨", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "DESIGN FLAVOR",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 1.2.sp
+                        )
+                    }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday").take(4).forEach { day ->
-                val selected = themeSettings.restDays.contains(day)
-                FilterChip(
-                    selected = selected,
-                    onClick = {
-                        val newDays = if (selected) themeSettings.restDays - day else themeSettings.restDays + day
-                        viewModel.setTabOrder(themeSettings.tabOrder) // Keeps settings synced
-                    },
-                    label = { Text(day.take(3)) }
-                )
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Saturday", "Sunday").forEach { day ->
-                val selected = themeSettings.restDays.contains(day)
-                FilterChip(
-                    selected = selected,
-                    onClick = {
-                        val newDays = if (selected) themeSettings.restDays - day else themeSettings.restDays + day
-                    },
-                    label = { Text(day) }
-                )
+                    val flavors = listOf(
+                        Triple(ThemeFlavor.DYNAMIC_MATERIAL, "Dynamic Wallpaper", "🎨"),
+                        Triple(ThemeFlavor.SHU_NURI, "朱塗り Shu-Nuri", "⛩️"),
+                        Triple(ThemeFlavor.O_MIKI, "御神酒 O-Miki", "🍶")
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        flavors.forEach { (flavor, title, icon) ->
+                            val isSelected = themeSettings.themeFlavor == flavor
+                            val scale by animateFloatAsState(
+                                targetValue = if (isSelected) 1.05f else 1.0f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                                label = "flv_s_$title"
+                            )
+                            val topStart by animateDpAsState(targetValue = if (isSelected) 22.dp else 12.dp, label = "flv_ts_$title")
+                            val bottomEnd by animateDpAsState(targetValue = if (isSelected) 22.dp else 12.dp, label = "flv_be_$title")
+
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                    }
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.setThemeFlavor(flavor)
+                                    },
+                                shape = RoundedCornerShape(
+                                    topStart = topStart,
+                                    topEnd = 10.dp,
+                                    bottomStart = 10.dp,
+                                    bottomEnd = bottomEnd
+                                ),
+                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                border = BorderStroke(
+                                    if (isSelected) 2.dp else 1.dp,
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                ),
+                                shadowElevation = if (isSelected) 8.dp else 2.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    AnimatedVisibility(
+                                        visible = isSelected,
+                                        enter = fadeIn() + scaleIn(),
+                                        exit = fadeOut() + scaleOut()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp).padding(end = 2.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "$icon $title",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+
+                // Section 2: Font Family
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🔤", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "FONT FAMILY",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 1.2.sp
+                        )
+                    }
+
+                    val fonts = listOf(
+                        Pair(AppFont.GOOGLE_SANS_FLEX, "Google Sans Rounded 🌟"),
+                        Pair(AppFont.NUNITO, "Nunito Modern ✒️")
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        fonts.forEach { (font, title) ->
+                            val isSelected = themeSettings.appFont == font
+                            val scale by animateFloatAsState(
+                                targetValue = if (isSelected) 1.05f else 1.0f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                                label = "fnt_s_$title"
+                            )
+                            val topStart by animateDpAsState(targetValue = if (isSelected) 22.dp else 12.dp, label = "fnt_ts_$title")
+                            val bottomEnd by animateDpAsState(targetValue = if (isSelected) 22.dp else 12.dp, label = "fnt_be_$title")
+
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(54.dp)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                    }
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.setAppFont(font)
+                                    },
+                                shape = RoundedCornerShape(
+                                    topStart = topStart,
+                                    topEnd = 10.dp,
+                                    bottomStart = 10.dp,
+                                    bottomEnd = bottomEnd
+                                ),
+                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                border = BorderStroke(
+                                    if (isSelected) 2.dp else 1.dp,
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                ),
+                                shadowElevation = if (isSelected) 8.dp else 2.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    AnimatedVisibility(
+                                        visible = isSelected,
+                                        enter = fadeIn() + scaleIn(),
+                                        exit = fadeOut() + scaleOut()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp).padding(end = 4.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = title,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -827,60 +1272,223 @@ private fun WorkRestStep(themeSettings: ThemeSettings, viewModel: ThemeViewModel
 
 @Composable
 private fun SecurityPrivacyStep(themeSettings: ThemeSettings, viewModel: ThemeViewModel) {
+    val haptic = LocalHapticFeedback.current
+    val infiniteTransition = rememberInfiniteTransition(label = "sec_hero_morph")
+    val morphCorner by infiniteTransition.animateFloat(
+        initialValue = 20f,
+        targetValue = 48f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "s_corner"
+    )
+    val morphRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(16000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "s_rot"
+    )
+
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("Security & Privacy", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("Protect your financial data with biometric authentication.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            modifier = Modifier.fillMaxWidth()
+        // 🏛️ Top-Left Aligned Editorial Header Hierarchy
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Fingerprint, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Biometric Lock", fontWeight = FontWeight.Bold)
-                }
-                Switch(
-                    checked = themeSettings.biometricEnabled,
-                    onCheckedChange = { viewModel.setBiometricEnabled(it) }
-                )
-            }
+            Text(
+                text = "Security &",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "Privacy",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontWeight = FontWeight.Black
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Protect your financial data with biometric authentication.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            modifier = Modifier.fillMaxWidth()
+        // 🎨 Floating Morphing Canvas & Controls
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
+            // Background Floating Morphing Shield Accent Shape
+            Box(
+                modifier = Modifier
+                    .size(190.dp)
+                    .rotate(morphRotation)
+                    .clip(RoundedCornerShape(morphCorner.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
+                            )
+                        )
+                    )
+            )
+
+            // 🔐 Security Toggle Cards
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.VisibilityOff, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Privacy Mode", fontWeight = FontWeight.Bold)
-                }
-                Switch(
-                    checked = themeSettings.privacyModeEnabled,
-                    onCheckedChange = { viewModel.setPrivacyModeEnabled(it) }
+                // Biometric Lock Card
+                val isBio = themeSettings.biometricEnabled
+                val bioCorner by animateDpAsState(targetValue = if (isBio) 24.dp else 16.dp, label = "bio_c")
+                val bioScale by animateFloatAsState(
+                    targetValue = if (isBio) 1.03f else 1.0f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    label = "bio_s"
                 )
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            scaleX = bioScale
+                            scaleY = bioScale
+                        },
+                    shape = RoundedCornerShape(
+                        topStart = bioCorner,
+                        topEnd = 14.dp,
+                        bottomStart = 14.dp,
+                        bottomEnd = bioCorner
+                    ),
+                    color = if (isBio) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    border = BorderStroke(
+                        if (isBio) 2.dp else 1.dp,
+                        if (isBio) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    ),
+                    shadowElevation = if (isBio) 8.dp else 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Fingerprint,
+                                contentDescription = null,
+                                tint = if (isBio) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(26.dp)
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    text = "Biometric Lock",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isBio) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Unlock app with fingerprint or Face ID",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = isBio,
+                            onCheckedChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setBiometricEnabled(it)
+                            }
+                        )
+                    }
+                }
+
+                // Privacy Mode Card
+                val isPriv = themeSettings.privacyModeEnabled
+                val privCorner by animateDpAsState(targetValue = if (isPriv) 24.dp else 16.dp, label = "priv_c")
+                val privScale by animateFloatAsState(
+                    targetValue = if (isPriv) 1.03f else 1.0f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    label = "priv_s"
+                )
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            scaleX = privScale
+                            scaleY = privScale
+                        },
+                    shape = RoundedCornerShape(
+                        topStart = privCorner,
+                        topEnd = 14.dp,
+                        bottomStart = 14.dp,
+                        bottomEnd = privCorner
+                    ),
+                    color = if (isPriv) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    border = BorderStroke(
+                        if (isPriv) 2.dp else 1.dp,
+                        if (isPriv) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    ),
+                    shadowElevation = if (isPriv) 8.dp else 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.VisibilityOff,
+                                contentDescription = null,
+                                tint = if (isPriv) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    text = "Privacy Mode",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isPriv) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Mask account balances on dashboard",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = isPriv,
+                            onCheckedChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setPrivacyModeEnabled(it)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -888,34 +1496,135 @@ private fun SecurityPrivacyStep(themeSettings: ThemeSettings, viewModel: ThemeVi
 
 @Composable
 private fun FinishStep(themeSettings: ThemeSettings, onSetupComplete: () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "finish_hero_morph")
+    val morphCorner by infiniteTransition.animateFloat(
+        initialValue = 28f,
+        targetValue = 60f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "f_corner"
+    )
+    val morphRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(14000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "f_rot"
+    )
+
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Icon(
-            imageVector = Icons.Outlined.CheckCircle,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(80.dp)
-        )
+        // 🏛️ Top-Left Aligned Editorial Header Hierarchy
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
+            Text(
+                text = "Ready for",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "Vitta 🎉",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontWeight = FontWeight.Black
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Your personalized financial workspace is completely configured.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        // 🎨 Celebration Morphing Canvas with Config Badges
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            // Background Pulsing Celebration Aura & Morphing Shape
+            Box(
+                modifier = Modifier
+                    .size(190.dp)
+                    .rotate(morphRotation)
+                    .clip(RoundedCornerShape(morphCorner.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f)
+                            )
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.CheckCircle,
+                    contentDescription = "All Set",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(72.dp)
+                )
+            }
 
-        Text(
-            text = "You're All Set! 🎉",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Black,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Your setup preferences have been applied. Enjoy managing your salary, habits, and journeys with KakeiboX!",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
+            // Summary Configuration Chips Floating Below
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "YOUR SETUP PREFERENCES",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 1.5.sp
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val langLabel = if (themeSettings.appLanguage == AppLanguage.ENGLISH) "🇺🇸 English" else "🇯🇵 日本語"
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    ) {
+                        Text(langLabel, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    ) {
+                        Text("Symbol ${themeSettings.currencySymbol}", modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    ) {
+                        val secText = if (themeSettings.biometricEnabled) "🔐 Biometrics" else "🔓 Standard"
+                        Text(secText, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 }
