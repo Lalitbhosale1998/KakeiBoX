@@ -20,8 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -181,94 +184,108 @@ fun SetupScreen(
                     }
                 }
 
-                // Bottom Action Bar with Counter-Rotating Shape-Morphing FAB
-                Row(
+                // 🛸 Floating Glass Pill Dock Capsule
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.94f),
+                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+                    shadowElevation = 14.dp
                 ) {
-                    if (pagerState.currentPage > 0) {
-                        OutlinedButton(
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                                }
-                            },
-                            shape = RoundedCornerShape(20.dp),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                        ) {
-                            Text("Back", fontWeight = FontWeight.Bold)
-                        }
-                    } else {
-                        Spacer(modifier = Modifier.width(80.dp))
-                    }
-
-                    // 🎬 Shape-Morphing 360° Counter-Rotating FAB
-                    Surface(
+                    Row(
                         modifier = Modifier
-                            .height(60.dp)
-                            .rotate(animatedRotation) // Outer container spins 360°
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                if (pagerState.currentPage < 5) {
-                                    coroutineScope.launch {
-                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                                    }
-                                } else {
-                                    themeViewModel.setSetupComplete(true)
-                                    onSetupComplete()
-                                }
-                            },
-                        shape = RoundedCornerShape(
-                            topStart = topStartAnim,
-                            topEnd = topEndAnim,
-                            bottomStart = bottomStartAnim,
-                            bottomEnd = bottomEndAnim
-                        ),
-                        color = MaterialTheme.colorScheme.primary,
-                        shadowElevation = 8.dp
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            // 💡 Counter-rotate inner content so arrow stays level and upright!
-                            Box(
-                                modifier = Modifier.rotate(-animatedRotation),
-                                contentAlignment = Alignment.Center
+                        if (pagerState.currentPage > 0) {
+                            TextButton(
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    coroutineScope.launch {
+                                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                    }
+                                }
                             ) {
-                                AnimatedContent(
-                                    targetState = pagerState.currentPage == 5,
-                                    transitionSpec = { (fadeIn() + scaleIn()).togetherWith(fadeOut() + scaleOut()) },
-                                    label = "icon_completion_morph"
-                                ) { isFinish ->
-                                    if (isFinish) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = "Complete",
-                                                tint = MaterialTheme.colorScheme.onPrimary,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = "Enter KakeiboX",
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 16.sp,
-                                                color = MaterialTheme.colorScheme.onPrimary
-                                            )
+                                Text("Back", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            }
+                        } else {
+                            Text(
+                                text = "Let's Go!",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(start = 12.dp)
+                            )
+                        }
+
+                        // 🎬 Shape-Morphing 360° Counter-Rotating FAB
+                        Surface(
+                            modifier = Modifier
+                                .height(54.dp)
+                                .rotate(animatedRotation) // Outer container spins 360°
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    if (pagerState.currentPage < 5) {
+                                        coroutineScope.launch {
+                                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
                                         }
                                     } else {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                            contentDescription = "Next Step",
-                                            tint = MaterialTheme.colorScheme.onPrimary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
+                                        themeViewModel.setSetupComplete(true)
+                                        onSetupComplete()
+                                    }
+                                },
+                            shape = RoundedCornerShape(
+                                topStart = topStartAnim,
+                                topEnd = topEndAnim,
+                                bottomStart = bottomStartAnim,
+                                bottomEnd = bottomEndAnim
+                            ),
+                            color = MaterialTheme.colorScheme.primary,
+                            shadowElevation = 6.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                // 💡 Counter-rotate inner content so arrow stays level and upright!
+                                Box(
+                                    modifier = Modifier.rotate(-animatedRotation),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AnimatedContent(
+                                        targetState = pagerState.currentPage == 5,
+                                        transitionSpec = { (fadeIn() + scaleIn()).togetherWith(fadeOut() + scaleOut()) },
+                                        label = "icon_completion_morph"
+                                    ) { isFinish ->
+                                        if (isFinish) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = "Complete",
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = "Enter KakeiboX",
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 15.sp,
+                                                    color = MaterialTheme.colorScheme.onPrimary
+                                                )
+                                            }
+                                        } else {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                                contentDescription = "Next Step",
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -284,34 +301,240 @@ fun SetupScreen(
 private fun WelcomeStep() {
     val infiniteTransition = rememberInfiniteTransition(label = "aura_pulse")
     val auraScale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.12f,
+        initialValue = 0.92f,
+        targetValue = 1.15f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2200, easing = LinearOutSlowInEasing),
+            animation = tween(2400, easing = LinearOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "aura_scale"
     )
     val auraAlpha by infiniteTransition.animateFloat(
         initialValue = 0.25f,
-        targetValue = 0.55f,
+        targetValue = 0.6f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2200, easing = LinearOutSlowInEasing),
+            animation = tween(2400, easing = LinearOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "aura_alpha"
     )
 
+    // FAB-Style Continuous Looping Morphing Shape Keyframes
+    val morphTopStart by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 6000
+                50f at 0 with FastOutSlowInEasing
+                20f at 1500 with FastOutSlowInEasing
+                14f at 3000 with FastOutSlowInEasing
+                36f at 4500 with FastOutSlowInEasing
+                50f at 6000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "m_ts"
+    )
+
+    val morphTopEnd by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 6000
+                50f at 0 with FastOutSlowInEasing
+                20f at 1500 with FastOutSlowInEasing
+                38f at 3000 with FastOutSlowInEasing
+                10f at 4500 with FastOutSlowInEasing
+                50f at 6000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "m_te"
+    )
+
+    val morphBottomStart by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 6000
+                50f at 0 with FastOutSlowInEasing
+                20f at 1500 with FastOutSlowInEasing
+                14f at 3000 with FastOutSlowInEasing
+                10f at 4500 with FastOutSlowInEasing
+                50f at 6000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "m_bs"
+    )
+
+    val morphBottomEnd by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 6000
+                50f at 0 with FastOutSlowInEasing
+                20f at 1500 with FastOutSlowInEasing
+                38f at 3000 with FastOutSlowInEasing
+                36f at 4500 with FastOutSlowInEasing
+                50f at 6000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "m_be"
+    )
+
+    val morphRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(14000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "m_rot"
+    )
+
+    val morphRotationCCW by infiniteTransition.animateFloat(
+        initialValue = 360f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(10000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "m_rot_ccw"
+    )
+
+    // Shape 4 Polymorphic Keyframes (Circle -> Pentagon -> Gem -> Ghost)
+    val shape4CornerTopStart by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 8000
+                50f at 0 with FastOutSlowInEasing     // Circle
+                8f at 2000 with FastOutSlowInEasing      // Pentagon
+                4f at 4000 with FastOutSlowInEasing      // Gem
+                40f at 6000 with FastOutSlowInEasing     // Ghost
+                50f at 8000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "s4_ts"
+    )
+
+    val shape4CornerTopEnd by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 8000
+                50f at 0 with FastOutSlowInEasing
+                40f at 2000 with FastOutSlowInEasing
+                44f at 4000 with FastOutSlowInEasing
+                40f at 6000 with FastOutSlowInEasing
+                50f at 8000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "s4_te"
+    )
+
+    val shape4CornerBottomStart by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 8000
+                50f at 0 with FastOutSlowInEasing
+                40f at 2000 with FastOutSlowInEasing
+                4f at 4000 with FastOutSlowInEasing
+                4f at 6000 with FastOutSlowInEasing
+                50f at 8000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "s4_bs"
+    )
+
+    val shape4CornerBottomEnd by infiniteTransition.animateFloat(
+        initialValue = 50f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 8000
+                50f at 0 with FastOutSlowInEasing
+                8f at 2000 with FastOutSlowInEasing
+                44f at 4000 with FastOutSlowInEasing
+                4f at 6000 with FastOutSlowInEasing
+                50f at 8000 with FastOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "s4_be"
+    )
+
+    // Shape 5 N-Sided Cookie Lobe Counter (4 -> 6 -> 7 -> 9 -> 12 Cookie)
+    val cookieLobes by infiniteTransition.animateFloat(
+        initialValue = 4f,
+        targetValue = 4f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 10000
+                4f at 0 with LinearOutSlowInEasing
+                6f at 2000 with LinearOutSlowInEasing
+                7f at 4000 with LinearOutSlowInEasing
+                9f at 6000 with LinearOutSlowInEasing
+                12f at 8000 with LinearOutSlowInEasing
+                4f at 10000 with LinearOutSlowInEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "cookie_lobes"
+    )
+
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            // Ambient Pulsing Gradient Aura
+        // 🏛️ Top-Left Aligned Editorial Header Hierarchy
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
+            Text(
+                text = "Welcome to",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "Vitta",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontWeight = FontWeight.Black
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+
+        // 🎨 Center Hero Canvas with 5 Separate Non-Overlapping Floating Morphing Shapes
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            // Ambient Pulsing Radial Aura in Center Background
             Box(
                 modifier = Modifier
-                    .size(160.dp)
+                    .size(240.dp)
                     .graphicsLayer {
                         scaleX = auraScale
                         scaleY = auraScale
@@ -321,72 +544,155 @@ private fun WelcomeStep() {
                     .background(
                         Brush.radialGradient(
                             listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
                                 Color.Transparent
                             )
                         )
                     )
             )
 
-            // Glassmorphic Vitta (वित्त) Hero Crest Card
-            Surface(
-                shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
-                shadowElevation = 12.dp,
-                modifier = Modifier.size(140.dp)
+            // 🌀 Shape 1: Main Hero M3 Morphing Shape (Center - 145.dp)
+            Box(
+                modifier = Modifier
+                    .size(145.dp)
+                    .rotate(morphRotation)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = morphTopStart.dp,
+                            topEnd = morphTopEnd.dp,
+                            bottomStart = morphBottomStart.dp,
+                            bottomEnd = morphBottomEnd.dp
+                        )
+                    )
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        )
+                    )
+            )
+
+            // 🌀 Shape 2: Top-Right Floating Accent (90.dp)
+            Box(
+                modifier = Modifier
+                    .offset(x = 110.dp, y = (-75).dp)
+                    .size(90.dp)
+                    .rotate(morphRotationCCW)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = morphBottomEnd.dp,
+                            topEnd = morphBottomStart.dp,
+                            bottomStart = morphTopEnd.dp,
+                            bottomEnd = morphTopStart.dp
+                        )
+                    )
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.85f),
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.45f)
+                            )
+                        )
+                    )
+            )
+
+            // 🌀 Shape 3: Bottom-Left Floating Accent (75.dp)
+            Box(
+                modifier = Modifier
+                    .offset(x = (-105).dp, y = 70.dp)
+                    .size(75.dp)
+                    .rotate(morphRotation)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = morphTopEnd.dp,
+                            topEnd = morphBottomEnd.dp,
+                            bottomStart = morphTopStart.dp,
+                            bottomEnd = morphBottomStart.dp
+                        )
+                    )
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f),
+                                MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f)
+                            )
+                        )
+                    )
+            )
+
+            // 🌀 Shape 4: Top-Left Polymorphic Accent (Circle -> Pentagon -> Gem -> Ghost - 65.dp)
+            Box(
+                modifier = Modifier
+                    .offset(x = (-115).dp, y = (-70).dp)
+                    .size(65.dp)
+                    .rotate(morphRotationCCW)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = shape4CornerTopStart.dp,
+                            topEnd = shape4CornerTopEnd.dp,
+                            bottomStart = shape4CornerBottomStart.dp,
+                            bottomEnd = shape4CornerBottomEnd.dp
+                        )
+                    )
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.75f),
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                            )
+                        )
+                    )
+            )
+
+            // 🌀 Shape 5: Bottom-Right N-Sided Scalloped Cookie Engine (4 -> 6 -> 7 -> 9 -> 12 Cookie - 75.dp)
+            val cookiePrimaryColor = MaterialTheme.colorScheme.primary
+            val cookieTertiaryColor = MaterialTheme.colorScheme.tertiaryContainer
+            Canvas(
+                modifier = Modifier
+                    .offset(x = 110.dp, y = 75.dp)
+                    .size(75.dp)
+                    .rotate(morphRotation)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "VITTA",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 3.sp
-                        ),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "वित्त",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = MaterialTheme.colorScheme.tertiary
-                    )
+                val center = Offset(size.width / 2f, size.height / 2f)
+                val baseRadius = size.minDimension / 2f * 0.76f
+                val amplitude = size.minDimension / 2f * 0.18f
+                val numPoints = 120
+                val path = Path()
+                for (i in 0..numPoints) {
+                    val angle = (i.toFloat() / numPoints) * 2f * Math.PI.toFloat()
+                    val r = baseRadius + amplitude * kotlin.math.cos(cookieLobes * angle).toFloat()
+                    val x = center.x + r * kotlin.math.cos(angle).toFloat()
+                    val y = center.y + r * kotlin.math.sin(angle).toFloat()
+                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
                 }
+                path.close()
+                drawPath(
+                    path = path,
+                    brush = Brush.linearGradient(
+                        listOf(
+                            cookiePrimaryColor.copy(alpha = 0.75f),
+                            cookieTertiaryColor.copy(alpha = 0.85f)
+                        )
+                    )
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(36.dp))
-
-        Text(
-            text = "KakeiboX",
-            style = MaterialTheme.typography.displayLarge.copy(
-                textGeometricTransform = ExpTitleTransform,
-                fontWeight = FontWeight.Black
-            ),
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Surface(
-            shape = RoundedCornerShape(50),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        // Subtitle Prompt Line
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Expressive Personal Finance, Salary Analytics & Life Engine",
+                text = "Let's get everything set up for you.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                textAlign = TextAlign.Center
             )
         }
     }
