@@ -1110,7 +1110,7 @@ fun AuraExpressiveHeroCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "TOTAL CUMULATIVE EARNINGS",
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                                style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 2.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
@@ -1127,9 +1127,9 @@ fun AuraExpressiveHeroCard(
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         val headlineStyle = if (!isPrivacyMode) {
-                            MaterialTheme.typography.headlineLarge.copy(brush = holoPrismBrush, alpha = 1.0f, fontFamily = ComfortaaFontFamily)
+                            MaterialTheme.typography.headlineLarge.copy(brush = holoPrismBrush, alpha = 1.0f)
                         } else {
-                            MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.onSurface, fontFamily = ComfortaaFontFamily)
+                            MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.onSurface)
                         }
 
                         // 🎬 Approved Feature 4: Number-Scrolling Currency Animation (Odometer Effect)
@@ -1224,7 +1224,7 @@ fun AuraExpressiveHeroCard(
 
                                 Text(
                                     text = dynamicMonthLabel,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                                    style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -1241,7 +1241,7 @@ fun AuraExpressiveHeroCard(
                             ) { targetAmount ->
                                 Text(
                                     text = CurrencyUtils.formatAmount(targetAmount, themeSettings.currencySymbol, isPrivacyMode, compact = true),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = ComfortaaFontFamily),
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -1275,7 +1275,7 @@ fun AuraExpressiveHeroCard(
 
                             Text(
                                 text = if (thisMonthSalary == 0L) "0% Logged This Month" else "${(thisMonthRatio * 100).toInt()}% of Monthly Target",
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = ComfortaaFontFamily),
+                                style = MaterialTheme.typography.bodySmall,
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
@@ -1306,14 +1306,14 @@ fun AuraExpressiveHeroCard(
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = if (isPaydayWeek) "PAYDAY WEEK!" else "NEXT PAYDAY",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                                    style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.tertiary
                                 )
                             }
                             Text(
                                 text = if (paydayInfo.daysRemaining == 0L) "Payday Today! 🎉" else "${paydayInfo.daysRemaining} Days Left",
-                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = ComfortaaFontFamily),
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -1348,7 +1348,7 @@ fun AuraExpressiveHeroCard(
 
                             Text(
                                 text = "${paydayInfo.nextPayday.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }}, ${paydayInfo.nextPayday.month.name.lowercase().take(3).replaceFirstChar { it.uppercase() }} ${paydayInfo.nextPayday.dayOfMonth} (${(paydayInfo.progressRatio * 100).toInt()}%)",
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = ComfortaaFontFamily),
+                                style = MaterialTheme.typography.bodySmall,
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
@@ -2210,7 +2210,7 @@ fun ExpressiveHistoryBentoBox(
                                             Text(
                                                 text = "$savingsPercent%",
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = OutfitFontFamily),
+                                                style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Black,
                                                 color = indicatorColor
                                             )

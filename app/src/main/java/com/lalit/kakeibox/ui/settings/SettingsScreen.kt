@@ -654,6 +654,7 @@ fun SettingsScreen(
                                         selectedValueLabel = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
                                         options = listOf(
                                             AppFont.NUNITO to "Nunito",
+                                            AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded 🌟",
                                             AppFont.MONOSPACE to "Monospace",
                                             AppFont.SYSTEM_SANS to "System Sans",
                                             AppFont.OUTFIT to "Outfit",
@@ -891,6 +892,7 @@ fun SettingsScreen(
                                 selectedValueLabel = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
                                 options = listOf(
                                     AppFont.NUNITO to "Nunito",
+                                    AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded 🌟",
                                     AppFont.MONOSPACE to "Monospace",
                                     AppFont.SYSTEM_SANS to "System Sans",
                                     AppFont.OUTFIT to "Outfit",
@@ -2176,7 +2178,7 @@ private fun BentoNavTile(
                 )
                 Text(
                     text = tab.label,
-                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = ComfortaaFontFamily),
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
                     color = contentColor,
                     maxLines = 1
@@ -2185,7 +2187,7 @@ private fun BentoNavTile(
 
             Text(
                 text = tab.subtitle,
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = ComfortaaFontFamily),
+                style = MaterialTheme.typography.labelSmall,
                 fontSize = 10.sp,
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1

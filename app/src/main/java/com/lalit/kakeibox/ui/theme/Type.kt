@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+
 package com.personal.kakeibox.ui.theme
 
 import androidx.compose.material3.Typography
@@ -5,6 +7,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontVariation
+import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
@@ -56,6 +60,62 @@ val PlayfairFontFamily = FontFamily(
     Font(resId = R.font.playfair_variable, weight = FontWeight.SemiBold),
     Font(resId = R.font.playfair_variable, weight = FontWeight.Bold),
 )
+
+// 🌟 Google Sans Flex Variable with Maximum Roundness (ROND = 100f)
+val GoogleSansFlexFontFamily = FontFamily(
+    Font(
+        resId = R.font.gflex_variable,
+        weight = FontWeight.Normal,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.Normal.weight),
+            FontVariation.Setting("ROND", 100f)
+        )
+    ),
+    Font(
+        resId = R.font.gflex_variable,
+        weight = FontWeight.Medium,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.Medium.weight),
+            FontVariation.Setting("ROND", 100f)
+        )
+    ),
+    Font(
+        resId = R.font.gflex_variable,
+        weight = FontWeight.SemiBold,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.SemiBold.weight),
+            FontVariation.Setting("ROND", 100f)
+        )
+    ),
+    Font(
+        resId = R.font.gflex_variable,
+        weight = FontWeight.Bold,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.Bold.weight),
+            FontVariation.Setting("ROND", 100f)
+        )
+    ),
+    Font(
+        resId = R.font.gflex_variable,
+        weight = FontWeight.Black,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.Black.weight),
+            FontVariation.Setting("ROND", 100f)
+        )
+    )
+)
+
+// 🔥 Genre / Montserrat Variable Font Family for Display Headers
+val GenreFontFamily = FontFamily(
+    Font(resId = R.font.genre_variable, weight = FontWeight.Normal),
+    Font(resId = R.font.genre_variable, weight = FontWeight.Medium),
+    Font(resId = R.font.genre_variable, weight = FontWeight.SemiBold),
+    Font(resId = R.font.genre_variable, weight = FontWeight.Bold),
+    Font(resId = R.font.genre_variable, weight = FontWeight.Black),
+)
+
+// ↔️ Ultra-Wide Geometric Scale Transform (PixelPlayer style)
+val ExpTitleTransform = TextGeometricTransform(scaleX = 1.35f)
 
 // M3 Expressive typography — Dual Font architecture
 val Typography = Typography(

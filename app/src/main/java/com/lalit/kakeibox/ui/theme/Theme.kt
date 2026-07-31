@@ -135,12 +135,14 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
         AppFont.SYSTEM_SANS -> FontFamily.SansSerif
         AppFont.OUTFIT -> com.personal.kakeibox.ui.theme.OutfitFontFamily
         AppFont.PLAYFAIR -> com.personal.kakeibox.ui.theme.PlayfairFontFamily
+        AppFont.GOOGLE_SANS_FLEX -> com.personal.kakeibox.ui.theme.GoogleSansFlexFontFamily
     }
+    val wideTransform = com.personal.kakeibox.ui.theme.ExpTitleTransform
     return androidx.compose.material3.Typography(
-        displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = fontFamily),
-        displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = fontFamily),
-        displaySmall = com.personal.kakeibox.ui.theme.Typography.displaySmall.copy(fontFamily = fontFamily),
-        headlineLarge = com.personal.kakeibox.ui.theme.Typography.headlineLarge.copy(fontFamily = fontFamily),
+        displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
+        displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
+        displaySmall = com.personal.kakeibox.ui.theme.Typography.displaySmall.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
+        headlineLarge = com.personal.kakeibox.ui.theme.Typography.headlineLarge.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
         headlineMedium = com.personal.kakeibox.ui.theme.Typography.headlineMedium.copy(fontFamily = fontFamily),
         headlineSmall = com.personal.kakeibox.ui.theme.Typography.headlineSmall.copy(fontFamily = fontFamily),
         titleLarge = com.personal.kakeibox.ui.theme.Typography.titleLarge.copy(fontFamily = fontFamily),
