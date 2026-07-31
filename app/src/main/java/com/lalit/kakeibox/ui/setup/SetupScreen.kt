@@ -114,15 +114,50 @@ fun SetupScreen(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                // Top Progress Bar Indicator
-                LinearProgressIndicator(
-                    progress = { (pagerState.currentPage + 1) / 6f },
+                // 🚥 Redesigned M3 Expressive Header Stepper
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(6.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                )
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = "STEP ${pagerState.currentPage + 1} OF 6",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 1.5.sp
+                        )
+                    }
+
+                    // Segmented Dots Indicator
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        repeat(6) { idx ->
+                            val isActive = idx == pagerState.currentPage
+                            val dotWidth by animateDpAsState(
+                                targetValue = if (isActive) 24.dp else 8.dp,
+                                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                                label = "dot_w"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .height(8.dp)
+                                    .width(dotWidth)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                    )
+                            )
+                        }
+                    }
+                }
 
                 // Main Onboarding Pager
                 HorizontalPager(
@@ -247,21 +282,87 @@ fun SetupScreen(
 
 @Composable
 private fun WelcomeStep() {
+    val infiniteTransition = rememberInfiniteTransition(label = "aura_pulse")
+    val auraScale by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.12f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "aura_scale"
+    )
+    val auraAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.25f,
+        targetValue = 0.55f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "aura_alpha"
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(100.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("家計簿", fontSize = 28.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+        Box(contentAlignment = Alignment.Center) {
+            // Ambient Pulsing Gradient Aura
+            Box(
+                modifier = Modifier
+                    .size(160.dp)
+                    .graphicsLayer {
+                        scaleX = auraScale
+                        scaleY = auraScale
+                        alpha = auraAlpha
+                    }
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+
+            // Glassmorphic Vitta (वित्त) Hero Crest Card
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                shadowElevation = 12.dp,
+                modifier = Modifier.size(140.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "VITTA",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 3.sp
+                        ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "वित्त",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(36.dp))
 
         Text(
             text = "KakeiboX",
@@ -269,19 +370,25 @@ private fun WelcomeStep() {
                 textGeometricTransform = ExpTitleTransform,
                 fontWeight = FontWeight.Black
             ),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        Text(
-            text = "Expressive Personal Finance, Salary Analytics & Life Tracking Engine",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        ) {
+            Text(
+                text = "Expressive Personal Finance, Salary Analytics & Life Engine",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+            )
+        }
     }
 }
 
