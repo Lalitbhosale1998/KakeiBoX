@@ -9,11 +9,13 @@ import com.personal.kakeibox.data.dao.CommuteDao
 import com.personal.kakeibox.data.dao.ExerciseDao
 import com.personal.kakeibox.data.dao.SalaryDao
 import com.personal.kakeibox.data.dao.SpendDao
+import com.personal.kakeibox.data.dao.VocabDao
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.data.entity.CommuteEntry
 import com.personal.kakeibox.data.entity.ExerciseEntry
 import com.personal.kakeibox.data.entity.SalaryEntry
 import com.personal.kakeibox.data.entity.SpendEntry
+import com.personal.kakeibox.data.entity.VocabEntry
 
 @Database(
     entities = [
@@ -21,9 +23,10 @@ import com.personal.kakeibox.data.entity.SpendEntry
         SpendEntry::class,
         CommuteEntry::class,
         BirthdayEntry::class,
-        ExerciseEntry::class
+        ExerciseEntry::class,
+        VocabEntry::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -33,4 +36,5 @@ abstract class KakeiboXDatabase : RoomDatabase() {
     abstract fun commuteDao(): CommuteDao
     abstract fun birthdayDao(): BirthdayDao
     abstract fun exerciseDao(): ExerciseDao
+    abstract fun vocabDao(): VocabDao
 }

@@ -5,6 +5,7 @@ import com.personal.kakeibox.data.preferences.AppLanguage
 data class AppStrings(
     val salary: String,
     val exercise: String,
+    val kotoba: String,
     val settings: String,
     val visuals: String,
     val themesAndStyles: String,
@@ -117,6 +118,7 @@ data class AppStrings(
 val EnglishStrings = AppStrings(
     salary = "Salary",
     exercise = "Exercise",
+    kotoba = "Kotoba",
     settings = "Settings",
     visuals = "Visuals",
     themesAndStyles = "Themes & Styles",
@@ -229,6 +231,7 @@ val EnglishStrings = AppStrings(
 val JapaneseStrings = AppStrings(
     salary = "給与",
     exercise = "運動",
+    kotoba = "言葉",
     settings = "設定",
     visuals = "ビジュアル",
     themesAndStyles = "テーマ＆スタイル",

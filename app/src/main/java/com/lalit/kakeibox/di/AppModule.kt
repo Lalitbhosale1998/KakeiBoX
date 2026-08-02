@@ -108,4 +108,14 @@ object AppModule {
     @Singleton
     fun provideExerciseRepository(exerciseDao: ExerciseDao): ExerciseRepository =
         ExerciseRepository(exerciseDao)
+
+    @Provides
+    @Singleton
+    fun provideVocabDao(database: KakeiboXDatabase): com.personal.kakeibox.data.dao.VocabDao =
+        database.vocabDao()
+
+    @Provides
+    @Singleton
+    fun provideVocabRepository(vocabDao: com.personal.kakeibox.data.dao.VocabDao): com.personal.kakeibox.data.entity.repository.VocabRepository =
+        com.personal.kakeibox.data.entity.repository.VocabRepository(vocabDao)
 }

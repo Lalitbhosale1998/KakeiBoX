@@ -6,6 +6,7 @@ sealed class NavRoutes(val route: String) {
     object Exercise : NavRoutes("exercise")
     object Settings : NavRoutes("settings")
     object Journeys : NavRoutes("journeys")
+    object Kotoba   : NavRoutes("kotoba")
     object TransactionDetail : NavRoutes("transaction_detail/{transactionId}") {
         fun createRoute(transactionId: Int) = "transaction_detail/$transactionId"
     }

@@ -7,6 +7,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.material.icons.filled.Translate
+import com.personal.kakeibox.ui.theme.vocab.KotobaScreen
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.theme.ExpressiveMotion
@@ -149,7 +151,8 @@ fun TopNavSplitButton(
         listOf(
             Triple(0, strings.salary, Icons.Filled.Wallet),
             Triple(1, strings.exercise, Icons.Filled.FitnessCenter),
-            Triple(2, strings.settings, Icons.Filled.Settings)
+            Triple(2, strings.kotoba, Icons.Filled.Translate),
+            Triple(3, strings.settings, Icons.Filled.Settings)
         )
     }
 
@@ -157,25 +160,29 @@ fun TopNavSplitButton(
     val remainingTabs = tabs.filter { it.first != currentPage }
 
     // ── M3 Expressive Tab-Specific Shape Morphing ──────────────────────────
-    // Salary (0) = Classic Capsule | Exercise (1) = Ghost-ish 👻 | Settings (2) = Arch 🏛️
+    // Salary (0) = Classic Capsule | Exercise (1) = Ghost-ish 👻 | Kotoba (2) = Cookie/Torii ⛩️ | Settings (3) = Arch 🏛️
     val targetTopStart = when (currentPage) {
         0 -> 24.dp
         1 -> 28.dp
+        2 -> 28.dp
         else -> 28.dp
     }
     val targetTopEnd = when (currentPage) {
         0 -> 24.dp
         1 -> 28.dp
+        2 -> 8.dp
         else -> 28.dp
     }
     val targetBottomStart = when (currentPage) {
         0 -> 24.dp
         1 -> 8.dp
+        2 -> 28.dp
         else -> 6.dp
     }
     val targetBottomEnd = when (currentPage) {
         0 -> 24.dp
         1 -> 16.dp
+        2 -> 8.dp
         else -> 6.dp
     }
 
@@ -567,7 +574,7 @@ fun KakeiboXApp(
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
     val coroutineScope = rememberCoroutineScope()
 
     val navBarColor by animateColorAsState(
@@ -726,7 +733,8 @@ fun KakeiboXApp(
                 when (page) {
                     0 -> SalaryScreen()
                     1 -> ExerciseScreen()
-                    2 -> SettingsScreen()
+                    2 -> KotobaScreen()
+                    3 -> SettingsScreen()
                 }
             }
 
