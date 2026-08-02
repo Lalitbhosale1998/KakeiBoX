@@ -49,8 +49,10 @@ fun KotobaScreen(
     val allEntries by viewModel.allEntries.collectAsState()
     val filteredEntries by viewModel.filteredEntries.collectAsState()
     val categories by viewModel.availableCategories.collectAsState()
+    val subCategories by viewModel.availableSubCategories.collectAsState()
     val studyTags by viewModel.availableStudyTags.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val selectedSubCategory by viewModel.selectedSubCategory.collectAsState()
     val selectedTag by viewModel.selectedStudyTag.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
@@ -225,6 +227,45 @@ fun KotobaScreen(
                 }
             }
 
+            // ── SubCategory Filter Chips (Positive / Negative) ──
+            if (subCategories.size > 1) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(subCategories) { subCat ->
+                        val isSelected = subCat == selectedSubCategory
+                        val chipText = when (subCat) {
+                            "All" -> if (isJapanese) "✨ すべてのニュアンス" else "✨ All Nuances"
+                            "良い意味で使われる言葉" -> if (isJapanese) "🌸 良い意味 (Positive)" else "🌸 Positive Words"
+                            "よくない意味で使われる言葉" -> if (isJapanese) "⚡️ よくない意味 (Negative)" else "⚡️ Negative Words"
+                            else -> subCat
+                        }
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.setSelectedSubCategory(subCat)
+                            },
+                            label = {
+                                Text(
+                                    text = chipText,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            shape = CircleShape,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        )
+                    }
+                }
+            }
+
             // ── Study Schedule Tag Chips ──
             if (studyTags.size > 1) {
                 LazyRow(
@@ -312,8 +353,8 @@ fun KotobaScreen(
         ) {
             ExpressiveVocabAddSheet(
                 categories = categories.filter { it != "All" },
-                onAddVocab = { kanji, reading, meaning, category, tag, example ->
-                    viewModel.addVocabEntry(kanji, reading, meaning, category, tag, example)
+                onAddVocab = { kanji, reading, meaning, category, subCategory, tag, example ->
+                    viewModel.addVocabEntry(kanji, reading, meaning, category, subCategory, tag, example)
                     showAddSheet = false
                 },
                 onCancel = { showAddSheet = false }
@@ -442,6 +483,21 @@ fun VocabCardItem(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
+                    if (entry.subCategory.isNotBlank()) {
+                        val isPositive = entry.subCategory.contains("良い")
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
+                        ) {
+                            Text(
+                                text = if (isPositive) "🌸 良い意味" else "⚡️ よくない意味",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isPositive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
                     if (entry.studyTag.isNotBlank()) {
                         Surface(
                             shape = CircleShape,
@@ -478,13 +534,14 @@ fun VocabCardItem(
 @Composable
 fun ExpressiveVocabAddSheet(
     categories: List<String>,
-    onAddVocab: (kanji: String, reading: String, meaning: String, category: String, tag: String, example: String) -> Unit,
+    onAddVocab: (kanji: String, reading: String, meaning: String, category: String, subCategory: String, tag: String, example: String) -> Unit,
     onCancel: () -> Unit
 ) {
     var kanji by remember { mutableStateOf("") }
     var reading by remember { mutableStateOf("") }
     var meaning by remember { mutableStateOf("") }
     var category by remember { mutableStateOf(if (categories.isNotEmpty()) categories.first() else "人の性格や個性を表す言葉") }
+    var subCategory by remember { mutableStateOf("良い意味で使われる言葉") }
     var customCategory by remember { mutableStateOf("") }
     var isCreatingNewCategory by remember { mutableStateOf(false) }
     var tag by remember { mutableStateOf("第1週・1日目") }
@@ -589,6 +646,28 @@ fun ExpressiveVocabAddSheet(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // SubCategory Selection (Nuance)
+        Text(
+            text = "ニュアンス (SubCategory / Nuance)",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = subCategory == "良い意味で使われる言葉",
+                onClick = { subCategory = "良い意味で使われる言葉" },
+                label = { Text("🌸 良い意味") }
+            )
+            FilterChip(
+                selected = subCategory == "よくない意味で使われる言葉",
+                onClick = { subCategory = "よくない意味で使われる言葉" },
+                label = { Text("⚡️ よくない意味") }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Study Schedule Tag
         OutlinedTextField(
             value = tag,
@@ -617,7 +696,7 @@ fun ExpressiveVocabAddSheet(
                 if (kanji.isNotBlank()) {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     val finalCategory = if (isCreatingNewCategory && customCategory.isNotBlank()) customCategory else category
-                    onAddVocab(kanji, reading, meaning, finalCategory, tag, example)
+                    onAddVocab(kanji, reading, meaning, finalCategory, subCategory, tag, example)
                 }
             },
             modifier = Modifier

@@ -11,6 +11,7 @@ data class VocabEntry(
     val furiganaReading: String,
     val meaning: String,
     val category: String,
+    val subCategory: String = "",
     val studyTag: String,
     val exampleSentence: String = "",
     val isMastered: Boolean = false,

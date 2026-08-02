@@ -2,6 +2,7 @@ package com.personal.kakeibox.ui.vocab
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.personal.kakeibox.data.entity.JLPTN1SeedData
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.entity.repository.VocabRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,9 @@ class VocabViewModel @Inject constructor(
     private val _selectedCategory = MutableStateFlow("All")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
+    private val _selectedSubCategory = MutableStateFlow("All")
+    val selectedSubCategory: StateFlow<String> = _selectedSubCategory.asStateFlow()
+
     private val _selectedStudyTag = MutableStateFlow("All")
     val selectedStudyTag: StateFlow<String> = _selectedStudyTag.asStateFlow()
 
@@ -26,10 +30,32 @@ class VocabViewModel @Inject constructor(
     val allEntries: StateFlow<List<VocabEntry>> = repository.allEntries
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    init {
+        // Auto-seed Week 1 Day 1 64 JLPT N1 words if database is brand new
+        viewModelScope.launch {
+            allEntries.first { entries ->
+                if (entries.isEmpty()) {
+                    JLPTN1SeedData.week1Day1Entries.forEach { seedEntry ->
+                        repository.insertEntry(seedEntry)
+                    }
+                }
+                true
+            }
+        }
+    }
+
     val availableCategories: StateFlow<List<String>> = allEntries
         .map { entries ->
             val set = mutableSetOf("All")
             entries.forEach { if (it.category.isNotBlank()) set.add(it.category) }
+            set.toList()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf("All"))
+
+    val availableSubCategories: StateFlow<List<String>> = allEntries
+        .map { entries ->
+            val set = mutableSetOf("All")
+            entries.forEach { if (it.subCategory.isNotBlank()) set.add(it.subCategory) }
             set.toList()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf("All"))
@@ -45,24 +71,31 @@ class VocabViewModel @Inject constructor(
     val filteredEntries: StateFlow<List<VocabEntry>> = combine(
         allEntries,
         selectedCategory,
+        selectedSubCategory,
         selectedStudyTag,
         searchQuery
-    ) { entries, category, tag, query ->
+    ) { entries, category, subCategory, tag, query ->
         entries.filter { entry ->
             val matchesCategory = (category == "All" || entry.category == category)
+            val matchesSubCategory = (subCategory == "All" || entry.subCategory == subCategory)
             val matchesTag = (tag == "All" || entry.studyTag == tag)
             val matchesQuery = query.isEmpty() ||
                     entry.kanjiWord.contains(query, ignoreCase = true) ||
                     entry.furiganaReading.contains(query, ignoreCase = true) ||
                     entry.meaning.contains(query, ignoreCase = true) ||
                     entry.category.contains(query, ignoreCase = true) ||
+                    entry.subCategory.contains(query, ignoreCase = true) ||
                     entry.studyTag.contains(query, ignoreCase = true)
-            matchesCategory && matchesTag && matchesQuery
+            matchesCategory && matchesSubCategory && matchesTag && matchesQuery
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setSelectedCategory(category: String) {
         _selectedCategory.value = category
+    }
+
+    fun setSelectedSubCategory(subCategory: String) {
+        _selectedSubCategory.value = subCategory
     }
 
     fun setSelectedStudyTag(tag: String) {
@@ -78,6 +111,7 @@ class VocabViewModel @Inject constructor(
         furiganaReading: String,
         meaning: String,
         category: String,
+        subCategory: String = "",
         studyTag: String,
         exampleSentence: String = ""
     ) {
@@ -86,7 +120,8 @@ class VocabViewModel @Inject constructor(
                 kanjiWord = kanjiWord.trim(),
                 furiganaReading = furiganaReading.trim(),
                 meaning = meaning.trim(),
-                category = category.trim().ifEmpty { "General" },
+                category = category.trim().ifEmpty { "人の性格や個性などを表す言葉" },
+                subCategory = subCategory.trim(),
                 studyTag = studyTag.trim().ifEmpty { "第1週・1日目" },
                 exampleSentence = exampleSentence.trim()
             )

@@ -26,7 +26,7 @@ import com.personal.kakeibox.data.entity.VocabEntry
         ExerciseEntry::class,
         VocabEntry::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
