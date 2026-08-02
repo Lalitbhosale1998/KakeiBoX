@@ -1217,6 +1217,23 @@ private fun ThemeFontStep(themeSettings: ThemeSettings, viewModel: ThemeViewMode
                             .horizontalScroll(rememberScrollState())
                     ) {
                         fonts.forEach { (font, title) ->
+                            if (font == AppFont.DELA_GOTHIC_ONE) {
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)),
+                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                ) {
+                                    Text(
+                                        text = "⛩️ 日本語 Japanese",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+
                             val isSelected = themeSettings.appFont == font
                             val scale by animateFloatAsState(
                                 targetValue = if (isSelected) 1.05f else 1.0f,

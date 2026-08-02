@@ -662,21 +662,21 @@ fun SettingsScreen(
                                         icon = Icons.Outlined.Code,
                                         selectedValueLabel = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
                                         options = listOf(
-                                             AppFont.NUNITO to "Nunito",
                                              AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded 🌟",
+                                             AppFont.NUNITO to "Nunito Modern ✒️",
                                              AppFont.CLIMATE_CRISIS to "Climate Crisis 🌋",
                                              AppFont.LUCKIEST_GUY to "Luckiest Guy 🎯",
-                                             AppFont.DELA_GOTHIC_ONE to "Dela Gothic One ⛩️",
+                                             AppFont.OUTFIT to "Outfit 📐",
+                                             AppFont.PLAYFAIR to "Playfair 📜",
+                                             AppFont.MONOSPACE to "Monospace 💻",
+                                             AppFont.SYSTEM_SANS to "System Sans 📱",
+                                             AppFont.DELA_GOTHIC_ONE to "── 🇯🇵 JAPANESE ── Dela Gothic ⛩️",
                                              AppFont.HACHI_MARU_POP to "Hachi Maru Pop 🌸",
                                              AppFont.KOSUGI_MARU to "Kosugi Maru 🍡",
                                              AppFont.MOCHIY_POP_P_ONE to "Mochiy Pop P One 🍡",
                                              AppFont.POTTA_ONE to "Potta One 🍵",
                                              AppFont.RAMPART_ONE to "Rampart One 🏯",
-                                             AppFont.WDXL_LUBRIFONT_JPN to "WDXL Lubrifont JPN 🎌",
-                                             AppFont.MONOSPACE to "Monospace",
-                                             AppFont.SYSTEM_SANS to "System Sans",
-                                             AppFont.OUTFIT to "Outfit",
-                                             AppFont.PLAYFAIR to "Playfair"
+                                             AppFont.WDXL_LUBRIFONT_JPN to "WDXL Lubrifont JPN 🎌"
                                          ),
                                         onOptionSelected = { viewModel.setAppFont(it) },
                                         accentColor = Color(0xFFF59E0B)
