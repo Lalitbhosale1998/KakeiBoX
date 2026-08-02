@@ -91,6 +91,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Wallet
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Search
@@ -1242,6 +1243,7 @@ fun SettingsScreen(
                                         "salary" -> Icons.Outlined.Wallet
                                         "spend" -> Icons.Outlined.ShoppingCart
                                         "exercise" -> Icons.Outlined.FitnessCenter
+                                        "kotoba", "journeys" -> Icons.Outlined.Translate
                                         else -> Icons.Outlined.Settings
                                     },
                                     contentDescription = null,
@@ -1253,7 +1255,13 @@ fun SettingsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
-                                    text = route.replaceFirstChar { it.uppercase() },
+                                    text = when(route) {
+                                        "salary" -> "Salary"
+                                        "exercise" -> "Exercise"
+                                        "kotoba", "journeys" -> "Kotoba"
+                                        "settings" -> "Settings"
+                                        else -> route.replaceFirstChar { it.uppercase() }
+                                    },
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isDragging) {

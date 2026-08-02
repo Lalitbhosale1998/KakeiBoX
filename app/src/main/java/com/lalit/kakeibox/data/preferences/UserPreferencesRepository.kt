@@ -58,8 +58,8 @@ class UserPreferencesRepository @Inject constructor(
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
             tabOrder = run {
-                val rawOrder = prefs[Keys.TAB_ORDER] ?: "salary,exercise,journeys,settings"
-                var parsed = rawOrder.split(",").filter { it != "commute" && it != "spend" && it.isNotBlank() }
+                val rawOrder = prefs[Keys.TAB_ORDER] ?: "salary,exercise,kotoba,settings"
+                var parsed = rawOrder.split(",").map { if (it == "journeys") "kotoba" else it }.filter { it != "commute" && it != "spend" && it.isNotBlank() }
                 if (!parsed.contains("exercise")) {
                     val list = parsed.toMutableList()
                     val settingsIndex = list.indexOf("settings")
@@ -70,13 +70,13 @@ class UserPreferencesRepository @Inject constructor(
                     }
                     parsed = list
                 }
-                if (!parsed.contains("journeys")) {
+                if (!parsed.contains("kotoba")) {
                     val list = parsed.toMutableList()
                     val settingsIndex = list.indexOf("settings")
                     if (settingsIndex != -1) {
-                        list.add(settingsIndex, "journeys")
+                        list.add(settingsIndex, "kotoba")
                     } else {
-                        list.add("journeys")
+                        list.add("kotoba")
                     }
                     parsed = list
                 }
