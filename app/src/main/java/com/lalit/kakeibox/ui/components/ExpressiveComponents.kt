@@ -12,6 +12,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.foundation.text.KeyboardOptions
@@ -1472,5 +1473,49 @@ fun ExpressivePolygonLoadingIndicator(
         modifier = modifier,
         containerColor = color.copy(alpha = 0.25f),
         indicatorColor = color
+    )
+}
+
+@Composable
+fun ExpressiveSwitch(
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    androidx.compose.material3.Switch(
+        checked = checked,
+        onCheckedChange = {
+            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+            onCheckedChange?.invoke(it)
+        },
+        modifier = modifier,
+        enabled = enabled,
+        thumbContent = {
+            if (checked) {
+                androidx.compose.material3.Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
+                            androidx.compose.foundation.shape.CircleShape
+                        )
+                )
+            }
+        },
+        colors = androidx.compose.material3.SwitchDefaults.colors(
+            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+            checkedTrackColor = MaterialTheme.colorScheme.primary,
+            checkedIconColor = MaterialTheme.colorScheme.primary,
+            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        )
     )
 }

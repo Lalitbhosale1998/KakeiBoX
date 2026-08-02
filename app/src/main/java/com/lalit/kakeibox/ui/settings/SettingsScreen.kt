@@ -2,6 +2,7 @@ package com.personal.kakeibox.ui.settings
 
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
+import com.personal.kakeibox.ui.components.ExpressiveSwitch
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.Animatable
@@ -1796,13 +1797,9 @@ fun BirthdayRow(
                 )
             }
             
-            Switch(
+            ExpressiveSwitch(
                 checked = birthday.isEnabled,
-                onCheckedChange = { 
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onToggle() 
-                },
-                modifier = Modifier.graphicsLayer { scaleX = 0.75f; scaleY = 0.75f }
+                onCheckedChange = { onToggle() }
             )
             
             Spacer(modifier = Modifier.width(4.dp))
@@ -2321,13 +2318,9 @@ fun SettingsToggleRow(
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Switch(
+        ExpressiveSwitch(
             checked = checked,
-            onCheckedChange = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onCheckedChange(it)
-            },
-            modifier = Modifier.graphicsLayer { scaleX = 0.85f; scaleY = 0.85f }
+            onCheckedChange = onCheckedChange
         )
     }
 }

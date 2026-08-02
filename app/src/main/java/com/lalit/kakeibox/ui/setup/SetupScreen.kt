@@ -1,5 +1,6 @@
 package com.personal.kakeibox.ui.setup
 
+import com.personal.kakeibox.ui.components.ExpressiveSwitch
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -1442,12 +1443,9 @@ private fun SecurityPrivacyStep(themeSettings: ThemeSettings, viewModel: ThemeVi
                                 )
                             }
                         }
-                        Switch(
+                        ExpressiveSwitch(
                             checked = isBio,
-                            onCheckedChange = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setBiometricEnabled(it)
-                            }
+                            onCheckedChange = { viewModel.setBiometricEnabled(it) }
                         )
                     }
                 }
@@ -1509,12 +1507,9 @@ private fun SecurityPrivacyStep(themeSettings: ThemeSettings, viewModel: ThemeVi
                                 )
                             }
                         }
-                        Switch(
+                        ExpressiveSwitch(
                             checked = isPriv,
-                            onCheckedChange = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setPrivacyModeEnabled(it)
-                            }
+                            onCheckedChange = { viewModel.setPrivacyModeEnabled(it) }
                         )
                     }
                 }

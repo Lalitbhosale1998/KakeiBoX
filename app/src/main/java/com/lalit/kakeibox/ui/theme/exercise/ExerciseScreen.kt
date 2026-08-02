@@ -2,6 +2,7 @@ package com.personal.kakeibox.ui.exercise
 
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
+import com.personal.kakeibox.ui.components.ExpressiveSwitch
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -887,13 +888,9 @@ fun ExpressiveExerciseHeroHeader(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        Switch(
+                        ExpressiveSwitch(
                             checked = isRestDay,
-                            onCheckedChange = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onToggleRestDay(selectedDay)
-                            },
-                            modifier = Modifier.graphicsLayer { scaleX = 0.8f; scaleY = 0.8f }
+                            onCheckedChange = { onToggleRestDay(selectedDay) }
                         )
                     }
                 }
