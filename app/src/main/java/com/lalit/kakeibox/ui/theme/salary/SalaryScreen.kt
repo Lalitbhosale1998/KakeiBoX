@@ -821,8 +821,10 @@ fun SalaryScreen(
 
     // Sheets & Dialogs (Update to Tonal Backgrounds)
     if (uiState.showAddEditDialog) {
+        val salarySheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeDialog() },
+            sheetState = salarySheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
@@ -2577,7 +2579,7 @@ fun ExpressiveAddEditSheet(
             .fillMaxWidth()
             .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
             .padding(horizontal = 24.dp)
-            .padding(bottom = 24.dp)
+            .padding(bottom = 36.dp)
             .navigationBarsPadding()
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
