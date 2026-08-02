@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +61,13 @@ fun KotobaScreen(
     var showAddSheet by remember { mutableStateOf(false) }
     var selectedVocabEntry by remember { mutableStateOf<VocabEntry?>(null) }
 
+    val lazyListState = rememberLazyListState()
+    val isFabExpanded by remember {
+        derivedStateOf {
+            !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0
+        }
+    }
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     SharedTransitionLayout {
@@ -70,29 +78,30 @@ fun KotobaScreen(
                 topBar = {},
                 floatingActionButton = {
                     if (selectedVocabEntry == null) {
-                        FloatingActionButton(
+                        ExtendedFloatingActionButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 showAddSheet = true
                             },
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            shape = RoundedCornerShape(20.dp),
-                            elevation = FloatingActionButtonDefaults.elevation(8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Add Vocabulary")
-                                Spacer(modifier = Modifier.width(8.dp))
+                            expanded = isFabExpanded,
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Translate,
+                                    contentDescription = "Add Vocabulary"
+                                )
+                            },
+                            text = {
                                 Text(
                                     text = if (isJapanese) "単語追加" else "Add Vocab",
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.labelLarge
                                 )
-                            }
-                        }
+                            },
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            shape = RoundedCornerShape(24.dp),
+                            elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                        )
                     }
                 }
             ) { innerPadding ->
@@ -172,6 +181,7 @@ fun KotobaScreen(
                                 }
                             } else {
                                 LazyColumn(
+                                    state = lazyListState,
                                     modifier = Modifier.fillMaxSize(),
                                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
