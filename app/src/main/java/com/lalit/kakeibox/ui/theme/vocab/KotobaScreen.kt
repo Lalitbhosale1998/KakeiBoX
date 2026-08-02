@@ -243,6 +243,35 @@ fun VocabCardItem(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Mastery Toggle Chip
+                    FilterChip(
+                        selected = entry.isMastered,
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onToggleMastered()
+                        },
+                        label = {
+                            Text(
+                                text = if (entry.isMastered) "習得済み" else "学習中",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (entry.isMastered) Icons.Default.Check else Icons.Outlined.RadioButtonUnchecked,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        shape = CircleShape,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     IconButton(onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onToggleStarred()
@@ -295,13 +324,12 @@ fun VocabCardItem(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Tags & Mastery Switch Row
-            Row(
+            // Tags Row (Scrollable to prevent any screen overflow)
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                item {
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.secondaryContainer
@@ -313,7 +341,9 @@ fun VocabCardItem(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-                    if (entry.subCategory.isNotBlank()) {
+                }
+                if (entry.subCategory.isNotBlank()) {
+                    item {
                         val isPositive = entry.subCategory.contains("良い")
                         Surface(
                             shape = CircleShape,
@@ -328,7 +358,9 @@ fun VocabCardItem(
                             )
                         }
                     }
-                    if (entry.studyTag.isNotBlank()) {
+                }
+                if (entry.studyTag.isNotBlank()) {
+                    item {
                         Surface(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.tertiaryContainer
@@ -341,20 +373,6 @@ fun VocabCardItem(
                             )
                         }
                     }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = if (entry.isMastered) "習得済み" else "学習中",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = if (entry.isMastered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    ExpressiveSwitch(
-                        checked = entry.isMastered,
-                        onCheckedChange = { onToggleMastered() }
-                    )
                 }
             }
         }
