@@ -145,6 +145,16 @@ fun KotobaScreen(
                         ) {
                             Spacer(modifier = Modifier.height(100.dp)) // Header inset below floating top bar
 
+                            val searchBarBgColor = if (isPrimaryContainer) {
+                                androidx.compose.ui.graphics.lerp(
+                                    MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    0.35f
+                                )
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHigh
+                            }
+
                             // ── Search Bar ──
                             OutlinedTextField(
                                 value = searchQuery,
@@ -162,7 +172,17 @@ fun KotobaScreen(
                                     }
                                 },
                                 singleLine = true,
-                                shape = CircleShape
+                                shape = RoundedCornerShape(24.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = searchBarBgColor,
+                                    unfocusedContainerColor = searchBarBgColor,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
