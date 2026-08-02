@@ -103,86 +103,13 @@ fun KotobaScreen(
         ) {
             Spacer(modifier = Modifier.height(100.dp)) // Header inset below floating top bar
 
-            // ── JLPT N1 Mastery Hero Bento Card ──
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                shadowElevation = 6.dp
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = if (isJapanese) "言葉 • Kotoba Studio" else "Kotoba Studio",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "JLPT N1 Vocabulary Mastery",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        IconButton(onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            isQuizMode = !isQuizMode
-                        }) {
-                            Icon(
-                                imageVector = if (isQuizMode) Icons.Default.ViewList else Icons.Default.Style,
-                                contentDescription = "Toggle Quiz Mode",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = if (isJapanese) "進捗状況" else "Mastery Progress",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = if (isJapanese) "$masteredCount / $totalCount 習得 (${(progressPct * 100).toInt()}%)" else "$masteredCount / $totalCount Mastered (${(progressPct * 100).toInt()}%)",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = { progressPct },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(10.dp)
-                            .clip(CircleShape),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceContainerLowest
-                    )
-                }
-            }
-
-            // ── Search & Filter Bar ──
+            // ── Search Bar ──
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.setSearchQuery(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 placeholder = { Text(if (isJapanese) "単語・読み・意味を検索..." else "Search word, reading, or meaning...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
@@ -196,104 +123,7 @@ fun KotobaScreen(
                 shape = CircleShape
             )
 
-            // ── Category Filter Chips ──
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(categories) { category ->
-                    val isSelected = category == selectedCategory
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.setSelectedCategory(category)
-                        },
-                        label = {
-                            Text(
-                                text = if (category == "All") (if (isJapanese) "🏷️ すべてのカテゴリ" else "🏷️ All Categories") else "🏷️ $category",
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        shape = CircleShape,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    )
-                }
-            }
-
-            // ── SubCategory Filter Chips (Positive / Negative) ──
-            if (subCategories.size > 1) {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(subCategories) { subCat ->
-                        val isSelected = subCat == selectedSubCategory
-                        val chipText = when (subCat) {
-                            "All" -> if (isJapanese) "✨ すべてのニュアンス" else "✨ All Nuances"
-                            "良い意味で使われる言葉" -> if (isJapanese) "🌸 良い意味 (Positive)" else "🌸 Positive Words"
-                            "よくない意味で使われる言葉" -> if (isJapanese) "⚡️ よくない意味 (Negative)" else "⚡️ Negative Words"
-                            else -> subCat
-                        }
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setSelectedSubCategory(subCat)
-                            },
-                            label = {
-                                Text(
-                                    text = chipText,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                )
-                            },
-                            shape = CircleShape,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                        )
-                    }
-                }
-            }
-
-            // ── Study Schedule Tag Chips ──
-            if (studyTags.size > 1) {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(studyTags) { tag ->
-                        val isSelected = tag == selectedTag
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setSelectedStudyTag(tag)
-                            },
-                            label = {
-                                Text(
-                                    text = if (tag == "All") (if (isJapanese) "📅 全日程" else "📅 All Schedules") else "📅 $tag",
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                )
-                            },
-                            shape = CircleShape
-                        )
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(8.dp))
 
             // ── Vocab Entry List / Cards ──
             if (filteredEntries.isEmpty()) {
