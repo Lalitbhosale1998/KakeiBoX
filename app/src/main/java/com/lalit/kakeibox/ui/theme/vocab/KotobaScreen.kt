@@ -699,6 +699,7 @@ fun ExpressiveVocabDetailView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpressiveVocabAddSheet(
     categories: List<String>,
@@ -712,6 +713,17 @@ fun ExpressiveVocabAddSheet(
     var subCategory by remember { mutableStateOf("良い意味で使われる言葉") }
     var customCategory by remember { mutableStateOf("") }
     var isCreatingNewCategory by remember { mutableStateOf(false) }
+    var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
+    var customSubCategory by remember { mutableStateOf("") }
+    var isCreatingNewSubCategory by remember { mutableStateOf(false) }
+    var isSubCategoryDropdownExpanded by remember { mutableStateOf(false) }
+    val defaultSubCategories = remember {
+        listOf(
+            "良い意味で使われる言葉",
+            "よくない意味で使われる言葉",
+            "どちらの意味でも使われる言葉"
+        )
+    }
     var tag by remember { mutableStateOf("第1週・1日目") }
     var example by remember { mutableStateOf("") }
 
@@ -841,68 +853,115 @@ fun ExpressiveVocabAddSheet(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                if (isCreatingNewCategory) {
+                ExposedDropdownMenuBox(
+                    expanded = isCategoryDropdownExpanded,
+                    onExpandedChange = { isCategoryDropdownExpanded = !isCategoryDropdownExpanded }
+                ) {
                     OutlinedTextField(
-                        value = customCategory,
-                        onValueChange = { customCategory = it },
-                        label = { Text("新しいカテゴリ名") },
-                        placeholder = { Text("例: 人の性格や個性を表す言葉") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
+                        value = if (isCreatingNewCategory) customCategory else category,
+                        onValueChange = {
+                            if (isCreatingNewCategory) customCategory = it
+                        },
+                        readOnly = !isCreatingNewCategory,
+                        label = { Text("カテゴリ (Category)") },
+                        leadingIcon = { Icon(Icons.Outlined.Folder, contentDescription = null) },
                         trailingIcon = {
-                            IconButton(onClick = { isCreatingNewCategory = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cancel")
+                            if (isCreatingNewCategory) {
+                                IconButton(onClick = { isCreatingNewCategory = false }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Cancel Custom Category")
+                                }
+                            } else {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isCategoryDropdownExpanded)
                             }
                         },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        shape = RoundedCornerShape(16.dp),
                         singleLine = true
                     )
-                } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+                    ExposedDropdownMenu(
+                        expanded = isCategoryDropdownExpanded && !isCreatingNewCategory,
+                        onDismissRequest = { isCategoryDropdownExpanded = false }
                     ) {
-                        items(categories) { cat ->
-                            FilterChip(
-                                selected = category == cat,
-                                onClick = { category = cat },
-                                label = { Text(cat) },
-                                shape = CircleShape
+                        categories.forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text("🏷️ $cat", fontWeight = if (category == cat) FontWeight.Bold else FontWeight.Normal) },
+                                onClick = {
+                                    category = cat
+                                    isCreatingNewCategory = false
+                                    isCategoryDropdownExpanded = false
+                                }
                             )
                         }
-                        item {
-                            FilterChip(
-                                selected = false,
-                                onClick = { isCreatingNewCategory = true },
-                                label = { Text("➕ 新規カテゴリ") },
-                                shape = CircleShape,
-                                colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                                )
-                            )
-                        }
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("➕ 新規カテゴリを作成...", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
+                            onClick = {
+                                isCreatingNewCategory = true
+                                isCategoryDropdownExpanded = false
+                            }
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                ExposedDropdownMenuBox(
+                    expanded = isSubCategoryDropdownExpanded,
+                    onExpandedChange = { isSubCategoryDropdownExpanded = !isSubCategoryDropdownExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = if (isCreatingNewSubCategory) customSubCategory else subCategory,
+                        onValueChange = {
+                            if (isCreatingNewSubCategory) customSubCategory = it
+                        },
+                        readOnly = !isCreatingNewSubCategory,
+                        label = { Text("ニュアンス (SubCategory / Nuance)") },
+                        leadingIcon = { Icon(Icons.Outlined.Psychology, contentDescription = null) },
+                        trailingIcon = {
+                            if (isCreatingNewSubCategory) {
+                                IconButton(onClick = { isCreatingNewSubCategory = false }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Cancel Custom Nuance")
+                                }
+                            } else {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isSubCategoryDropdownExpanded)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
+                    )
 
-                Text(
-                    text = "ニュアンス (Nuance)",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = subCategory == "良い意味で使われる言葉",
-                        onClick = { subCategory = "良い意味で使われる言葉" },
-                        label = { Text("🌸 良い意味") },
-                        shape = CircleShape
-                    )
-                    FilterChip(
-                        selected = subCategory == "よくない意味で使われる言葉",
-                        onClick = { subCategory = "よくない意味で使われる言葉" },
-                        label = { Text("⚡️ よくない意味") },
-                        shape = CircleShape
-                    )
+                    ExposedDropdownMenu(
+                        expanded = isSubCategoryDropdownExpanded && !isCreatingNewSubCategory,
+                        onDismissRequest = { isSubCategoryDropdownExpanded = false }
+                    ) {
+                        defaultSubCategories.forEach { subCat ->
+                            val iconStr = when {
+                                subCat.contains("良い") -> "🌸 "
+                                subCat.contains("よくない") -> "⚡️ "
+                                else -> "⚖️ "
+                            }
+                            DropdownMenuItem(
+                                text = { Text("$iconStr$subCat", fontWeight = if (subCategory == subCat) FontWeight.Bold else FontWeight.Normal) },
+                                onClick = {
+                                    subCategory = subCat
+                                    isCreatingNewSubCategory = false
+                                    isSubCategoryDropdownExpanded = false
+                                }
+                            )
+                        }
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("➕ 新規ニュアンスを作成...", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
+                            onClick = {
+                                isCreatingNewSubCategory = true
+                                isSubCategoryDropdownExpanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -960,7 +1019,8 @@ fun ExpressiveVocabAddSheet(
                 if (kanji.isNotBlank()) {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     val finalCategory = if (isCreatingNewCategory && customCategory.isNotBlank()) customCategory else category
-                    onAddVocab(kanji, reading, meaning, finalCategory, subCategory, tag, example)
+                    val finalSubCategory = if (isCreatingNewSubCategory && customSubCategory.isNotBlank()) customSubCategory else subCategory
+                    onAddVocab(kanji, reading, meaning, finalCategory, finalSubCategory, tag, example)
                 }
             },
             modifier = Modifier
