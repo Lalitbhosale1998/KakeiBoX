@@ -32,11 +32,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.personal.kakeibox.data.entity.VocabEntry
+import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.ExpressiveSwitch
 import com.personal.kakeibox.ui.theme.ExpressiveMotion
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
+import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.vocab.VocabViewModel
 
@@ -68,13 +71,29 @@ fun KotobaScreen(
         }
     }
 
+    val systemDark = isSystemInDarkTheme()
+    val isDark = themeSettings.darkThemePreference.isDark(systemDark)
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val topAppBarContainerColor = MaterialTheme.colorScheme.primaryContainer
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     SharedTransitionLayout {
         val sharedTransitionScope = this
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .expressiveBackground(
+                    isDark = isDark,
+                    isPrimaryContainer = isPrimaryContainer,
+                    primaryColor = MaterialTheme.colorScheme.primary,
+                    containerColor = topAppBarContainerColor,
+                    pattern = themeSettings.backdropPattern
+                )
+        ) {
             Scaffold(
+                containerColor = Color.Transparent,
                 topBar = {},
                 floatingActionButton = {
                     if (selectedVocabEntry == null) {
@@ -123,7 +142,6 @@ fun KotobaScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(innerPadding)
-                                .background(MaterialTheme.colorScheme.background)
                         ) {
                             Spacer(modifier = Modifier.height(100.dp)) // Header inset below floating top bar
 
@@ -254,6 +272,19 @@ fun VocabCardItem(
 ) {
     val haptic = LocalHapticFeedback.current
 
+    val themeSettings = LocalThemeSettings.current
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val cardBgColor = if (isPrimaryContainer) {
+        val targetBase = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
+        androidx.compose.ui.graphics.lerp(
+            targetBase,
+            MaterialTheme.colorScheme.primaryContainer,
+            if (entry.isMastered) 0.20f else 0.35f
+        )
+    } else {
+        if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+
     with(sharedTransitionScope) {
         Surface(
             modifier = Modifier
@@ -268,7 +299,7 @@ fun VocabCardItem(
                     onClickCard()
                 },
             shape = RoundedCornerShape(22.dp),
-            color = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = cardBgColor,
             border = BorderStroke(
                 if (entry.isStarred) 2.dp else 1.dp,
                 if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
@@ -336,7 +367,7 @@ fun VocabCardItem(
                             Icon(
                                 imageVector = if (entry.isStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
                                 contentDescription = "Star",
-                                tint = if (entry.isStarred) Color(0xFFEAB308) else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (entry.isStarred) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         IconButton(onClick = {
@@ -436,11 +467,23 @@ fun ExpressiveVocabDetailView(
     val clipboardManager = LocalClipboardManager.current
     var showInfo by remember { mutableStateOf(false) }
 
+    val themeSettings = LocalThemeSettings.current
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val detailCardBgColor = if (isPrimaryContainer) {
+        androidx.compose.ui.graphics.lerp(
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            MaterialTheme.colorScheme.primaryContainer,
+            0.35f
+        )
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+
     with(sharedTransitionScope) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.6f))
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f))
                 .clickable { onClose() },
             contentAlignment = Alignment.Center
         ) {
@@ -455,7 +498,7 @@ fun ExpressiveVocabDetailView(
                     )
                     .clickable(enabled = false) {},
                 shape = RoundedCornerShape(32.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                color = detailCardBgColor,
                 border = BorderStroke(
                     if (entry.isStarred) 2.dp else 1.dp,
                     if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -499,7 +542,7 @@ fun ExpressiveVocabDetailView(
                                 Icon(
                                     imageVector = if (entry.isStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
                                     contentDescription = "Star",
-                                    tint = if (entry.isStarred) Color(0xFFEAB308) else MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = if (entry.isStarred) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             IconButton(onClick = {
