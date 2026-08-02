@@ -138,6 +138,13 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
         AppFont.GOOGLE_SANS_FLEX -> com.personal.kakeibox.ui.theme.GoogleSansFlexFontFamily
         AppFont.CLIMATE_CRISIS -> com.personal.kakeibox.ui.theme.ClimateCrisisFontFamily
         AppFont.LUCKIEST_GUY -> com.personal.kakeibox.ui.theme.LuckiestGuyFontFamily
+        AppFont.DELA_GOTHIC_ONE -> com.personal.kakeibox.ui.theme.DelaGothicOneFontFamily
+        AppFont.HACHI_MARU_POP -> com.personal.kakeibox.ui.theme.HachiMaruPopFontFamily
+        AppFont.KOSUGI_MARU -> com.personal.kakeibox.ui.theme.KosugiMaruFontFamily
+        AppFont.MOCHIY_POP_P_ONE -> com.personal.kakeibox.ui.theme.MochiyPopPOneFontFamily
+        AppFont.POTTA_ONE -> com.personal.kakeibox.ui.theme.PottaOneFontFamily
+        AppFont.RAMPART_ONE -> com.personal.kakeibox.ui.theme.RampartOneFontFamily
+        AppFont.WDXL_LUBRIFONT_JPN -> com.personal.kakeibox.ui.theme.WDXLLubrifontJPNFontFamily
     }
     val wideTransform = com.personal.kakeibox.ui.theme.ExpTitleTransform
     return androidx.compose.material3.Typography(

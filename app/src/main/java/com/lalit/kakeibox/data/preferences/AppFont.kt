@@ -8,7 +8,14 @@ enum class AppFont {
     PLAYFAIR,
     GOOGLE_SANS_FLEX,
     CLIMATE_CRISIS,
-    LUCKIEST_GUY;
+    LUCKIEST_GUY,
+    DELA_GOTHIC_ONE,
+    HACHI_MARU_POP,
+    KOSUGI_MARU,
+    MOCHIY_POP_P_ONE,
+    POTTA_ONE,
+    RAMPART_ONE,
+    WDXL_LUBRIFONT_JPN;
 
     companion object {
         fun fromStorage(value: String?): AppFont {

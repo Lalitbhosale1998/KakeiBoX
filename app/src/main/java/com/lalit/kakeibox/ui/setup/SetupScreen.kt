@@ -5,6 +5,8 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -1198,12 +1200,21 @@ private fun ThemeFontStep(themeSettings: ThemeSettings, viewModel: ThemeViewMode
                         Pair(AppFont.GOOGLE_SANS_FLEX, "Google Sans 🌟"),
                         Pair(AppFont.NUNITO, "Nunito ✒️"),
                         Pair(AppFont.CLIMATE_CRISIS, "Climate 🌋"),
-                        Pair(AppFont.LUCKIEST_GUY, "Luckiest 🎯")
+                        Pair(AppFont.LUCKIEST_GUY, "Luckiest 🎯"),
+                        Pair(AppFont.DELA_GOTHIC_ONE, "Dela Gothic ⛩️"),
+                        Pair(AppFont.HACHI_MARU_POP, "Hachi Maru 🌸"),
+                        Pair(AppFont.KOSUGI_MARU, "Kosugi Maru 🍡"),
+                        Pair(AppFont.MOCHIY_POP_P_ONE, "Mochiy Pop 🍡"),
+                        Pair(AppFont.POTTA_ONE, "Potta One 🍵"),
+                        Pair(AppFont.RAMPART_ONE, "Rampart One 🏯"),
+                        Pair(AppFont.WDXL_LUBRIFONT_JPN, "WDXL JPN 🎌")
                     )
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
                     ) {
                         fonts.forEach { (font, title) ->
                             val isSelected = themeSettings.appFont == font
@@ -1217,7 +1228,6 @@ private fun ThemeFontStep(themeSettings: ThemeSettings, viewModel: ThemeViewMode
 
                             Surface(
                                 modifier = Modifier
-                                    .weight(1f)
                                     .height(54.dp)
                                     .graphicsLayer {
                                         scaleX = scale

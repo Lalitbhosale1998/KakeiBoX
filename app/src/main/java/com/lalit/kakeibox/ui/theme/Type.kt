@@ -123,6 +123,15 @@ val LuckiestGuyFontFamily = FontFamily(
     Font(resId = R.font.luckiest_guy_regular, weight = FontWeight.Normal)
 )
 
+// ⛩️ Japanese Custom Display Fonts
+val DelaGothicOneFontFamily = FontFamily(Font(resId = R.font.dela_gothic_one_regular, weight = FontWeight.Normal))
+val HachiMaruPopFontFamily = FontFamily(Font(resId = R.font.hachi_maru_pop_regular, weight = FontWeight.Normal))
+val KosugiMaruFontFamily = FontFamily(Font(resId = R.font.kosugi_maru_regular, weight = FontWeight.Normal))
+val MochiyPopPOneFontFamily = FontFamily(Font(resId = R.font.mochiy_pop_p_one_regular, weight = FontWeight.Normal))
+val PottaOneFontFamily = FontFamily(Font(resId = R.font.potta_one_regular, weight = FontWeight.Normal))
+val RampartOneFontFamily = FontFamily(Font(resId = R.font.rampart_one_regular, weight = FontWeight.Normal))
+val WDXLLubrifontJPNFontFamily = FontFamily(Font(resId = R.font.wdxl_lubrifont_jpn_regular, weight = FontWeight.Normal))
+
 // ↔️ Ultra-Wide Geometric Scale Transform (PixelPlayer style)
 val ExpTitleTransform = TextGeometricTransform(scaleX = 1.35f)
 
