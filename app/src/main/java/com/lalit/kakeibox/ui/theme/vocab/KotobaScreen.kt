@@ -94,6 +94,7 @@ fun KotobaScreen(
         ) {
             Scaffold(
                 containerColor = Color.Transparent,
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 topBar = {},
                 floatingActionButton = {
                     if (selectedVocabEntry == null) {
@@ -221,7 +222,7 @@ fun KotobaScreen(
                                 LazyColumn(
                                     state = lazyListState,
                                     modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
+                                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = innerPadding.calculateBottomPadding() + 130.dp),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     items(filteredEntries, key = { it.id }) { entry ->
