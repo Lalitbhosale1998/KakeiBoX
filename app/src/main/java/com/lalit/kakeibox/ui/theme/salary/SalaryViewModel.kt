@@ -330,17 +330,18 @@ class SalaryViewModel @Inject constructor(
                         year = year,
                         salaryAmount = salaryAmount,
                         remittanceAmount = remittanceAmount,
-                        savingsAmount = (salaryAmount * 0.15f).toLong(),
-                        remainingAmount = salaryAmount - remittanceAmount - (salaryAmount * 0.15f).toLong(),
+                        savingsAmount = 0L,
+                        remainingAmount = salaryAmount - remittanceAmount,
                         note = "Salary Entry"
                     )
                     repository.insert(entry)
                     updatedCount++
-                } else if (existing.salaryAmount != salaryAmount || existing.remittanceAmount != remittanceAmount) {
+                } else {
                     val updated = existing.copy(
                         salaryAmount = salaryAmount,
                         remittanceAmount = remittanceAmount,
-                        remainingAmount = salaryAmount - remittanceAmount - existing.savingsAmount
+                        savingsAmount = 0L,
+                        remainingAmount = salaryAmount - remittanceAmount
                     )
                     repository.update(updated)
                     updatedCount++
