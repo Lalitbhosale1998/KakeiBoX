@@ -286,50 +286,68 @@ class SalaryViewModel @Inject constructor(
         _uiState.update { it.copy(snackbarMessage = null) }
     }
 
+    init {
+        addDummyData()
+    }
+
     fun addDummyData() {
         val dummyData = listOf(
-            "2024-12" to 194068L,
-            "2025-01" to 224094L,
-            "2025-02" to 198981L,
-            "2025-03" to 213838L,
-            "2025-04" to 233014L,
-            "2025-05" to 229988L,
-            "2025-06" to 256836L,
-            "2025-07" to 241884L,
-            "2025-08" to 256816L,
-            "2025-09" to 252330L,
-            "2025-10" to 227927L,
-            "2025-11" to 174626L,
-            "2025-12" to 182330L,
-            "2026-01" to 228301L,
-            "2026-02" to 223663L,
-            "2026-03" to 241888L
+            "2024-12" to Pair(194068L, 16600L),
+            "2025-01" to Pair(224094L, 16600L),
+            "2025-02" to Pair(198981L, 16600L),
+            "2025-03" to Pair(213838L, 16600L),
+            "2025-04" to Pair(233014L, 16600L),
+            "2025-05" to Pair(229988L, 16600L),
+            "2025-06" to Pair(256836L, 16600L),
+            "2025-07" to Pair(241884L, 16600L),
+            "2025-08" to Pair(256816L, 16600L),
+            "2025-09" to Pair(252330L, 16600L),
+            "2025-10" to Pair(227927L, 16600L),
+            "2025-11" to Pair(174626L, 16600L),
+            "2025-12" to Pair(182330L, 16600L),
+            "2026-01" to Pair(228301L, 16600L),
+            "2026-02" to Pair(223663L, 16600L),
+            "2026-03" to Pair(682368L, 300000L),
+            "2026-04" to Pair(497204L, 300000L),
+            "2026-05" to Pair(363021L, 250000L),
+            "2026-06" to Pair(495107L, 350000L),
+            "2026-07" to Pair(429664L, 284200L)
         )
 
         viewModelScope.launch {
-            var addedCount = 0
-            dummyData.forEach { (date, amount) ->
+            var updatedCount = 0
+            dummyData.forEach { (date, pair) ->
                 val parts = date.split("-")
                 val year = parts[0].toInt()
                 val month = parts[1].toInt()
+                val salaryAmount = pair.first
+                val remittanceAmount = pair.second
 
                 val existing = repository.getEntryByMonthYearOnce(month, year)
                 if (existing == null) {
                     val entry = SalaryEntry(
                         month = month,
                         year = year,
-                        salaryAmount = amount,
-                        remittanceAmount = 0L,
-                        savingsAmount = 0L,
-                        remainingAmount = amount,
-                        note = "Dummy Data"
+                        salaryAmount = salaryAmount,
+                        remittanceAmount = remittanceAmount,
+                        savingsAmount = (salaryAmount * 0.15f).toLong(),
+                        remainingAmount = salaryAmount - remittanceAmount - (salaryAmount * 0.15f).toLong(),
+                        note = "Salary Entry"
                     )
                     repository.insert(entry)
-                    addedCount++
+                    updatedCount++
+                } else if (existing.salaryAmount != salaryAmount || existing.remittanceAmount != remittanceAmount) {
+                    val updated = existing.copy(
+                        salaryAmount = salaryAmount,
+                        remittanceAmount = remittanceAmount,
+                        remainingAmount = salaryAmount - remittanceAmount - existing.savingsAmount
+                    )
+                    repository.update(updated)
+                    updatedCount++
                 }
             }
-            if (addedCount > 0) {
-                _uiState.update { it.copy(snackbarMessage = "Added $addedCount dummy entries") }
+            if (updatedCount > 0) {
+                _uiState.update { it.copy(snackbarMessage = "Updated $updatedCount salary entries") }
             }
         }
     }
