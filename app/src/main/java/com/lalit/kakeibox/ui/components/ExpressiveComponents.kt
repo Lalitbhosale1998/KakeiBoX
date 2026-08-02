@@ -546,19 +546,16 @@ fun ExpressiveEmptyState(
                 if (x - radiusPx < 0) {
                     x = radiusPx
                     vx = -vx * 0.75f
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 }
                 // Right border collision
                 if (x + radiusPx > size.width) {
                     x = size.width - radiusPx
                     vx = -vx * 0.75f
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 }
                 // Top border collision
                 if (y - radiusPx < 0) {
                     y = radiusPx
                     vy = -vy * 0.75f
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 }
                 // Bottom border collision (ground)
                 if (y + radiusPx > size.height) {
@@ -567,7 +564,6 @@ fun ExpressiveEmptyState(
                     // If moving very slow vertically, stop gravity pull
                     if (Math.abs(vy) < 1f) vy = 0f
                     vx *= 0.9f // extra friction on ground
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 }
             }
             
