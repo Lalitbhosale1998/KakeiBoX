@@ -502,19 +502,13 @@ fun ExpressiveVocabDetailView(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (entry.furiganaReading.isNotBlank()) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
-                                modifier = Modifier.padding(bottom = 6.dp)
-                            ) {
-                                Text(
-                                    text = entry.furiganaReading,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                                )
-                            }
+                            Text(
+                                text = entry.furiganaReading,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 2.dp)
+                            )
                         }
 
                         Text(
