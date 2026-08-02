@@ -9,6 +9,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
+import com.personal.kakeibox.ui.theme.ExpressiveMotion
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
@@ -592,7 +593,7 @@ fun KakeiboXApp(
             haloProgress.snapTo(0f)
             haloProgress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
+                animationSpec = ExpressiveMotion.sheetEnterSpec()
             )
         }
     }
