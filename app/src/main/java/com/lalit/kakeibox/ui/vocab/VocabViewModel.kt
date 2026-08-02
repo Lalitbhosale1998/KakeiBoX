@@ -31,15 +31,12 @@ class VocabViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
-        // Auto-seed Week 1 Day 1 64 JLPT N1 words if database is brand new
+        // Auto-seed Week 1 Day 1 64 JLPT N1 words ONCE if database is brand new
         viewModelScope.launch {
-            allEntries.first { entries ->
-                if (entries.isEmpty()) {
-                    JLPTN1SeedData.week1Day1Entries.forEach { seedEntry ->
-                        repository.insertEntry(seedEntry)
-                    }
+            if (repository.getEntryCount() == 0) {
+                JLPTN1SeedData.week1Day1Entries.forEach { seedEntry ->
+                    repository.insertEntry(seedEntry)
                 }
-                true
             }
         }
     }

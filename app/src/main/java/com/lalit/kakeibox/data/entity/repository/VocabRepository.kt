@@ -27,4 +27,6 @@ class VocabRepository @Inject constructor(
     suspend fun deleteEntryById(id: Int) {
         vocabDao.deleteEntryById(id)
     }
+
+    suspend fun getEntryCount(): Int = vocabDao.getEntryCount()
 }

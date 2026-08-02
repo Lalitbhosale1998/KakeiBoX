@@ -18,6 +18,9 @@ interface VocabDao {
     @Delete
     suspend fun deleteEntry(entry: VocabEntry)
 
+    @Query("SELECT COUNT(*) FROM vocab_entries")
+    suspend fun getEntryCount(): Int
+
     @Query("DELETE FROM vocab_entries WHERE id = :id")
     suspend fun deleteEntryById(id: Int)
 }
