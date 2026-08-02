@@ -155,20 +155,33 @@ fun TopNavSplitButton(
     val activeTab = tabs.find { it.first == currentPage } ?: tabs[0]
     val remainingTabs = tabs.filter { it.first != currentPage }
 
-    // Dynamic Corner Morphing for Morphing FAB per Tab
-    val fabCornerTopStart = when (currentPage) {
-        0 -> 20.dp
-        1 -> 14.dp
-        else -> 32.dp
+    // ── M3 Expressive Tab-Specific Shape Morphing ──────────────────────────
+    // Salary (0) = Classic Capsule | Exercise (1) = Ghost-ish 👻 | Settings (2) = Arch 🏛️
+    val targetTopStart = when (currentPage) {
+        0 -> 24.dp
+        1 -> 28.dp
+        else -> 28.dp
     }
-    val fabCornerTopEnd = when (currentPage) {
-        0 -> 20.dp
-        1 -> 36.dp
-        else -> 8.dp
+    val targetTopEnd = when (currentPage) {
+        0 -> 24.dp
+        1 -> 28.dp
+        else -> 28.dp
+    }
+    val targetBottomStart = when (currentPage) {
+        0 -> 24.dp
+        1 -> 8.dp
+        else -> 6.dp
+    }
+    val targetBottomEnd = when (currentPage) {
+        0 -> 24.dp
+        1 -> 16.dp
+        else -> 6.dp
     }
 
-    val fabTopStartAnim by animateDpAsState(targetValue = fabCornerTopStart, animationSpec = spring(stiffness = Spring.StiffnessLow), label = "fab_ts")
-    val fabTopEndAnim by animateDpAsState(targetValue = fabCornerTopEnd, animationSpec = spring(stiffness = Spring.StiffnessLow), label = "fab_te")
+    val fabTopStartAnim by animateDpAsState(targetValue = targetTopStart, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_ts")
+    val fabTopEndAnim by animateDpAsState(targetValue = targetTopEnd, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_te")
+    val fabBottomStartAnim by animateDpAsState(targetValue = targetBottomStart, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_bs")
+    val fabBottomEndAnim by animateDpAsState(targetValue = targetBottomEnd, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_be")
 
     // Continuous 360° rotation animation for Morphing FAB
     val fabRotation by animateFloatAsState(
@@ -179,7 +192,7 @@ fun TopNavSplitButton(
 
     // Dynamic Corner Morphing: 32.dp when collapsed, 10.dp when expanded
     val activeEndCorner by animateDpAsState(
-        targetValue = if (isExpanded) 10.dp else 32.dp,
+        targetValue = if (isExpanded) 10.dp else targetTopEnd,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -420,8 +433,8 @@ fun TopNavSplitButton(
                     shape = RoundedCornerShape(
                         topStart = fabTopStartAnim,
                         topEnd = fabTopEndAnim,
-                        bottomStart = 10.dp,
-                        bottomEnd = 20.dp
+                        bottomStart = fabBottomStartAnim,
+                        bottomEnd = fabBottomEndAnim
                     ),
                     color = MaterialTheme.colorScheme.primary,
                     shadowElevation = 4.dp

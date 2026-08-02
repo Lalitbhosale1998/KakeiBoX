@@ -148,9 +148,7 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
     }
 
     val isDecorativeFont = when (appFont) {
-        AppFont.CLIMATE_CRISIS, AppFont.LUCKIEST_GUY, AppFont.DELA_GOTHIC_ONE,
-        AppFont.HACHI_MARU_POP, AppFont.KOSUGI_MARU, AppFont.MOCHIY_POP_P_ONE,
-        AppFont.POTTA_ONE, AppFont.RAMPART_ONE, AppFont.WDXL_LUBRIFONT_JPN -> true
+        AppFont.CLIMATE_CRISIS, AppFont.LUCKIEST_GUY -> true
         else -> false
     }
 
@@ -160,7 +158,18 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
         displayFontFamily
     }
 
-    val wideTransform = com.personal.kakeibox.ui.theme.ExpTitleTransform
+    val isJapaneseFont = when (appFont) {
+        AppFont.DELA_GOTHIC_ONE, AppFont.HACHI_MARU_POP, AppFont.KOSUGI_MARU,
+        AppFont.MOCHIY_POP_P_ONE, AppFont.POTTA_ONE, AppFont.RAMPART_ONE,
+        AppFont.WDXL_LUBRIFONT_JPN -> true
+        else -> false
+    }
+
+    val wideTransform = if (isJapaneseFont) {
+        androidx.compose.ui.text.style.TextGeometricTransform(scaleX = 1.0f)
+    } else {
+        com.personal.kakeibox.ui.theme.ExpTitleTransform
+    }
     return androidx.compose.material3.Typography(
         displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = displayFontFamily, textGeometricTransform = wideTransform),
         displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = displayFontFamily, textGeometricTransform = wideTransform),
