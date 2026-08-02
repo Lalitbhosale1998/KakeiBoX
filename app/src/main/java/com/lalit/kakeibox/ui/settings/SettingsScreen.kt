@@ -2424,9 +2424,11 @@ fun <T> SettingsSelectorRow(
             if (expanded) {
                 val sheetBgColor = if (isSpaceTerminal) Color(0xFF0C1020) else MaterialTheme.colorScheme.surfaceContainerLow
                 val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                val selectorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
                 ModalBottomSheet(
                     onDismissRequest = { expanded = false },
+                    sheetState = selectorSheetState,
                     containerColor = sheetBgColor,
                     shape = sheetShape,
                     dragHandle = {
@@ -2446,6 +2448,7 @@ fun <T> SettingsSelectorRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp, vertical = 12.dp)
+                            .verticalScroll(rememberScrollState())
                             .navigationBarsPadding()
                     ) {
                         Text(
@@ -2527,7 +2530,7 @@ fun <T> SettingsSelectorRow(
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
                     }
                 }
             }
