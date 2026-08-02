@@ -114,6 +114,15 @@ val GenreFontFamily = FontFamily(
     Font(resId = R.font.genre_variable, weight = FontWeight.Black),
 )
 
+// 🌋 Climate Crisis & Luckiest Guy Display Fonts
+val ClimateCrisisFontFamily = FontFamily(
+    Font(resId = R.font.climate_crisis_regular, weight = FontWeight.Normal)
+)
+
+val LuckiestGuyFontFamily = FontFamily(
+    Font(resId = R.font.luckiest_guy_regular, weight = FontWeight.Normal)
+)
+
 // ↔️ Ultra-Wide Geometric Scale Transform (PixelPlayer style)
 val ExpTitleTransform = TextGeometricTransform(scaleX = 1.35f)
 

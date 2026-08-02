@@ -664,6 +664,8 @@ fun SettingsScreen(
                                         options = listOf(
                                             AppFont.NUNITO to "Nunito",
                                             AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded 🌟",
+                                            AppFont.CLIMATE_CRISIS to "Climate Crisis 🌋",
+                                            AppFont.LUCKIEST_GUY to "Luckiest Guy 🎯",
                                             AppFont.MONOSPACE to "Monospace",
                                             AppFont.SYSTEM_SANS to "System Sans",
                                             AppFont.OUTFIT to "Outfit",

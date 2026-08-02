@@ -1195,8 +1195,10 @@ private fun ThemeFontStep(themeSettings: ThemeSettings, viewModel: ThemeViewMode
                     }
 
                     val fonts = listOf(
-                        Pair(AppFont.GOOGLE_SANS_FLEX, "Google Sans Rounded 🌟"),
-                        Pair(AppFont.NUNITO, "Nunito Modern ✒️")
+                        Pair(AppFont.GOOGLE_SANS_FLEX, "Google Sans 🌟"),
+                        Pair(AppFont.NUNITO, "Nunito ✒️"),
+                        Pair(AppFont.CLIMATE_CRISIS, "Climate 🌋"),
+                        Pair(AppFont.LUCKIEST_GUY, "Luckiest 🎯")
                     )
 
                     Row(

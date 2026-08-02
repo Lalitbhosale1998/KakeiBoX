@@ -6,7 +6,9 @@ enum class AppFont {
     SYSTEM_SANS,
     OUTFIT,
     PLAYFAIR,
-    GOOGLE_SANS_FLEX;
+    GOOGLE_SANS_FLEX,
+    CLIMATE_CRISIS,
+    LUCKIEST_GUY;
 
     companion object {
         fun fromStorage(value: String?): AppFont {

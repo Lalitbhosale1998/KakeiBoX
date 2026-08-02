@@ -136,6 +136,8 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
         AppFont.OUTFIT -> com.personal.kakeibox.ui.theme.OutfitFontFamily
         AppFont.PLAYFAIR -> com.personal.kakeibox.ui.theme.PlayfairFontFamily
         AppFont.GOOGLE_SANS_FLEX -> com.personal.kakeibox.ui.theme.GoogleSansFlexFontFamily
+        AppFont.CLIMATE_CRISIS -> com.personal.kakeibox.ui.theme.ClimateCrisisFontFamily
+        AppFont.LUCKIEST_GUY -> com.personal.kakeibox.ui.theme.LuckiestGuyFontFamily
     }
     val wideTransform = com.personal.kakeibox.ui.theme.ExpTitleTransform
     return androidx.compose.material3.Typography(
