@@ -424,6 +424,7 @@ fun ExpressiveVocabDetailView(
 ) {
     val haptic = LocalHapticFeedback.current
     val clipboardManager = LocalClipboardManager.current
+    var showInfo by remember { mutableStateOf(false) }
 
     with(sharedTransitionScope) {
         Box(
@@ -471,6 +472,16 @@ fun ExpressiveVocabDetailView(
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showInfo = !showInfo
+                            }) {
+                                Icon(
+                                    imageVector = if (showInfo) Icons.Filled.Info else Icons.Outlined.Info,
+                                    contentDescription = "Toggle Metadata Info",
+                                    tint = if (showInfo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             IconButton(onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onToggleStarred()
@@ -530,64 +541,63 @@ fun ExpressiveVocabDetailView(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Nuance & Category Badges
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                    // On-Demand Metadata Info Row (Toggled via ℹ️ Info Icon)
+                    AnimatedVisibility(
+                        visible = showInfo,
+                        enter = fadeIn(tween(300)) + expandVertically(tween(300)),
+                        exit = fadeOut(tween(300)) + shrinkVertically(tween(300))
                     ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.secondaryContainer
-                        ) {
-                            Text(
-                                text = "🏷️ ${entry.category}",
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-
-                    if (entry.subCategory.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        val isPositive = entry.subCategory.contains("良い")
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
                             ) {
-                                Text(
-                                    text = if (isPositive) "🌸 良い意味 (Positive)" else "⚡️ よくない意味 (Negative)",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isPositive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
-                        }
-                    }
-
-                    if (entry.studyTag.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.tertiaryContainer
-                            ) {
-                                Text(
-                                    text = "📅 ${entry.studyTag}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                item {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.secondaryContainer
+                                    ) {
+                                        Text(
+                                            text = "🏷️ ${entry.category}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                                if (entry.subCategory.isNotBlank()) {
+                                    item {
+                                        val isPositive = entry.subCategory.contains("良い")
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
+                                        ) {
+                                            Text(
+                                                text = if (isPositive) "🌸 良い意味" else "⚡️ よくない意味",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isPositive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                                            )
+                                        }
+                                    }
+                                }
+                                if (entry.studyTag.isNotBlank()) {
+                                    item {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.tertiaryContainer
+                                        ) {
+                                            Text(
+                                                text = "📅 ${entry.studyTag}",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
