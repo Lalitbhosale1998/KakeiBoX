@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -301,7 +302,8 @@ fun ExerciseScreen(
             sheetState = exerciseSheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+            modifier = Modifier.statusBarsPadding()
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 ExerciseAddEditSheet(
@@ -1418,6 +1420,7 @@ fun ExerciseAddEditSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(bottom = 36.dp)
             .navigationBarsPadding()

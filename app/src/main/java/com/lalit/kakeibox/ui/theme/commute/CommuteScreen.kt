@@ -346,8 +346,10 @@ fun CommuteScreen(
     }
 
     if (uiState.showAddSheet) {
+        val commuteAddSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeAddSheet() },
+            sheetState = commuteAddSheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
@@ -374,8 +376,10 @@ fun CommuteScreen(
     }
 
     if (uiState.showHistorySheet) {
+        val commuteHistorySheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistory() },
+            sheetState = commuteHistorySheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)

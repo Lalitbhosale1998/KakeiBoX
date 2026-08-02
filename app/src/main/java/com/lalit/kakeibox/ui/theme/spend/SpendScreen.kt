@@ -37,6 +37,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -526,7 +528,8 @@ fun SharedTransitionScope.SpendScreen(
             sheetState = bottomSheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp))
+            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp)),
+            modifier = Modifier.statusBarsPadding()
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 SpendAddEditSheet(
@@ -554,7 +557,8 @@ fun SharedTransitionScope.SpendScreen(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = historyBottomSheetState,
             containerColor = sheetColorScheme.surfaceContainer,
-            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp))
+            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp)),
+            modifier = Modifier.statusBarsPadding()
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 SpendHistoryBottomSheet(
@@ -577,6 +581,7 @@ fun SharedTransitionScope.SpendScreen(
             onDismissRequest = { themeViewModel.toggleBirthdaySheet(false) },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.statusBarsPadding(),
             dragHandle = {
                 Box(
                     modifier = Modifier
@@ -1432,8 +1437,9 @@ fun SpendAddEditSheet(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(bottom = 24.dp)
+            .padding(bottom = 36.dp)
             .navigationBarsPadding()
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(20.dp)

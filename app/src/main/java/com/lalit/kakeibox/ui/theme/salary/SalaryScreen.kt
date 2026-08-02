@@ -45,6 +45,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -827,7 +829,8 @@ fun SalaryScreen(
             sheetState = salarySheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+            modifier = Modifier.statusBarsPadding()
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 ExpressiveAddEditSheet(
@@ -854,11 +857,14 @@ fun SalaryScreen(
     }
 
     if (uiState.showHistorySheet) {
+        val historySheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
+            sheetState = historySheetState,
             containerColor = sheetColorScheme.surfaceContainer,
             dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+            modifier = Modifier.statusBarsPadding()
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 HistoryBottomSheet(
@@ -881,6 +887,7 @@ fun SalaryScreen(
             onDismissRequest = { themeViewModel.toggleBirthdaySheet(false) },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.statusBarsPadding(),
             dragHandle = {
                 Box(
                     modifier = Modifier
@@ -2578,6 +2585,7 @@ fun ExpressiveAddEditSheet(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(bottom = 36.dp)
             .navigationBarsPadding()
