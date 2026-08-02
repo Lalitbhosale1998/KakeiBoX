@@ -144,7 +144,8 @@ fun KotobaScreen(
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            Spacer(modifier = Modifier.height(100.dp)) // Header inset below floating top bar
+                            val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                            Spacer(modifier = Modifier.height(statusBarPadding + 96.dp)) // Generous header inset below floating top nav bar
 
                             val searchBarBgColor = if (isPrimaryContainer) {
                                 androidx.compose.ui.graphics.lerp(
