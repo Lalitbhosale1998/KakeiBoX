@@ -712,91 +712,186 @@ fun ExpressiveVocabAddSheet(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .navigationBarsPadding()
-            .padding(24.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-        Text(
-            text = "新規単語の追加 (Add JLPT N1 Vocab)",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        OutlinedTextField(
-            value = kanji,
-            onValueChange = { kanji = it },
-            label = { Text("単語 (Kanji / Word)") },
-            placeholder = { Text("例: 幾帳面") },
+        // Expressive Header
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "新規単語の追加",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Add JLPT N1 Vocabulary Entry",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            IconButton(onClick = onCancel) {
+                Icon(Icons.Default.Close, contentDescription = "Close")
+            }
+        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        OutlinedTextField(
-            value = reading,
-            onValueChange = { reading = it },
-            label = { Text("読み方 (Furigana Reading)") },
-            placeholder = { Text("例: きちょうめん") },
+        // ── Bento Card 1: Core Word Inputs ──
+        Surface(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "🈁 単語・読み・意味",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-        Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = meaning,
-            onValueChange = { meaning = it },
-            label = { Text("意味 (Meaning)") },
-            placeholder = { Text("例: Meticulous, punctual") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+                OutlinedTextField(
+                    value = kanji,
+                    onValueChange = { kanji = it },
+                    label = { Text("単語 (Kanji / Word)") },
+                    placeholder = { Text("例: 幾帳面") },
+                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = reading,
+                    onValueChange = { reading = it },
+                    label = { Text("読み方 (Furigana Reading)") },
+                    placeholder = { Text("例: きちょうめん") },
+                    leadingIcon = { Icon(Icons.Outlined.RecordVoiceOver, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = meaning,
+                    onValueChange = { meaning = it },
+                    label = { Text("意味 (Meaning)") },
+                    placeholder = { Text("例: Meticulous, punctual") },
+                    leadingIcon = { Icon(Icons.Outlined.Lightbulb, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Category Selection / Creation
-        Text(
-            text = "カテゴリ (Category)",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(6.dp))
+        // ── Bento Card 2: Classification & Nuance ──
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "🏷️ カテゴリ & ニュアンス",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-        if (isCreatingNewCategory) {
-            OutlinedTextField(
-                value = customCategory,
-                onValueChange = { customCategory = it },
-                label = { Text("新しいカテゴリ名") },
-                placeholder = { Text("例: 人の性格や個性を表す言葉") },
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = {
-                    IconButton(onClick = { isCreatingNewCategory = false }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel Custom Category")
-                    }
-                },
-                singleLine = true
-            )
-        } else {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(categories) { cat ->
-                    FilterChip(
-                        selected = category == cat,
-                        onClick = { category = cat },
-                        label = { Text(cat) }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (isCreatingNewCategory) {
+                    OutlinedTextField(
+                        value = customCategory,
+                        onValueChange = { customCategory = it },
+                        label = { Text("新しいカテゴリ名") },
+                        placeholder = { Text("例: 人の性格や個性を表す言葉") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        trailingIcon = {
+                            IconButton(onClick = { isCreatingNewCategory = false }) {
+                                Icon(Icons.Default.Close, contentDescription = "Cancel")
+                            }
+                        },
+                        singleLine = true
                     )
+                } else {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(categories) { cat ->
+                            FilterChip(
+                                selected = category == cat,
+                                onClick = { category = cat },
+                                label = { Text(cat) },
+                                shape = CircleShape
+                            )
+                        }
+                        item {
+                            FilterChip(
+                                selected = false,
+                                onClick = { isCreatingNewCategory = true },
+                                label = { Text("➕ 新規カテゴリ") },
+                                shape = CircleShape,
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                )
+                            )
+                        }
+                    }
                 }
-                item {
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = "ニュアンス (Nuance)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
-                        selected = false,
-                        onClick = { isCreatingNewCategory = true },
-                        label = { Text("➕ 新規カテゴリ") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                        selected = subCategory == "良い意味で使われる言葉",
+                        onClick = { subCategory = "良い意味で使われる言葉" },
+                        label = { Text("🌸 良い意味") },
+                        shape = CircleShape
+                    )
+                    FilterChip(
+                        selected = subCategory == "よくない意味で使われる言葉",
+                        onClick = { subCategory = "よくない意味で使われる言葉" },
+                        label = { Text("⚡️ よくない意味") },
+                        shape = CircleShape
                     )
                 }
             }
@@ -804,51 +899,52 @@ fun ExpressiveVocabAddSheet(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // SubCategory Selection (Nuance)
-        Text(
-            text = "ニュアンス (SubCategory / Nuance)",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = subCategory == "良い意味で使われる言葉",
-                onClick = { subCategory = "良い意味で使われる言葉" },
-                label = { Text("🌸 良い意味") }
-            )
-            FilterChip(
-                selected = subCategory == "よくない意味で使われる言葉",
-                onClick = { subCategory = "よくない意味で使われる言葉" },
-                label = { Text("⚡️ よくない意味") }
-            )
+        // ── Bento Card 3: Context & Example ──
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "📝 学習コンテキスト & 例文",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = tag,
+                    onValueChange = { tag = it },
+                    label = { Text("学習タグ (Study Schedule Tag)") },
+                    placeholder = { Text("例: 第1週・1日目") },
+                    leadingIcon = { Icon(Icons.Outlined.CalendarToday, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = example,
+                    onValueChange = { example = it },
+                    label = { Text("例文 (Example Sentence)") },
+                    placeholder = { Text("例: 彼は性格が幾帳面で、提出期限を一度も破ったことがない。") },
+                    leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    maxLines = 3
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Study Schedule Tag
-        OutlinedTextField(
-            value = tag,
-            onValueChange = { tag = it },
-            label = { Text("学習タグ (Study Schedule Tag)") },
-            placeholder = { Text("例: 第1週・1日目") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = example,
-            onValueChange = { example = it },
-            label = { Text("例文 (Example Sentence)") },
-            placeholder = { Text("例: 彼は性格が幾帳面で、提出期限を一度も破ったことがない。") },
-            modifier = Modifier.fillMaxWidth(),
-            maxLines = 3
-        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Vibrant Primary Action Hero Button
         Button(
             onClick = {
                 if (kanji.isNotBlank()) {
@@ -860,14 +956,23 @@ fun ExpressiveVocabAddSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
             enabled = kanji.isNotBlank()
         ) {
-            Text(
-                text = "✓ 登録する (Confirm Entry)",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "登録する (Confirm Vocab Entry)",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
