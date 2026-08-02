@@ -129,7 +129,7 @@ val LocalThemeSettings = staticCompositionLocalOf { ThemeSettings() }
 
 
 private fun getTypography(appFont: AppFont): androidx.compose.material3.Typography {
-    val fontFamily = when (appFont) {
+    val displayFontFamily = when (appFont) {
         AppFont.NUNITO -> com.personal.kakeibox.ui.theme.NunitoFontFamily
         AppFont.MONOSPACE -> FontFamily.Monospace
         AppFont.SYSTEM_SANS -> FontFamily.SansSerif
@@ -146,23 +146,37 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
         AppFont.RAMPART_ONE -> com.personal.kakeibox.ui.theme.RampartOneFontFamily
         AppFont.WDXL_LUBRIFONT_JPN -> com.personal.kakeibox.ui.theme.WDXLLubrifontJPNFontFamily
     }
+
+    val isDecorativeFont = when (appFont) {
+        AppFont.CLIMATE_CRISIS, AppFont.LUCKIEST_GUY, AppFont.DELA_GOTHIC_ONE,
+        AppFont.HACHI_MARU_POP, AppFont.KOSUGI_MARU, AppFont.MOCHIY_POP_P_ONE,
+        AppFont.POTTA_ONE, AppFont.RAMPART_ONE, AppFont.WDXL_LUBRIFONT_JPN -> true
+        else -> false
+    }
+
+    val bodyFontFamily = if (isDecorativeFont) {
+        com.personal.kakeibox.ui.theme.GoogleSansFlexFontFamily
+    } else {
+        displayFontFamily
+    }
+
     val wideTransform = com.personal.kakeibox.ui.theme.ExpTitleTransform
     return androidx.compose.material3.Typography(
-        displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
-        displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
-        displaySmall = com.personal.kakeibox.ui.theme.Typography.displaySmall.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
-        headlineLarge = com.personal.kakeibox.ui.theme.Typography.headlineLarge.copy(fontFamily = fontFamily, textGeometricTransform = wideTransform),
-        headlineMedium = com.personal.kakeibox.ui.theme.Typography.headlineMedium.copy(fontFamily = fontFamily),
-        headlineSmall = com.personal.kakeibox.ui.theme.Typography.headlineSmall.copy(fontFamily = fontFamily),
-        titleLarge = com.personal.kakeibox.ui.theme.Typography.titleLarge.copy(fontFamily = fontFamily),
-        titleMedium = com.personal.kakeibox.ui.theme.Typography.titleMedium.copy(fontFamily = fontFamily),
-        titleSmall = com.personal.kakeibox.ui.theme.Typography.titleSmall.copy(fontFamily = fontFamily),
-        bodyLarge = com.personal.kakeibox.ui.theme.Typography.bodyLarge.copy(fontFamily = fontFamily),
-        bodyMedium = com.personal.kakeibox.ui.theme.Typography.bodyMedium.copy(fontFamily = fontFamily),
-        bodySmall = com.personal.kakeibox.ui.theme.Typography.bodySmall.copy(fontFamily = fontFamily),
-        labelLarge = com.personal.kakeibox.ui.theme.Typography.labelLarge.copy(fontFamily = fontFamily),
-        labelMedium = com.personal.kakeibox.ui.theme.Typography.labelMedium.copy(fontFamily = fontFamily),
-        labelSmall = com.personal.kakeibox.ui.theme.Typography.labelSmall.copy(fontFamily = fontFamily),
+        displayLarge = com.personal.kakeibox.ui.theme.Typography.displayLarge.copy(fontFamily = displayFontFamily, textGeometricTransform = wideTransform),
+        displayMedium = com.personal.kakeibox.ui.theme.Typography.displayMedium.copy(fontFamily = displayFontFamily, textGeometricTransform = wideTransform),
+        displaySmall = com.personal.kakeibox.ui.theme.Typography.displaySmall.copy(fontFamily = displayFontFamily, textGeometricTransform = wideTransform),
+        headlineLarge = com.personal.kakeibox.ui.theme.Typography.headlineLarge.copy(fontFamily = displayFontFamily, textGeometricTransform = wideTransform),
+        headlineMedium = com.personal.kakeibox.ui.theme.Typography.headlineMedium.copy(fontFamily = displayFontFamily),
+        headlineSmall = com.personal.kakeibox.ui.theme.Typography.headlineSmall.copy(fontFamily = displayFontFamily),
+        titleLarge = com.personal.kakeibox.ui.theme.Typography.titleLarge.copy(fontFamily = bodyFontFamily),
+        titleMedium = com.personal.kakeibox.ui.theme.Typography.titleMedium.copy(fontFamily = bodyFontFamily),
+        titleSmall = com.personal.kakeibox.ui.theme.Typography.titleSmall.copy(fontFamily = bodyFontFamily),
+        bodyLarge = com.personal.kakeibox.ui.theme.Typography.bodyLarge.copy(fontFamily = bodyFontFamily),
+        bodyMedium = com.personal.kakeibox.ui.theme.Typography.bodyMedium.copy(fontFamily = bodyFontFamily),
+        bodySmall = com.personal.kakeibox.ui.theme.Typography.bodySmall.copy(fontFamily = bodyFontFamily),
+        labelLarge = com.personal.kakeibox.ui.theme.Typography.labelLarge.copy(fontFamily = bodyFontFamily),
+        labelMedium = com.personal.kakeibox.ui.theme.Typography.labelMedium.copy(fontFamily = bodyFontFamily),
+        labelSmall = com.personal.kakeibox.ui.theme.Typography.labelSmall.copy(fontFamily = bodyFontFamily),
     )
 }
 
@@ -678,7 +692,33 @@ fun KakeiboXTheme(
             outlineVariant          = nv(30.0),
         )
     } else {
-        scaled
+        // ── M3E Compliance: Chromatic Neutral Surfaces for Light Mode ───────────
+        val seedHct = Hct.fromInt(rawColorScheme.primary.toArgb())
+        val seedHue = seedHct.hue
+
+        val surfChroma = (4.0 * dynamicColorChromaScale).coerceIn(0.0, 15.0)
+        val varChroma = (6.0 * dynamicColorChromaScale).coerceIn(0.0, 20.0)
+
+        fun nsLight(tone: Double) = Color(Hct.from(seedHue, surfChroma, tone).toInt())
+        fun nvLight(tone: Double) = Color(Hct.from(seedHue, varChroma, tone).toInt())
+
+        scaled.copy(
+            surface                 = nsLight(98.0),
+            background              = nsLight(98.0),
+            surfaceDim              = nsLight(87.0),
+            surfaceContainerLowest  = Color(0xFFFFFFFF),
+            surfaceContainerLow     = nsLight(96.0),
+            surfaceContainer        = nsLight(94.0),
+            surfaceContainerHigh    = nsLight(92.0),
+            surfaceContainerHighest = nsLight(90.0),
+            surfaceBright           = nsLight(99.0),
+
+            onSurface               = nsLight(10.0),
+            onSurfaceVariant        = nvLight(30.0),
+            surfaceVariant          = nvLight(90.0),
+            outline                 = nvLight(50.0),
+            outlineVariant          = nvLight(80.0)
+        )
     }
 
     // Per-flavor shape tokens: architectural (Shu-Nuri), pillow-round (O-Miki), default (all others)
