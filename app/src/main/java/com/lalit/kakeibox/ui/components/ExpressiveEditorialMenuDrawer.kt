@@ -233,7 +233,7 @@ fun ExpressiveEditorialMenuDrawer(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "KAKEIBOX 2026 • M3 EXPRESSIVE",
+                            text = "VITTA 2026 • M3 EXPRESSIVE",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = darkText.copy(alpha = 0.7f)

@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.CreditCard
@@ -123,19 +124,111 @@ fun ExpressiveEditorialPosterCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // ── 1. Top Header Bar: Status Tag + Shield Crest + Neon Mint Pill ──
-                Row(
+                // ── 1. Top Header Bar: 2-Row Spacious Layout ──
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    // Row 1: Brand Logo + Action Pills ([ ✏️ EDIT ] and [ ≡ MENU ])
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Brand Shield Crest Logo
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Shield,
+                                contentDescription = "VITTA Shield Crest",
+                                tint = neonMint,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "VITTA",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 2.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Header Action Buttons: [ ✏️ EDIT ] + [ ≡ MENU ]
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Neon Edit Pill Button [ ✏️ EDIT ]
+                            Surface(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .clickable { onEdit() },
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit Month",
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = "EDIT",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 0.5.sp,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
+
+                            // Neon Mint Menu Pill Button [ ≡ MENU ]
+                            Surface(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .clickable { isMenuExpanded = !isMenuExpanded },
+                                color = neonMint
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isMenuExpanded) Icons.Default.Close else Icons.Default.Menu,
+                                        contentDescription = "Menu",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = "MENU",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 1.sp,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Row 2: Status Sub-Tag Metadata
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(8.dp)
+                                .size(7.dp)
                                 .clip(CircleShape)
                                 .background(neonMint)
                         )
@@ -146,54 +239,6 @@ fun ExpressiveEditorialPosterCard(
                             fontWeight = FontWeight.Bold,
                             color = neonMint
                         )
-                    }
-
-                    // Center Shield Crest Logo
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Shield,
-                            contentDescription = "FC88 Shield Crest",
-                            tint = neonMint,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "🈁 KAKEIBOX",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    // Neon Mint Menu Pill Button [ ≡ MENU ]
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .clickable { isMenuExpanded = !isMenuExpanded },
-                        color = neonMint
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isMenuExpanded) Icons.Default.Close else Icons.Default.Menu,
-                                contentDescription = "Menu",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "MENU",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
                     }
                 }
 
@@ -226,14 +271,15 @@ fun ExpressiveEditorialPosterCard(
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp,
-                    color = neonMint
+                    color = neonMint,
+                    modifier = Modifier.clickable { onEdit() }
                 )
 
                 // ── 2. Monumental Hero Display Number (Per-Month Salary) + Overlapping 3D Graphics ──
                 Box(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Animated Per-Month Salary Amount (Swipes smoothly per month)
+                    // Animated Per-Month Salary Amount (Swipes smoothly per month, Tap-to-Edit)
                     val formattedMonthSalary = remember(thisMonthSalary, isPrivacyMode) {
                         CurrencyUtils.formatAmount(thisMonthSalary, themeSettings.currencySymbol, isPrivacyMode, compact = false)
                     }
@@ -245,7 +291,10 @@ fun ExpressiveEditorialPosterCard(
                                 .togetherWith(slideOutVertically { height -> -height } + fadeOut())
                         },
                         label = "month_salary_odometer",
-                        modifier = Modifier.align(Alignment.TopStart)
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { onEdit() }
                     ) { targetSalary ->
                         Text(
                             text = targetSalary,
