@@ -38,6 +38,7 @@ import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.ExpressiveSwitch
 import com.personal.kakeibox.ui.theme.ExpressiveMotion
+import com.personal.kakeibox.ui.theme.ExpressivePhysics
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.ui.theme.getAppStrings
@@ -128,11 +129,11 @@ fun KotobaScreen(
                 AnimatedContent(
                     targetState = selectedVocabEntry,
                     transitionSpec = {
-                        (fadeIn(tween(500, easing = ExpressiveMotion.EasingEmphasized)) +
-                                scaleIn(initialScale = 0.90f, animationSpec = tween(500, easing = ExpressiveMotion.EasingEmphasized)))
+                        (fadeIn(ExpressivePhysics.fluidBouncy()) +
+                                scaleIn(initialScale = 0.90f, animationSpec = ExpressivePhysics.fluidBouncy()))
                             .togetherWith(
-                                fadeOut(tween(400, easing = ExpressiveMotion.EasingEmphasized)) +
-                                        scaleOut(targetScale = 0.90f, animationSpec = tween(400, easing = ExpressiveMotion.EasingEmphasized))
+                                fadeOut(ExpressivePhysics.fluidBouncy()) +
+                                        scaleOut(targetScale = 0.90f, animationSpec = ExpressivePhysics.fluidBouncy())
                             )
                     },
                     label = "kotoba_container_transform"
@@ -297,7 +298,7 @@ fun VocabCardItem(
                 .sharedBounds(
                     sharedContentState = rememberSharedContentState(key = "vocab_card_${entry.id}"),
                     animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ -> tween(500, easing = ExpressiveMotion.EasingEmphasized) }
+                    boundsTransform = { _, _ -> ExpressivePhysics.fluidBouncy() }
                 )
                 .clickable {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
