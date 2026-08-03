@@ -28,6 +28,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -564,9 +565,9 @@ fun ExpressiveVocabDetailView(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // Huge Furigana & Kanji Display
+                    // ── Monumental 95.sp Kanji Hero Display ──
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -576,29 +577,53 @@ fun ExpressiveVocabDetailView(
                                 text = entry.furiganaReading,
                                 style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(bottom = 2.dp)
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 2.sp,
+                                modifier = Modifier.padding(bottom = 4.dp)
                             )
                         }
 
+                        // Gigantic Monumental Kanji Display (95.sp)
                         Text(
                             text = entry.kanjiWord,
-                            style = MaterialTheme.typography.displayMedium,
+                            fontSize = 95.sp,
                             fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.SansSerif,
                             color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
+                            lineHeight = 90.sp,
+                            textAlign = TextAlign.Center,
+                            letterSpacing = (-4).sp
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = entry.meaning,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = entry.meaning.uppercase(),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-0.5).sp,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center
                         )
                     }
+
+                    // ── Handwritten Chalk Annotation Challenge Quote ──
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = "\"IS THIS KANJI HARD TO REMEMBER?\"",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = "~~YES IT IS.~~ NO. WAY! IT'S A LIFESTYLE. 🌸",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
 
                     // On-Demand Metadata Info Row (Toggled via ℹ️ Info Icon)
                     AnimatedVisibility(
