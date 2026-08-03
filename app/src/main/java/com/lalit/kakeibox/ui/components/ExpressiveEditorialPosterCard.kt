@@ -72,10 +72,24 @@ fun ExpressiveEditorialPosterCard(
     isPrivacyMode: Boolean = false,
     onEdit: () -> Unit,
     themeSettings: ThemeSettings,
+    onNavigateTab: ((String) -> Unit)? = null,
+    onTogglePrivacyMode: (() -> Unit)? = null,
+    onOpenThemeSettings: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val paydayInfo = remember { DateUtils.calculatePaydayProgress() }
     var isMenuExpanded by remember { mutableStateOf(false) }
+
+    // FC88 Full-Bleed Electric Mint Menu Drawer
+    ExpressiveEditorialMenuDrawer(
+        isOpen = isMenuExpanded,
+        onDismiss = { isMenuExpanded = false },
+        onNavigateTab = { tab -> onNavigateTab?.invoke(tab) },
+        onTogglePrivacyMode = { onTogglePrivacyMode?.invoke() },
+        onAddEntry = onEdit,
+        onOpenThemeSettings = { onOpenThemeSettings?.invoke() },
+        themeSettings = themeSettings
+    )
 
     // Theme-Adaptive Color Palette
     val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow

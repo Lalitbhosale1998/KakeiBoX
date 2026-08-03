@@ -675,7 +675,8 @@ fun SalaryScreen(
                                             if (entry.id > 0) viewModel.openEditDialog(entry)
                                             else viewModel.openAddDialog()
                                         },
-                                        themeSettings = themeSettings
+                                        themeSettings = themeSettings,
+                                        onTogglePrivacyMode = { themeViewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) }
                                     )
                                 } else {
                                     AuraExpressiveHeroCard(
