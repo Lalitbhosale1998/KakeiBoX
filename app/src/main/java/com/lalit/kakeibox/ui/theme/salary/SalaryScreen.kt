@@ -665,18 +665,32 @@ fun SalaryScreen(
                                         alpha = cardAlpha
                                     }
                             ) {
-                                AuraExpressiveHeroCard(
-                                    totalSalary = totalSalary ?: 0L,
-                                    thisMonthSalary = entry.salaryAmount,
-                                    currentEntry = entry,
-                                    isPrivacyMode = themeSettings.privacyModeEnabled,
-                                    onEdit = {
-                                        if (entry.id > 0) viewModel.openEditDialog(entry)
-                                        else viewModel.openAddDialog()
-                                    },
-                                    isPrimaryContainer = isPrimaryContainer,
-                                    themeSettings = themeSettings
-                                )
+                                if (themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+                                    com.personal.kakeibox.ui.components.ExpressiveEditorialPosterCard(
+                                        totalSalary = totalSalary ?: 0L,
+                                        thisMonthSalary = entry.salaryAmount,
+                                        currentEntry = entry,
+                                        isPrivacyMode = themeSettings.privacyModeEnabled,
+                                        onEdit = {
+                                            if (entry.id > 0) viewModel.openEditDialog(entry)
+                                            else viewModel.openAddDialog()
+                                        },
+                                        themeSettings = themeSettings
+                                    )
+                                } else {
+                                    AuraExpressiveHeroCard(
+                                        totalSalary = totalSalary ?: 0L,
+                                        thisMonthSalary = entry.salaryAmount,
+                                        currentEntry = entry,
+                                        isPrivacyMode = themeSettings.privacyModeEnabled,
+                                        onEdit = {
+                                            if (entry.id > 0) viewModel.openEditDialog(entry)
+                                            else viewModel.openAddDialog()
+                                        },
+                                        isPrimaryContainer = isPrimaryContainer,
+                                        themeSettings = themeSettings
+                                    )
+                                }
                             }
                         }
                     }
