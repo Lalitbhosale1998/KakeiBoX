@@ -77,12 +77,12 @@ fun ExpressiveEditorialPosterCard(
     val paydayInfo = remember { DateUtils.calculatePaydayProgress() }
     var isMenuExpanded by remember { mutableStateOf(false) }
 
-    // Neon Brutalist Color Palette
-    val chalkBg = Color(0xFF141816)           // Dark Slate Chalkboard
-    val neonMint = Color(0xFF00E676)          // Electric Mint Accent
-    val mintText = Color(0xFFB9FFD4)          // Soft Mint Text
-    val flameRed = Color(0xFFFF1744)          // Coral Red Chalk Annotation
-    val chalkBorder = Color(0xFF28342E)       // Chalk Outline
+    // Theme-Adaptive Color Palette
+    val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
+    val neonMint = MaterialTheme.colorScheme.primary
+    val mintText = MaterialTheme.colorScheme.onSurface
+    val flameRed = MaterialTheme.colorScheme.secondary
+    val chalkBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
 
     Surface(
         modifier = modifier
@@ -150,7 +150,7 @@ fun ExpressiveEditorialPosterCard(
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -169,7 +169,7 @@ fun ExpressiveEditorialPosterCard(
                             Icon(
                                 imageVector = if (isMenuExpanded) Icons.Default.Close else Icons.Default.Menu,
                                 contentDescription = "Menu",
-                                tint = Color(0xFF003819),
+                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
@@ -177,7 +177,7 @@ fun ExpressiveEditorialPosterCard(
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 1.sp,
-                                color = Color(0xFF003819)
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     }
@@ -185,26 +185,64 @@ fun ExpressiveEditorialPosterCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // ── 2. Monumental Hero Display Number (Salary Amount) + Overlapping 3D Graphics ──
+                // ── Dynamic Month Title Badge ──
+                val currentMonthLabel = remember(currentEntry) {
+                    val m = currentEntry?.month ?: 1
+                    val y = currentEntry?.year ?: 2026
+                    val mName = when (m) {
+                        1 -> "JANUARY"
+                        2 -> "FEBRUARY"
+                        3 -> "MARCH"
+                        4 -> "APRIL"
+                        5 -> "MAY"
+                        6 -> "JUNE"
+                        7 -> "JULY"
+                        8 -> "AUGUST"
+                        9 -> "SEPTEMBER"
+                        10 -> "OCTOBER"
+                        11 -> "NOVEMBER"
+                        12 -> "DECEMBER"
+                        else -> "THIS MONTH"
+                    }
+                    "$mName $y SALARY"
+                }
+
+                Text(
+                    text = currentMonthLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp,
+                    color = neonMint
+                )
+
+                // ── 2. Monumental Hero Display Number (Per-Month Salary) + Overlapping 3D Graphics ──
                 Box(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Monumental Financial Display Number: Total Salary or This Month's Salary
-                    val formattedSalary = remember(totalSalary, thisMonthSalary, isPrivacyMode) {
-                        val amount = if (totalSalary > 0L) totalSalary else thisMonthSalary
-                        CurrencyUtils.formatAmount(amount, themeSettings.currencySymbol, isPrivacyMode, compact = false)
+                    // Animated Per-Month Salary Amount (Swipes smoothly per month)
+                    val formattedMonthSalary = remember(thisMonthSalary, isPrivacyMode) {
+                        CurrencyUtils.formatAmount(thisMonthSalary, themeSettings.currencySymbol, isPrivacyMode, compact = false)
                     }
 
-                    Text(
-                        text = formattedSalary,
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.SansSerif,
-                        letterSpacing = (-2.0).sp,
-                        color = mintText,
-                        lineHeight = 52.sp,
+                    AnimatedContent(
+                        targetState = formattedMonthSalary,
+                        transitionSpec = {
+                            (slideInVertically { height -> height } + fadeIn())
+                                .togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                        },
+                        label = "month_salary_odometer",
                         modifier = Modifier.align(Alignment.TopStart)
-                    )
+                    ) { targetSalary ->
+                        Text(
+                            text = targetSalary,
+                            fontSize = 44.sp,
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.SansSerif,
+                            letterSpacing = (-2.0).sp,
+                            color = mintText,
+                            lineHeight = 48.sp
+                        )
+                    }
 
                     // Overlapping Floating 3D Graphic Cutouts Layered Over Number
                     Row(
@@ -276,6 +314,61 @@ fun ExpressiveEditorialPosterCard(
                     }
                 }
 
+                // ── Prominent Secondary Editorial Tile (Total Cumulative Salary) ──
+                val formattedTotalSalary = remember(totalSalary, isPrivacyMode) {
+                    CurrencyUtils.formatAmount(totalSalary, themeSettings.currencySymbol, isPrivacyMode, compact = false)
+                }
+
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    border = BorderStroke(1.5.dp, neonMint.copy(alpha = 0.4f)),
+                    shadowElevation = 4.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "💳 TOTAL CUMULATIVE EARNINGS",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp,
+                                color = neonMint
+                            )
+                            Text(
+                                text = formattedTotalSalary,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-0.5).sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = neonMint.copy(alpha = 0.2f),
+                            border = BorderStroke(1.dp, neonMint.copy(alpha = 0.5f))
+                        ) {
+                            Text(
+                                text = "⚡ LIFETIME",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                color = neonMint
+                            )
+                        }
+                    }
+                }
+
                 // ── 3. Editorial Subtitle Stack ──
                 Text(
                     text = "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY 🔥",
@@ -288,26 +381,8 @@ fun ExpressiveEditorialPosterCard(
                 )
 
                 // ── 4. Handwritten Chalk Annotation Note ──
-                val currentMonthLabel = remember(currentEntry) {
-                    val m = currentEntry?.month ?: 1
-                    when (m) {
-                        1 -> "JANUARY"
-                        2 -> "FEBRUARY"
-                        3 -> "MARCH"
-                        4 -> "APRIL"
-                        5 -> "MAY"
-                        6 -> "JUNE"
-                        7 -> "JULY"
-                        8 -> "AUGUST"
-                        9 -> "SEPTEMBER"
-                        10 -> "OCTOBER"
-                        11 -> "NOVEMBER"
-                        12 -> "DECEMBER"
-                        else -> "THIS MONTH"
-                    }
-                }
                 Text(
-                    text = "BUT BEFORE THE LAUNCH OF $currentMonthLabel SALARY, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
+                    text = "BUT BEFORE THE LAUNCH OF $currentMonthLabel, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,

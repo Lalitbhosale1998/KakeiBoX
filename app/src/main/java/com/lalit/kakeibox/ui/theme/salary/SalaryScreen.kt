@@ -665,7 +665,7 @@ fun SalaryScreen(
                                         alpha = cardAlpha
                                     }
                             ) {
-                                if (themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+                                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
                                     com.personal.kakeibox.ui.components.ExpressiveEditorialPosterCard(
                                         totalSalary = totalSalary ?: 0L,
                                         thisMonthSalary = entry.salaryAmount,
