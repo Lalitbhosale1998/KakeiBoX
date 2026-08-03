@@ -1,6 +1,12 @@
 package com.personal.kakeibox.ui.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -8,6 +14,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -318,8 +325,8 @@ fun ExpressiveEditorialPosterCard(
                         // Card Badge Cutout 1: Credit Card
                         Surface(
                             modifier = Modifier
-                                .size(50.dp)
-                                .rotate(-12f),
+                                .size(46.dp)
+                                .rotate(-14f),
                             shape = RoundedCornerShape(14.dp),
                             color = Color(0xFF0284C7),
                             border = BorderStroke(1.5.dp, Color.White),
@@ -330,7 +337,7 @@ fun ExpressiveEditorialPosterCard(
                                     imageVector = Icons.Outlined.CreditCard,
                                     contentDescription = null,
                                     tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
@@ -338,7 +345,7 @@ fun ExpressiveEditorialPosterCard(
                         // Card Badge Cutout 2: Wallet
                         Surface(
                             modifier = Modifier
-                                .size(56.dp)
+                                .size(50.dp)
                                 .rotate(8f),
                             shape = RoundedCornerShape(16.dp),
                             color = Color(0xFFEA580C),
@@ -350,16 +357,36 @@ fun ExpressiveEditorialPosterCard(
                                     imageVector = Icons.Outlined.AccountBalanceWallet,
                                     contentDescription = null,
                                     tint = Color.White,
-                                    modifier = Modifier.size(28.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
 
-                        // Card Badge Cutout 3: Flame Fire Badge
+                        // Card Badge Cutout 3: Gold Yen Coin Badge (五円)
                         Surface(
                             modifier = Modifier
-                                .size(46.dp)
-                                .rotate(-6f),
+                                .size(44.dp)
+                                .rotate(-4f),
+                            shape = CircleShape,
+                            color = Color(0xFFEAB308),
+                            border = BorderStroke(1.5.dp, Color.White),
+                            shadowElevation = 7.dp
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "五円",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF451A03)
+                                )
+                            }
+                        }
+
+                        // Card Badge Cutout 4: Flame Fire Badge
+                        Surface(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .rotate(10f),
                             shape = CircleShape,
                             color = flameRed,
                             border = BorderStroke(1.5.dp, Color.White),
@@ -370,7 +397,7 @@ fun ExpressiveEditorialPosterCard(
                                     imageVector = Icons.Outlined.LocalFireDepartment,
                                     contentDescription = null,
                                     tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
@@ -432,16 +459,40 @@ fun ExpressiveEditorialPosterCard(
                     }
                 }
 
-                // ── 3. Editorial Subtitle Stack ──
-                Text(
-                    text = "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY 🔥",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Black,
-                    lineHeight = 28.sp,
-                    letterSpacing = (-0.5).sp,
-                    color = neonMint
+                // ── 3. Editorial Subtitle Stack with Pulsing Payday Flame ──
+                val infiniteTransition = rememberInfiniteTransition(label = "flame_pulse")
+                val flameScale by infiniteTransition.animateFloat(
+                    initialValue = 1.0f,
+                    targetValue = 1.18f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(800, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "flame_scale"
                 )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 28.sp,
+                        letterSpacing = (-0.5).sp,
+                        color = neonMint
+                    )
+                    Text(
+                        text = "🔥",
+                        fontSize = 32.sp,
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = flameScale
+                            scaleY = flameScale
+                        }
+                    )
+                }
 
                 // ── 4. Handwritten Chalk Annotation Note ──
                 Text(
@@ -453,28 +504,37 @@ fun ExpressiveEditorialPosterCard(
                     color = mintText
                 )
 
-                // ── 5. Handwritten Chalk Accent "RIGHT?!" with Underline & Hearts ──
+                // ── 5. Handwritten Chalk Accent & Japanese Proverb Annotation (四字熟語) ──
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = "↓",
-                            fontSize = 14.sp,
+                            text = "継続は力なり (Continuity is Power)",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Gray
+                            color = neonMint.copy(alpha = 0.85f)
                         )
-                        Text(
-                            text = "Scroll to see more...",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 11.sp,
-                            color = Color.Gray
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "↓",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = "Scroll to see more...",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontSize = 11.sp,
+                                color = Color.Gray
+                            )
+                        }
                     }
 
                     Column(horizontalAlignment = Alignment.End) {
