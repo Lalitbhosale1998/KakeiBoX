@@ -1312,12 +1312,28 @@ fun AuraExpressiveHeroCard(
                                     color = MaterialTheme.colorScheme.tertiary
                                 )
                             }
-                            Text(
-                                text = if (paydayInfo.daysRemaining == 0L) "Payday Today! 🎉" else "${paydayInfo.daysRemaining} Days Left",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            if (themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+                                Text(
+                                    text = String.format("%03d", paydayInfo.daysRemaining),
+                                    style = MaterialTheme.typography.displayMedium,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = (-1.5).sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "DAYS TILL PAYDAY 🔥 RIGHT?!",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            } else {
+                                Text(
+                                    text = if (paydayInfo.daysRemaining == 0L) "Payday Today! 🎉" else "${paydayInfo.daysRemaining} Days Left",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                             
                             // 🎬 Approved Feature 5: Living Payday Progress Pulse
                             Spacer(modifier = Modifier.height(2.dp))

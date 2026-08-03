@@ -355,6 +355,63 @@ object ThemePalettes {
         outlineVariant      = Color(0xFFDDB0A8)
     )
 
+    // ── 7. Neo-Brutalist Poster (FC88 High-Energy Editorial Mint & Chalk) ───
+    val NeonBrutalistDark: ColorScheme = darkColorScheme(
+        primary             = Color(0xFF00E676),    // High-energy Electric Mint
+        onPrimary           = Color(0xFF003819),
+        primaryContainer    = Color(0xFF004D25),
+        onPrimaryContainer  = Color(0xFFB9FFD4),
+        secondary           = Color(0xFFFF1744),    // Vibrant Coral Flame Accent
+        onSecondary         = Color(0xFF38000A),
+        secondaryContainer  = Color(0xFF5C0012),
+        onSecondaryContainer= Color(0xFFFFB4AB),
+        tertiary            = Color(0xFF00F2FE),    // Electric Cyan Pulse
+        onTertiary          = Color(0xFF00363A),
+        tertiaryContainer   = Color(0xFF004F56),
+        onTertiaryContainer = Color(0xFFB1F5FF),
+        background          = Color(0xFF0F1412),    // Deep Chalkboard Slate
+        onBackground        = Color(0xFFE2EBE5),
+        surface             = Color(0xFF161D1A),    // Brutalist Poster Surface
+        onSurface           = Color(0xFFE2EBE5),
+        surfaceVariant      = Color(0xFF222B27),
+        onSurfaceVariant    = Color(0xFFA0B3A8),
+        surfaceContainerLowest  = Color(0xFF0A0E0D),
+        surfaceContainerLow     = Color(0xFF1B2420),
+        surfaceContainer        = Color(0xFF202A26),
+        surfaceContainerHigh    = Color(0xFF28342E),
+        surfaceContainerHighest = Color(0xFF303E38),
+        outline             = Color(0xFF00E676),
+        outlineVariant      = Color(0xFF334A3E)
+    )
+
+    val NeonBrutalistLight: ColorScheme = lightColorScheme(
+        primary             = Color(0xFF00A852),
+        onPrimary           = Color(0xFFFFFFFF),
+        primaryContainer    = Color(0xFFB9FFD4),
+        onPrimaryContainer  = Color(0xFF00210B),
+        secondary           = Color(0xFFD50000),
+        onSecondary         = Color(0xFFFFFFFF),
+        secondaryContainer  = Color(0xFFFFDAD6),
+        onSecondaryContainer= Color(0xFF410002),
+        tertiary            = Color(0xFF00838F),
+        onTertiary          = Color(0xFFFFFFFF),
+        tertiaryContainer   = Color(0xFFE0F7FA),
+        onTertiaryContainer = Color(0xFF00272B),
+        background          = Color(0xFFF4F8F5),
+        onBackground        = Color(0xFF0C1611),
+        surface             = Color(0xFFFFFFFF),
+        onSurface           = Color(0xFF0C1611),
+        surfaceVariant      = Color(0xFFDAE6DE),
+        onSurfaceVariant    = Color(0xFF3F4D45),
+        surfaceContainerLowest  = Color(0xFFFFFFFF),
+        surfaceContainerLow     = Color(0xFFEEF5F0),
+        surfaceContainer        = Color(0xFFE6EFE8),
+        surfaceContainerHigh    = Color(0xFFDDE7E0),
+        surfaceContainerHighest = Color(0xFFD4DEC7),
+        outline             = Color(0xFF00A852),
+        outlineVariant      = Color(0xFFBCCBC1)
+    )
+
     fun getColorScheme(flavor: ThemeFlavor, isDark: Boolean): ColorScheme? {
         return when (flavor) {
             ThemeFlavor.DYNAMIC_MATERIAL    -> null
@@ -364,6 +421,7 @@ object ThemePalettes {
             ThemeFlavor.TOKYO_GLASS         -> if (isDark) TokyoGlassDark else TokyoGlassLight
             ThemeFlavor.SHU_NURI            -> if (isDark) ShuNuriDark else ShuNuriLight
             ThemeFlavor.O_MIKI              -> if (isDark) OMikiDark else OMikiLight
+            ThemeFlavor.NEON_BRUTALIST      -> if (isDark) NeonBrutalistDark else NeonBrutalistLight
         }
     }
 }

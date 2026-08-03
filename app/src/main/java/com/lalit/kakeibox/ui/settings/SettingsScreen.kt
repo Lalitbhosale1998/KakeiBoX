@@ -520,6 +520,7 @@ fun SettingsScreen(
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS -> "Tokyo Glass"
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.SHU_NURI -> "朱塗り Shu-Nuri"
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.O_MIKI -> "御神酒 O-Miki"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST -> "Neon Brutalist ⚡"
                                         },
                                         options = listOf(
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL to "Dynamic Material",
@@ -528,7 +529,8 @@ fun SettingsScreen(
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL to "Sunset Coral 🌅",
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS to "Tokyo Glass 💎",
                                             com.personal.kakeibox.data.preferences.ThemeFlavor.SHU_NURI to "朱塗り Shu-Nuri 🩩",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.O_MIKI to "御神酒 O-Miki 🎏"
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.O_MIKI to "御神酒 O-Miki 🎏",
+                                            com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST to "Neon Brutalist ⚡"
                                         ),
                                         selectedOption = themeSettings.themeFlavor,
                                         onOptionSelected = { viewModel.setThemeFlavor(it) },
