@@ -185,23 +185,24 @@ fun ExpressiveEditorialPosterCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // ── 2. Monumental Hero Display Number + Overlapping 3D Graphics ──
+                // ── 2. Monumental Hero Display Number (Salary Amount) + Overlapping 3D Graphics ──
                 Box(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Monumental Display Number: "035" or Payday Countdown
-                    val displayDays = remember(paydayInfo.daysRemaining) {
-                        String.format("%03d", paydayInfo.daysRemaining)
+                    // Monumental Financial Display Number: Total Salary or This Month's Salary
+                    val formattedSalary = remember(totalSalary, thisMonthSalary, isPrivacyMode) {
+                        val amount = if (totalSalary > 0L) totalSalary else thisMonthSalary
+                        CurrencyUtils.formatAmount(amount, themeSettings.currencySymbol, isPrivacyMode, compact = false)
                     }
 
                     Text(
-                        text = displayDays,
-                        fontSize = 105.sp,
+                        text = formattedSalary,
+                        fontSize = 48.sp,
                         fontWeight = FontWeight.Black,
                         fontFamily = FontFamily.SansSerif,
-                        letterSpacing = (-4.5).sp,
+                        letterSpacing = (-2.0).sp,
                         color = mintText,
-                        lineHeight = 90.sp,
+                        lineHeight = 52.sp,
                         modifier = Modifier.align(Alignment.TopStart)
                     )
 
@@ -277,23 +278,41 @@ fun ExpressiveEditorialPosterCard(
 
                 // ── 3. Editorial Subtitle Stack ──
                 Text(
-                    text = "DAYS TILL THE\nNEXT PAYDAY",
+                    text = "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY 🔥",
                     style = MaterialTheme.typography.headlineLarge,
-                    fontSize = 32.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Black,
-                    lineHeight = 30.sp,
+                    lineHeight = 28.sp,
                     letterSpacing = (-0.5).sp,
-                    color = mintText
+                    color = neonMint
                 )
 
                 // ── 4. Handwritten Chalk Annotation Note ──
+                val currentMonthLabel = remember(currentEntry) {
+                    val m = currentEntry?.month ?: 1
+                    when (m) {
+                        1 -> "JANUARY"
+                        2 -> "FEBRUARY"
+                        3 -> "MARCH"
+                        4 -> "APRIL"
+                        5 -> "MAY"
+                        6 -> "JUNE"
+                        7 -> "JULY"
+                        8 -> "AUGUST"
+                        9 -> "SEPTEMBER"
+                        10 -> "OCTOBER"
+                        11 -> "NOVEMBER"
+                        12 -> "DECEMBER"
+                        else -> "THIS MONTH"
+                    }
+                }
                 Text(
-                    text = "BUT BEFORE THE LAUNCH OF NEW SALARY, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
+                    text = "BUT BEFORE THE LAUNCH OF $currentMonthLabel SALARY, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 17.sp,
-                    color = neonMint
+                    color = mintText
                 )
 
                 // ── 5. Handwritten Chalk Accent "RIGHT?!" with Underline & Hearts ──
