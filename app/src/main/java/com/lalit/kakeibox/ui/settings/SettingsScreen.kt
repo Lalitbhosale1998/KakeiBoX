@@ -213,6 +213,8 @@ import com.personal.kakeibox.data.preferences.TouchSynesthesia
 import androidx.compose.ui.text.font.FontFamily
 import com.personal.kakeibox.data.entity.BirthdayEntry
 import com.personal.kakeibox.ui.components.BentoCard
+import com.personal.kakeibox.ui.components.ExpressiveSettingsPosterCard
+import com.personal.kakeibox.ui.components.ExpressiveEditorialMenuDrawer
 import com.personal.kakeibox.ui.components.ExpressiveTab
 import com.personal.kakeibox.ui.components.elasticClick
 import com.personal.kakeibox.ui.components.ExpressiveOutlinedTextField
@@ -238,6 +240,7 @@ fun SettingsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var activeTab by remember { mutableStateOf("visual") }
     var showTabOrderSheet by remember { mutableStateOf(false) }
+    var isMenuExpanded by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -350,6 +353,14 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val context = LocalContext.current
+
+            // ── Neo-Brutalist Settings Poster Hero Card ──
+            if (themeSettings.themeStyle == ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+                ExpressiveSettingsPosterCard(
+                    themeSettings = themeSettings,
+                    onOpenThemeDrawer = { isMenuExpanded = true }
+                )
+            }
 
             // 🌟 Glassmorphic Floating Search Capsule
             val bentoIdleColor = androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
@@ -1285,6 +1296,17 @@ fun SettingsScreen(
             }
         }
     }
+
+    // ── Expressive Full-Bleed FC88 Navigation Menu Drawer ──
+    ExpressiveEditorialMenuDrawer(
+        isOpen = isMenuExpanded,
+        onDismiss = { isMenuExpanded = false },
+        onNavigateTab = { _ -> isMenuExpanded = false },
+        onTogglePrivacyMode = { viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) },
+        onAddEntry = {},
+        onOpenThemeSettings = { isMenuExpanded = false },
+        themeSettings = themeSettings
+    )
 }
 
 @Composable
