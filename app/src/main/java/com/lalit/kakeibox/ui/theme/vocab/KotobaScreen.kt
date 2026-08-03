@@ -147,15 +147,7 @@ fun KotobaScreen(
                             val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                             Spacer(modifier = Modifier.height(statusBarPadding + 96.dp)) // Generous header inset below floating top nav bar
 
-                            val searchBarBgColor = if (isPrimaryContainer) {
-                                androidx.compose.ui.graphics.lerp(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    0.35f
-                                )
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainerHigh
-                            }
+                            val searchBarBgColor = MaterialTheme.colorScheme.surfaceContainerHigh
 
                             // ── Search Bar ──
                             OutlinedTextField(
@@ -296,16 +288,7 @@ fun VocabCardItem(
 
     val themeSettings = LocalThemeSettings.current
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
-    val cardBgColor = if (isPrimaryContainer) {
-        val targetBase = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
-        androidx.compose.ui.graphics.lerp(
-            targetBase,
-            MaterialTheme.colorScheme.primaryContainer,
-            if (entry.isMastered) 0.20f else 0.35f
-        )
-    } else {
-        if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
-    }
+    val cardBgColor = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
 
     with(sharedTransitionScope) {
         Surface(

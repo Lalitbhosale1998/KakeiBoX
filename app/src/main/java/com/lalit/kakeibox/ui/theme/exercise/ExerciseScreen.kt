@@ -134,15 +134,7 @@ fun ExerciseScreen(
     )
 
     val bentoIdleColor by animateColorAsState(
-        targetValue = if (isPrimaryContainer) {
-            androidx.compose.ui.graphics.lerp(
-                MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.primaryContainer,
-                0.35f // 35% tint overlay for soft blending
-            )
-        } else {
-            MaterialTheme.colorScheme.surfaceContainer
-        },
+        targetValue = MaterialTheme.colorScheme.surfaceContainerLow,
         label = "bento_idle_color"
     )
 

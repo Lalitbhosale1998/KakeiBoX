@@ -274,14 +274,14 @@ fun Modifier.expressiveBackground(
     if (isPrimaryContainer) {
         if (isDark) {
             val darkBaseColor = androidx.compose.ui.graphics.lerp(
-                containerColor,
+                Color(0xFF0F172A), // Deep midnight slate
                 primaryColor,
-                0.12f
+                0.08f
             )
             // Draw premium dark mode gradient: deep primary accent fading to harmonized dark background
             val gradientBrush = androidx.compose.ui.graphics.Brush.radialGradient(
                 colors = listOf(
-                    primaryColor.copy(alpha = 0.20f),
+                    primaryColor.copy(alpha = 0.16f),
                     darkBaseColor
                 ),
                 center = Offset(size.width * 0.75f, size.height * 0.15f),
@@ -289,15 +289,21 @@ fun Modifier.expressiveBackground(
             )
             drawRect(brush = gradientBrush)
         } else {
-            val luminousPastel = androidx.compose.ui.graphics.lerp(
-                containerColor,
+            // Light Mode: Soft desaturated luminous pastel ice background canvas (never blinding electric neon cyan!)
+            val luminousPastelTop = androidx.compose.ui.graphics.lerp(
+                Color(0xFFF0F7FF), // Soft luminous ice tone
                 primaryColor,
-                0.06f
+                0.08f
+            )
+            val baseLightCanvas = androidx.compose.ui.graphics.lerp(
+                Color(0xFFF8FAFC), // Muted soft off-white canvas
+                primaryColor,
+                0.04f
             )
             val gradientBrush = androidx.compose.ui.graphics.Brush.radialGradient(
                 colors = listOf(
-                    luminousPastel,
-                    containerColor
+                    luminousPastelTop,
+                    baseLightCanvas
                 ),
                 center = Offset(size.width * 0.75f, size.height * 0.15f),
                 radius = size.width * 1.4f
@@ -679,8 +685,13 @@ fun KakeiboXTheme(
             Color(Hct.from(seedHue, targetChroma, seedHct.tone).toInt())
         }
 
+        val softDarkPrimaryContainer = Color(Hct.from(seedHue, (14.0 * dynamicColorChromaScale).coerceIn(0.0, 24.0), 22.0).toInt())
+        val softDarkOnPrimaryContainer = Color(Hct.from(seedHue, (16.0 * dynamicColorChromaScale).coerceIn(0.0, 30.0), 90.0).toInt())
+
         scaled.copy(
             primary                 = boostedPrimary,
+            primaryContainer        = softDarkPrimaryContainer,
+            onPrimaryContainer      = softDarkOnPrimaryContainer,
 
             // M3E dark tone targets — chromatic neutrals from seed hue
             surface                 = ns(6.0),
@@ -711,7 +722,12 @@ fun KakeiboXTheme(
         fun nsLight(tone: Double) = Color(Hct.from(seedHue, surfChroma, tone).toInt())
         fun nvLight(tone: Double) = Color(Hct.from(seedHue, varChroma, tone).toInt())
 
+        val softLightPrimaryContainer = Color(Hct.from(seedHue, (12.0 * dynamicColorChromaScale).coerceIn(0.0, 20.0), 92.0).toInt())
+        val softLightOnPrimaryContainer = Color(Hct.from(seedHue, (20.0 * dynamicColorChromaScale).coerceIn(0.0, 40.0), 18.0).toInt())
+
         scaled.copy(
+            primaryContainer        = softLightPrimaryContainer,
+            onPrimaryContainer      = softLightOnPrimaryContainer,
             surface                 = nsLight(98.0),
             background              = nsLight(98.0),
             surfaceDim              = nsLight(87.0),

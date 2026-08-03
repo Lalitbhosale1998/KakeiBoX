@@ -405,15 +405,7 @@ fun SalaryScreen(
     )
 
     val bentoIdleColor by animateColorAsState(
-        targetValue = if (isPrimaryContainer) {
-            androidx.compose.ui.graphics.lerp(
-                MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.primaryContainer,
-                0.35f // 35% tint overlay for soft blending
-            )
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        },
+        targetValue = MaterialTheme.colorScheme.surfaceContainerLow,
         label = "bento_idle_color"
     )
 
