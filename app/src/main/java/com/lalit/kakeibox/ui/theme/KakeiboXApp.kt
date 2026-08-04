@@ -738,23 +738,97 @@ fun KakeiboXApp(
                 }
             }
 
-            // Top Header Suite: Left-Aligned Split Button Navigation
-            Row(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(top = 12.dp, start = 20.dp, end = 20.dp)
-                    .align(Alignment.TopStart),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TopNavSplitButton(
-                    currentPage = pagerState.currentPage,
-                    onPageSelected = { targetPage ->
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(targetPage)
+            // ── Top Left Screen Navigation Menu Pill ──
+            if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+                var isScreenMenuOpen by remember { mutableStateOf(false) }
+
+                Row(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(top = 14.dp, start = 20.dp)
+                        .align(Alignment.TopStart),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                isScreenMenuOpen = true
+                            },
+                        color = Color(0xFF00E676),
+                        shadowElevation = 10.dp
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "MENU",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.5.sp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     }
-                )
+                }
+
+                if (isScreenMenuOpen) {
+                    com.personal.kakeibox.ui.components.ExpressiveEditorialMenuDrawer(
+                        isOpen = isScreenMenuOpen,
+                        onDismiss = { isScreenMenuOpen = false },
+                        onNavigateTab = { targetTab ->
+                            isScreenMenuOpen = false
+                            val pageIndex = when (targetTab.lowercase()) {
+                                "salary", "financial" -> 0
+                                "exercise", "workout" -> 1
+                                "kotoba", "vocab" -> 2
+                                "settings", "theme" -> 3
+                                else -> 0
+                            }
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(pageIndex)
+                            }
+                        },
+                        onTogglePrivacyMode = { viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) },
+                        onAddEntry = {},
+                        onOpenThemeSettings = {
+                            isScreenMenuOpen = false
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(3)
+                            }
+                        },
+                        themeSettings = themeSettings
+                    )
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(top = 12.dp, start = 20.dp, end = 20.dp)
+                        .align(Alignment.TopStart),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TopNavSplitButton(
+                        currentPage = pagerState.currentPage,
+                        onPageSelected = { targetPage ->
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(targetPage)
+                            }
+                        }
+                    )
+                }
             }
         }
     }

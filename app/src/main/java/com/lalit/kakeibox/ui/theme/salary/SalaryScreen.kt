@@ -500,7 +500,8 @@ fun SalaryScreen(
             ) {
                 // Header top spacing
                 item {
-                    Spacer(modifier = Modifier.height(statusBarPadding + 76.dp))
+                    val isExpressive = themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST
+                    Spacer(modifier = Modifier.height(statusBarPadding + if (isExpressive) 14.dp else 76.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
