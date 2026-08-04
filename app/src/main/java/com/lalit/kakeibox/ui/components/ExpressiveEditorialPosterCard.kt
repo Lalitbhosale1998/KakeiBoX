@@ -461,7 +461,7 @@ fun ExpressiveEditorialPosterCard(
 
                 // ── 3. Editorial Subtitle Stack with Pulsing Payday Flame ──
                 val infiniteTransition = rememberInfiniteTransition(label = "flame_pulse")
-                val flameScale by infiniteTransition.animateFloat(
+                val flameScaleState = infiniteTransition.animateFloat(
                     initialValue = 1.0f,
                     targetValue = 1.18f,
                     animationSpec = infiniteRepeatable(
@@ -488,8 +488,9 @@ fun ExpressiveEditorialPosterCard(
                         text = "🔥",
                         fontSize = 32.sp,
                         modifier = Modifier.graphicsLayer {
-                            scaleX = flameScale
-                            scaleY = flameScale
+                            val scale = flameScaleState.value
+                            scaleX = scale
+                            scaleY = scale
                         }
                     )
                 }
