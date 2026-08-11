@@ -1280,9 +1280,24 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.weight(1f))
 
                                 val isHidden = themeSettings.hiddenTabs.contains(route)
-                                val isSettings = route == "settings"
+                                val isLocked = route == "settings" || route == "home"
 
-                                if (!isSettings) {
+                                if (isLocked) {
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                                    ) {
+                                        Text(
+                                            text = "ALWAYS ON",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                } else {
                                     Surface(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(12.dp))

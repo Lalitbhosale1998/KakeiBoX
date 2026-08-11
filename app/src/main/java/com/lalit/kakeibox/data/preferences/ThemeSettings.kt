@@ -56,7 +56,7 @@ data class ThemeSettings(
     val dateFormat: String = "MMM dd, yyyy",
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
     val biometricEnabled: Boolean = false,
-    val tabOrder: List<String> = listOf("salary", "exercise", "kotoba", "settings"),
+    val tabOrder: List<String> = listOf("home", "salary", "exercise", "kotoba", "settings"),
     val hiddenTabs: Set<String> = emptySet(),
     val restDays: List<String> = listOf("Saturday", "Sunday"),
     val privacyModeEnabled: Boolean = false,

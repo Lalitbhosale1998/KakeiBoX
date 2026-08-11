@@ -59,8 +59,11 @@ class UserPreferencesRepository @Inject constructor(
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
             tabOrder = run {
-                val rawOrder = prefs[Keys.TAB_ORDER] ?: "salary,exercise,kotoba,settings"
+                val rawOrder = prefs[Keys.TAB_ORDER] ?: "home,salary,exercise,kotoba,settings"
                 var parsed = rawOrder.split(",").map { if (it == "journeys") "kotoba" else it }.filter { it != "commute" && it != "spend" && it.isNotBlank() }
+                if (!parsed.contains("home")) {
+                    parsed = listOf("home") + parsed
+                }
                 if (!parsed.contains("exercise")) {
                     val list = parsed.toMutableList()
                     val settingsIndex = list.indexOf("settings")
@@ -147,7 +150,7 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     suspend fun toggleTabVisibility(route: String) {
-        if (route == "settings") return // Settings tab can never be hidden
+        if (route == "settings" || route == "home") return // Settings and Home tabs can never be hidden
         dataStore.edit { prefs ->
             val currentHidden = (prefs[Keys.HIDDEN_TABS] ?: "").split(",").filter { it.isNotBlank() && it != "settings" }.toMutableSet()
             if (currentHidden.contains(route)) {

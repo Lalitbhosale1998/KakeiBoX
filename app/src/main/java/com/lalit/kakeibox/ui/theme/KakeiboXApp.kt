@@ -574,7 +574,7 @@ fun KakeiboXApp(
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 5 })
     val coroutineScope = rememberCoroutineScope()
 
     val navBarColor by animateColorAsState(
@@ -731,10 +731,11 @@ fun KakeiboXApp(
                 modifier = Modifier.fillMaxSize()
             ) { page ->
                 when (page) {
-                    0 -> SalaryScreen()
-                    1 -> ExerciseScreen()
-                    2 -> KotobaScreen()
-                    3 -> SettingsScreen()
+                    0 -> com.personal.kakeibox.ui.home.HomeScreen(onNavigateTab = { target -> coroutineScope.launch { pagerState.animateScrollToPage(target) } })
+                    1 -> SalaryScreen()
+                    2 -> ExerciseScreen()
+                    3 -> KotobaScreen()
+                    4 -> SettingsScreen()
                 }
             }
 
@@ -790,10 +791,11 @@ fun KakeiboXApp(
                         onNavigateTab = { targetTab ->
                             isScreenMenuOpen = false
                             val pageIndex = when {
-                                targetTab.contains("salary", ignoreCase = true) || targetTab.contains("savings", ignoreCase = true) -> 0
-                                targetTab.contains("exercise", ignoreCase = true) || targetTab.contains("workout", ignoreCase = true) || targetTab.contains("gym", ignoreCase = true) -> 1
-                                targetTab.contains("kotoba", ignoreCase = true) || targetTab.contains("vocab", ignoreCase = true) || targetTab.contains("japanese", ignoreCase = true) -> 2
-                                targetTab.contains("settings", ignoreCase = true) || targetTab.contains("theme", ignoreCase = true) -> 3
+                                targetTab.contains("home", ignoreCase = true) || targetTab.contains("overview", ignoreCase = true) -> 0
+                                targetTab.contains("salary", ignoreCase = true) || targetTab.contains("savings", ignoreCase = true) -> 1
+                                targetTab.contains("exercise", ignoreCase = true) || targetTab.contains("workout", ignoreCase = true) || targetTab.contains("gym", ignoreCase = true) -> 2
+                                targetTab.contains("kotoba", ignoreCase = true) || targetTab.contains("vocab", ignoreCase = true) || targetTab.contains("japanese", ignoreCase = true) -> 3
+                                targetTab.contains("settings", ignoreCase = true) || targetTab.contains("theme", ignoreCase = true) -> 4
                                 else -> 0
                             }
                             coroutineScope.launch {
@@ -805,7 +807,7 @@ fun KakeiboXApp(
                         onOpenThemeSettings = {
                             isScreenMenuOpen = false
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(3)
+                                pagerState.animateScrollToPage(4)
                             }
                         },
                         themeSettings = themeSettings

@@ -109,6 +109,17 @@ fun ExpressiveEditorialMenuDrawer(
                 ) {
                     val hiddenTabs = themeSettings.hiddenTabs
 
+                    EditorialNavItem(
+                        title = "HOME & OVERVIEW",
+                        subtitle = "COMMAND DASHBOARD",
+                        onClick = {
+                            onNavigateTab("home")
+                            onDismiss()
+                        },
+                        textColor = darkText
+                    )
+                    Divider(color = darkText.copy(alpha = 0.25f), thickness = 1.5.dp)
+
                     if (!hiddenTabs.contains("salary")) {
                         EditorialNavItem(
                             title = "SALARY & SAVINGS",
