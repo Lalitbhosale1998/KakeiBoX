@@ -107,41 +107,46 @@ fun ExpressiveEditorialMenuDrawer(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    EditorialNavItem(
-                        title = "SALARY & SAVINGS",
-                        subtitle = "FINANCIAL DASHBOARD",
-                        onClick = {
-                            onNavigateTab("salary")
-                            onDismiss()
-                        },
-                        textColor = darkText
-                    )
+                    val hiddenTabs = themeSettings.hiddenTabs
 
-                    Divider(color = darkText.copy(alpha = 0.25f), thickness = 1.5.dp)
+                    if (!hiddenTabs.contains("salary")) {
+                        EditorialNavItem(
+                            title = "SALARY & SAVINGS",
+                            subtitle = "FINANCIAL DASHBOARD",
+                            onClick = {
+                                onNavigateTab("salary")
+                                onDismiss()
+                            },
+                            textColor = darkText
+                        )
+                        Divider(color = darkText.copy(alpha = 0.25f), thickness = 1.5.dp)
+                    }
 
-                    EditorialNavItem(
-                        title = "WORKOUT & GYM",
-                        subtitle = "FITNESS & HABIT TRACKER",
-                        onClick = {
-                            onNavigateTab("exercise")
-                            onDismiss()
-                        },
-                        textColor = darkText
-                    )
+                    if (!hiddenTabs.contains("exercise")) {
+                        EditorialNavItem(
+                            title = "WORKOUT & GYM",
+                            subtitle = "FITNESS & HABIT TRACKER",
+                            onClick = {
+                                onNavigateTab("exercise")
+                                onDismiss()
+                            },
+                            textColor = darkText
+                        )
+                        Divider(color = darkText.copy(alpha = 0.25f), thickness = 1.5.dp)
+                    }
 
-                    Divider(color = darkText.copy(alpha = 0.25f), thickness = 1.5.dp)
-
-                    EditorialNavItem(
-                        title = "JAPANESE KOTOBA",
-                        subtitle = "VOCABULARY DECK",
-                        onClick = {
-                            onNavigateTab("kotoba")
-                            onDismiss()
-                        },
-                        textColor = darkText
-                    )
-
-                    Divider(color = darkText.copy(alpha = 0.25f), thickness = 1.5.dp)
+                    if (!hiddenTabs.contains("kotoba")) {
+                        EditorialNavItem(
+                            title = "JAPANESE KOTOBA",
+                            subtitle = "VOCABULARY DECK",
+                            onClick = {
+                                onNavigateTab("kotoba")
+                                onDismiss()
+                            },
+                            textColor = darkText
+                        )
+                        Divider(color = darkText.copy(alpha = 0.25f), thickness = 1.5.dp)
+                    }
 
                     EditorialNavItem(
                         title = "THEME STUDIO",

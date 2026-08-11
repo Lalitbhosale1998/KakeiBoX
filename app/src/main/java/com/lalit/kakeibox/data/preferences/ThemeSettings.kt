@@ -57,6 +57,7 @@ data class ThemeSettings(
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
     val biometricEnabled: Boolean = false,
     val tabOrder: List<String> = listOf("salary", "exercise", "kotoba", "settings"),
+    val hiddenTabs: Set<String> = emptySet(),
     val restDays: List<String> = listOf("Saturday", "Sunday"),
     val privacyModeEnabled: Boolean = false,
     val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.PRIMARY_CONTAINER,

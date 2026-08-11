@@ -92,6 +92,8 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Wallet
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Search
@@ -1276,6 +1278,43 @@ fun SettingsScreen(
                                     }
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
+
+                                val isHidden = themeSettings.hiddenTabs.contains(route)
+                                val isSettings = route == "settings"
+
+                                if (!isSettings) {
+                                    Surface(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                viewModel.toggleTabVisibility(route)
+                                            },
+                                        color = if (isHidden) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = if (isHidden) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                                contentDescription = if (isHidden) "Hidden" else "Visible",
+                                                modifier = Modifier.size(14.dp),
+                                                tint = if (isHidden) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                            )
+                                            Text(
+                                                text = if (isHidden) "HIDDEN" else "VISIBLE",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = if (isHidden) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                }
+
                                 Icon(
                                     imageVector = Icons.Outlined.DragHandle,
                                     contentDescription = "Drag to reorder",

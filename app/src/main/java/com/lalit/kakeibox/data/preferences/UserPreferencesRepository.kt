@@ -21,6 +21,7 @@ private object Keys {
     val APP_LANGUAGE = stringPreferencesKey("app_language")
     val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
     val TAB_ORDER = stringPreferencesKey("tab_order")
+    val HIDDEN_TABS = stringPreferencesKey("hidden_tabs")
     val REST_DAYS = stringPreferencesKey("rest_days")
     val PRIVACY_MODE = booleanPreferencesKey("privacy_mode")
     val TOP_APP_BAR_BACKGROUND = stringPreferencesKey("top_app_bar_background")
@@ -82,6 +83,7 @@ class UserPreferencesRepository @Inject constructor(
                 }
                 parsed
             },
+            hiddenTabs = (prefs[Keys.HIDDEN_TABS] ?: "").split(",").filter { it.isNotBlank() && it != "settings" }.toSet(),
             restDays = (prefs[Keys.REST_DAYS] ?: "Saturday,Sunday").split(",").filter { it.isNotBlank() },
             privacyModeEnabled = prefs[Keys.PRIVACY_MODE] ?: false,
             topAppBarBackground = TopAppBarBackground.valueOf(
@@ -142,6 +144,19 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setTabOrder(order: List<String>) {
         dataStore.edit { it[Keys.TAB_ORDER] = order.joinToString(",") }
+    }
+
+    suspend fun toggleTabVisibility(route: String) {
+        if (route == "settings") return // Settings tab can never be hidden
+        dataStore.edit { prefs ->
+            val currentHidden = (prefs[Keys.HIDDEN_TABS] ?: "").split(",").filter { it.isNotBlank() && it != "settings" }.toMutableSet()
+            if (currentHidden.contains(route)) {
+                currentHidden.remove(route)
+            } else {
+                currentHidden.add(route)
+            }
+            prefs[Keys.HIDDEN_TABS] = currentHidden.joinToString(",")
+        }
     }
 
     suspend fun setPrivacyModeEnabled(enabled: Boolean) {

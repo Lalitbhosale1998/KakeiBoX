@@ -209,6 +209,12 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun toggleTabVisibility(route: String) {
+        viewModelScope.launch {
+            preferencesRepository.toggleTabVisibility(route)
+        }
+    }
+
     fun setPrivacyModeEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setPrivacyModeEnabled(enabled)
