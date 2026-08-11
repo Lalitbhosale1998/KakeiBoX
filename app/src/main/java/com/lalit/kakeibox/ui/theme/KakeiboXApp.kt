@@ -789,11 +789,11 @@ fun KakeiboXApp(
                         onDismiss = { isScreenMenuOpen = false },
                         onNavigateTab = { targetTab ->
                             isScreenMenuOpen = false
-                            val pageIndex = when (targetTab.lowercase()) {
-                                "salary", "financial" -> 0
-                                "exercise", "workout" -> 1
-                                "kotoba", "vocab" -> 2
-                                "settings", "theme" -> 3
+                            val pageIndex = when {
+                                targetTab.contains("salary", ignoreCase = true) || targetTab.contains("savings", ignoreCase = true) -> 0
+                                targetTab.contains("exercise", ignoreCase = true) || targetTab.contains("workout", ignoreCase = true) || targetTab.contains("gym", ignoreCase = true) -> 1
+                                targetTab.contains("kotoba", ignoreCase = true) || targetTab.contains("vocab", ignoreCase = true) || targetTab.contains("japanese", ignoreCase = true) -> 2
+                                targetTab.contains("settings", ignoreCase = true) || targetTab.contains("theme", ignoreCase = true) -> 3
                                 else -> 0
                             }
                             coroutineScope.launch {

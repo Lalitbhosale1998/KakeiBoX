@@ -13,6 +13,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.border
@@ -99,12 +100,18 @@ fun ExpressiveEditorialPosterCard(
         themeSettings = themeSettings
     )
 
-    // Theme-Adaptive Color Palette
-    val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
+    // Theme-Adaptive Color Palette (Crisp High-Contrast Zine for Light & Dark Mode)
+    val isDark = isSystemInDarkTheme()
+    val chalkBg = if (isDark) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface
     val neonMint = MaterialTheme.colorScheme.primary
     val mintText = MaterialTheme.colorScheme.onSurface
     val flameRed = MaterialTheme.colorScheme.secondary
     val chalkBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val cardGradientColors = if (isDark) {
+        listOf(Color(0xFF19201C), chalkBg)
+    } else {
+        listOf(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.surfaceContainerLow)
+    }
 
     Surface(
         modifier = modifier
@@ -118,12 +125,7 @@ fun ExpressiveEditorialPosterCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF19201C),
-                            chalkBg
-                        )
-                    )
+                    Brush.verticalGradient(colors = cardGradientColors)
                 )
                 .padding(24.dp)
         ) {
@@ -136,7 +138,7 @@ fun ExpressiveEditorialPosterCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    // Row 1: Brand Logo + Action Pills ([ ✏️ EDIT ] and [ ≡ MENU ])
+                    // Row 1: Brand Logo + [ ✏️ EDIT ] Pill
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -163,67 +165,32 @@ fun ExpressiveEditorialPosterCard(
                             )
                         }
 
-                        // Header Action Buttons: [ ✏️ EDIT ] + [ ≡ MENU ]
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        // Neon Edit Pill Button [ ✏️ EDIT ]
+                        Surface(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .clickable { onEdit() },
+                            color = MaterialTheme.colorScheme.secondaryContainer
                         ) {
-                            // Neon Edit Pill Button [ ✏️ EDIT ]
-                            Surface(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .clickable { onEdit() },
-                                color = MaterialTheme.colorScheme.secondaryContainer
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Edit,
-                                        contentDescription = "Edit Month",
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Text(
-                                        text = "EDIT",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Black,
-                                        letterSpacing = 0.5.sp,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                            }
-
-                            // Neon Mint Menu Pill Button [ ≡ MENU ]
-                            Surface(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .clickable { isMenuExpanded = !isMenuExpanded },
-                                color = neonMint
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (isMenuExpanded) Icons.Default.Close else Icons.Default.Menu,
-                                        contentDescription = "Menu",
-                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Text(
-                                        text = "MENU",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Black,
-                                        letterSpacing = 1.sp,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Month",
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "EDIT",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.5.sp,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
                             }
                         }
                     }

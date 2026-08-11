@@ -348,19 +348,11 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
-                .padding(top = statusBarsPadding + 92.dp)
-                .padding(bottom = 120.dp), // Space for floating bar
+                .padding(top = statusBarsPadding + 64.dp)
+                .padding(bottom = 60.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val context = LocalContext.current
-
-            // ── Neo-Brutalist Settings Poster Hero Card ──
-            if (themeSettings.themeStyle == ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
-                ExpressiveSettingsPosterCard(
-                    themeSettings = themeSettings,
-                    onOpenThemeDrawer = { isMenuExpanded = true }
-                )
-            }
 
             // 🌟 Glassmorphic Floating Search Capsule
             val bentoIdleColor = androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.primaryContainer, 0.35f)
