@@ -412,6 +412,65 @@ object ThemePalettes {
         outlineVariant      = Color(0xFFBCCBC1)
     )
 
+    // ── 8. 🛕 स्थापत्य Sthapatya (Ancient Indian Temple Architecture) ─────────────
+    val SthapatyaDark: ColorScheme = darkColorScheme(
+        primary             = Color(0xFFD4AF37),    // Brass Temple Gold — Garbhagriha glow
+        onPrimary           = Color(0xFF3B2E00),
+        primaryContainer    = Color(0xFF574400),
+        onPrimaryContainer  = Color(0xFFFFF0B8),
+        secondary           = Color(0xFFC87D55),    // Red Sandstone — Nagara Khajuraho Shikhara
+        onSecondary         = Color(0xFF3E1A08),
+        secondaryContainer  = Color(0xFF5E2B13),
+        onSecondaryContainer= Color(0xFFFFDBCB),
+        tertiary            = Color(0xFFE34234),    // Vermillion Sindoor Accent
+        onTertiary          = Color(0xFF490600),
+        tertiaryContainer   = Color(0xFF731206),
+        onTertiaryContainer = Color(0xFFFFDAD4),
+        background          = Color(0xFF141210),    // Sculpted Tanjore Granite Dark
+        onBackground        = Color(0xFFF0EAE1),
+        surface             = Color(0xFF1C1916),    // Dark Charnockite Surface
+        onSurface           = Color(0xFFF0EAE1),
+        surfaceVariant      = Color(0xFF332B25),
+        onSurfaceVariant    = Color(0xFFD8C4B6),
+        surfaceContainerLowest  = Color(0xFF0F0D0B),
+        surfaceContainerLow     = Color(0xFF191613),
+        surfaceContainer        = Color(0xFF221E1A),
+        surfaceContainerHigh    = Color(0xFF2D2823),
+        surfaceContainerHighest = Color(0xFF38322C),
+        surfaceBright       = Color(0xFF423B34),
+        surfaceDim          = Color(0xFF12100E),
+        outline             = Color(0xFFB8860B),    // Pillar Bronze Outline
+        outlineVariant      = Color(0xFF4E3D2A)
+    )
+
+    val SthapatyaLight: ColorScheme = lightColorScheme(
+        primary             = Color(0xFF8B3A2B),    // Khajuraho Red Sandstone Primary
+        onPrimary           = Color(0xFFFFFFFF),
+        primaryContainer    = Color(0xFFFFDBCB),
+        onPrimaryContainer  = Color(0xFF3B0B03),
+        secondary           = Color(0xFF9E6516),    // Carved Ocher Sandstone
+        onSecondary         = Color(0xFFFFFFFF),
+        secondaryContainer  = Color(0xFFFFDFB3),
+        onSecondaryContainer= Color(0xFF341C00),
+        tertiary            = Color(0xFFC0340A),    // Vermillion Accent
+        onTertiary          = Color(0xFFFFFFFF),
+        tertiaryContainer   = Color(0xFFFFDAD4),
+        onTertiaryContainer = Color(0xFF410002),
+        background          = Color(0xFFFAF4ED),    // Warm Ivory Sandstone Canvas
+        onBackground        = Color(0xFF241A15),
+        surface             = Color(0xFFFFFBF7),    // Chiseled Sandstone White Surface
+        onSurface           = Color(0xFF241A15),
+        surfaceVariant      = Color(0xFFF4E5D8),
+        onSurfaceVariant    = Color(0xFF6B5548),
+        surfaceContainerLowest  = Color(0xFFFFFFFF),
+        surfaceContainerLow     = Color(0xFFF6ECE2),
+        surfaceContainer        = Color(0xFFEFE2D5),
+        surfaceContainerHigh    = Color(0xFFE7D7C7),
+        surfaceContainerHighest = Color(0xFFDECCBA),
+        outline             = Color(0xFF9C7660),
+        outlineVariant      = Color(0xFFD4C1B2)
+    )
+
     fun getColorScheme(flavor: ThemeFlavor, isDark: Boolean): ColorScheme? {
         return when (flavor) {
             ThemeFlavor.DYNAMIC_MATERIAL    -> null
@@ -422,6 +481,7 @@ object ThemePalettes {
             ThemeFlavor.SHU_NURI            -> if (isDark) ShuNuriDark else ShuNuriLight
             ThemeFlavor.O_MIKI              -> if (isDark) OMikiDark else OMikiLight
             ThemeFlavor.NEON_BRUTALIST      -> if (isDark) NeonBrutalistDark else NeonBrutalistLight
+            ThemeFlavor.STHAPATYA           -> if (isDark) SthapatyaDark else SthapatyaLight
         }
     }
 }

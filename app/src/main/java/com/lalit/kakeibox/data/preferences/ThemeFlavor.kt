@@ -8,7 +8,8 @@ enum class ThemeFlavor {
     TOKYO_GLASS,
     SHU_NURI,     // 朱塗り — Vermilion Lacquer (Miyajima Torii Gate)
     O_MIKI,       // 御神酒 — Sacred Sake (Meiji Kazaridaru Barrels)
-    NEON_BRUTALIST; // ⚡ Neo-Brutalist Poster Theme
+    NEON_BRUTALIST, // ⚡ Neo-Brutalist Poster Theme
+    STHAPATYA;     // 🛕 स्थापत्य — Ancient Indian Temple Architecture Theme
 
     companion object {
         fun fromStorage(value: String?): ThemeFlavor {

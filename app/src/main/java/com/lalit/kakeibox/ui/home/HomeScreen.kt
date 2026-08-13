@@ -295,6 +295,24 @@ fun HomeScreen(
                                     ),
                                     style = Stroke(width = 16.dp.toPx(), cap = StrokeCap.Round)
                                 )
+
+                                // 3. Konark Sun Temple Wheel Spokes (Sthapatya Theme Special)
+                                if (themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.STHAPATYA) {
+                                    val spokeCount = 12
+                                    val fullAngleRad = Math.toRadians(270.0)
+                                    for (s in 0 until spokeCount) {
+                                        val spokeRatio = s.toFloat() / (spokeCount - 1)
+                                        val spokeAngleRad = startAngleRad + spokeRatio * fullAngleRad
+                                        val rInner = baseRadius - 16.dp.toPx()
+                                        val rOuter = baseRadius - 4.dp.toPx()
+                                        val p1 = Offset(center.x + rInner * kotlin.math.cos(spokeAngleRad).toFloat(), center.y + rInner * kotlin.math.sin(spokeAngleRad).toFloat())
+                                        val p2 = Offset(center.x + rOuter * kotlin.math.cos(spokeAngleRad).toFloat(), center.y + rOuter * kotlin.math.sin(spokeAngleRad).toFloat())
+                                        val isActiveSpoke = spokeRatio <= 0.53f
+                                        val spokeColor = if (isActiveSpoke) primaryColor else outlineColor
+                                        drawLine(color = spokeColor, start = p1, end = p2, strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
+                                        drawCircle(color = spokeColor, radius = 2f.dp.toPx(), center = p1)
+                                    }
+                                }
                             }
 
                             // Inner Gauge Text

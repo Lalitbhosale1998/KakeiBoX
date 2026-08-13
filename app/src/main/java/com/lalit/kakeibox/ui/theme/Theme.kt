@@ -289,16 +289,16 @@ fun Modifier.expressiveBackground(
             )
             drawRect(brush = gradientBrush)
         } else {
-            // Light Mode: Soft desaturated luminous pastel ice background canvas (never blinding electric neon cyan!)
+            // Light Mode: High-Contrast M3 Expressive Radial Canvas (Rich 38% primary glow fading into deeper 85% lightness slate base for crisp 3D card pop)
             val luminousPastelTop = androidx.compose.ui.graphics.lerp(
-                Color(0xFFF0F7FF), // Soft luminous ice tone
+                Color(0xFFCBD5E1), // Rich slate tone
                 primaryColor,
-                0.08f
+                0.38f // 38% Vibrant Monet primary glow
             )
             val baseLightCanvas = androidx.compose.ui.graphics.lerp(
-                Color(0xFFF8FAFC), // Muted soft off-white canvas
+                Color(0xFFD1D5DB), // Deeper 85% lightness slate canvas for dramatic card shadow separation
                 primaryColor,
-                0.04f
+                0.12f
             )
             val gradientBrush = androidx.compose.ui.graphics.Brush.radialGradient(
                 colors = listOf(
@@ -306,7 +306,7 @@ fun Modifier.expressiveBackground(
                     baseLightCanvas
                 ),
                 center = Offset(size.width * 0.75f, size.height * 0.15f),
-                radius = size.width * 1.4f
+                radius = size.width * 1.3f
             )
             drawRect(brush = gradientBrush)
         }
@@ -421,6 +421,32 @@ fun Modifier.expressiveBackground(
                 row++
             }
         }
+        BackdropPattern.TEMPLE_JAALI -> {
+            // 🛕 स्थापत्य: Intricate Indian stone relief lattice grid (Jali pattern)
+            val latticeColor = if (isDark) {
+                primaryColor.copy(alpha = 0.09f)
+            } else {
+                Color(0xFF8B3A2B).copy(alpha = 0.07f)
+            }
+            val spacing = 32.dp.toPx()
+            val half = spacing / 2f
+            var x = 0f
+            while (x < size.width + spacing) {
+                var y = 0f
+                while (y < size.height + spacing) {
+                    val path = Path()
+                    path.moveTo(x + half, y)
+                    path.lineTo(x + spacing, y + half)
+                    path.lineTo(x + half, y + spacing)
+                    path.lineTo(x, y + half)
+                    path.close()
+                    drawPath(path = path, color = latticeColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1f))
+                    drawCircle(color = latticeColor, radius = 1.5f.dp.toPx(), center = Offset(x + half, y + half))
+                    y += spacing
+                }
+                x += spacing
+            }
+        }
     }
 }
 
@@ -506,6 +532,27 @@ fun Modifier.backdropPattern(pattern: BackdropPattern): Modifier = this.drawBehi
                 }
                 y += rowSpacing
                 row++
+            }
+        }
+        BackdropPattern.TEMPLE_JAALI -> {
+            val latticeColor = Color(0xFF8B3A2B).copy(alpha = 0.07f)
+            val spacing = 32.dp.toPx()
+            val half = spacing / 2f
+            var x = 0f
+            while (x < size.width + spacing) {
+                var y = 0f
+                while (y < size.height + spacing) {
+                    val path = Path()
+                    path.moveTo(x + half, y)
+                    path.lineTo(x + spacing, y + half)
+                    path.lineTo(x + half, y + spacing)
+                    path.lineTo(x, y + half)
+                    path.close()
+                    drawPath(path = path, color = latticeColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1f))
+                    drawCircle(color = latticeColor, radius = 1.5f.dp.toPx(), center = Offset(x + half, y + half))
+                    y += spacing
+                }
+                x += spacing
             }
         }
     }
