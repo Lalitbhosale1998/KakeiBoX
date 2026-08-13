@@ -743,6 +743,62 @@ fun KakeiboXApp(
             if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
                 var isScreenMenuOpen by remember { mutableStateOf(false) }
 
+                val targetTopStart by animateDpAsState(
+                    targetValue = when (pagerState.currentPage) {
+                        0 -> 20.dp
+                        1 -> 24.dp
+                        2 -> 8.dp
+                        3 -> 24.dp
+                        4 -> 12.dp
+                        else -> 20.dp
+                    },
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                    label = "menu_top_start"
+                )
+                val targetTopEnd by animateDpAsState(
+                    targetValue = when (pagerState.currentPage) {
+                        0 -> 20.dp
+                        1 -> 8.dp
+                        2 -> 24.dp
+                        3 -> 24.dp
+                        4 -> 12.dp
+                        else -> 20.dp
+                    },
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                    label = "menu_top_end"
+                )
+                val targetBottomEnd by animateDpAsState(
+                    targetValue = when (pagerState.currentPage) {
+                        0 -> 20.dp
+                        1 -> 24.dp
+                        2 -> 8.dp
+                        3 -> 6.dp
+                        4 -> 12.dp
+                        else -> 20.dp
+                    },
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                    label = "menu_bottom_end"
+                )
+                val targetBottomStart by animateDpAsState(
+                    targetValue = when (pagerState.currentPage) {
+                        0 -> 20.dp
+                        1 -> 8.dp
+                        2 -> 24.dp
+                        3 -> 6.dp
+                        4 -> 12.dp
+                        else -> 20.dp
+                    },
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                    label = "menu_bottom_start"
+                )
+
+                val menuShape = RoundedCornerShape(
+                    topStart = targetTopStart,
+                    topEnd = targetTopEnd,
+                    bottomEnd = targetBottomEnd,
+                    bottomStart = targetBottomStart
+                )
+
                 Row(
                     modifier = Modifier
                         .statusBarsPadding()
@@ -753,11 +809,12 @@ fun KakeiboXApp(
                 ) {
                     Surface(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(menuShape)
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 isScreenMenuOpen = true
                             },
+                        shape = menuShape,
                         color = MaterialTheme.colorScheme.primary,
                         shadowElevation = 10.dp
                     ) {
