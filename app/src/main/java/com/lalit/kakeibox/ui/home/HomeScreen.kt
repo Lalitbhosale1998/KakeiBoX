@@ -235,6 +235,8 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             val primaryColor = MaterialTheme.colorScheme.primary
+                            val secondaryColor = MaterialTheme.colorScheme.secondary
+                            val tertiaryColor = MaterialTheme.colorScheme.tertiary
                             val outlineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
                             Canvas(modifier = Modifier.fillMaxSize()) {
                                 // 1. Smooth Flat Background Track Arc (Official M3 Spec)
@@ -289,7 +291,7 @@ fun HomeScreen(
                                 drawPath(
                                     path = activeWavyPath,
                                     brush = Brush.sweepGradient(
-                                        colors = listOf(primaryColor, Color(0xFF00E676), Color(0xFF00B0FF), primaryColor)
+                                        colors = listOf(primaryColor, secondaryColor, tertiaryColor, primaryColor)
                                     ),
                                     style = Stroke(width = 16.dp.toPx(), cap = StrokeCap.Round)
                                 )
