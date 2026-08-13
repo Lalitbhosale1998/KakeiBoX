@@ -758,7 +758,7 @@ fun KakeiboXApp(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 isScreenMenuOpen = true
                             },
-                        color = Color(0xFF00E676),
+                        color = MaterialTheme.colorScheme.primary,
                         shadowElevation = 10.dp
                     ) {
                         Row(

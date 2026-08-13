@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -46,10 +47,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.salary.SalaryViewModel
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.vocab.VocabViewModel
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
+import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.util.CurrencyUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,14 +90,25 @@ fun HomeScreen(
         )
     }
 
-    val cardBg = if (isDark) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface
-    val cardBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-    val neonMint = MaterialTheme.colorScheme.primary
-    val textPrimary = MaterialTheme.colorScheme.onSurface
-    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    // Dynamic Slate Navy Atmospheric Canvas (100% Identical to SalaryScreen background)
+    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
+    val topAppBarContainerColor by animateColorAsState(
+        targetValue = when (themeSettings.topAppBarBackground) {
+            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.primaryContainer
+            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
+        },
+        label = "home_top_app_bar_color"
+    )
 
-    val cardGradient = if (isDark) {
-        listOf(Color(0xFF19201C), cardBg)
+    // Theme-Adaptive Color Palette & Gradient (100% Identical to ExpressiveEditorialPosterCard)
+    val chalkBg = if (isDark) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface
+    val neonMint = MaterialTheme.colorScheme.primary
+    val mintText = MaterialTheme.colorScheme.onSurface
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val chalkBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+
+    val cardGradientColors = if (isDark) {
+        listOf(Color(0xFF19201C), chalkBg)
     } else {
         listOf(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.surfaceContainerLow)
     }
@@ -102,7 +116,13 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .expressiveBackground(
+                isDark = isDark,
+                isPrimaryContainer = isPrimaryContainer,
+                primaryColor = MaterialTheme.colorScheme.primary,
+                containerColor = topAppBarContainerColor,
+                pattern = themeSettings.backdropPattern
+            )
     ) {
         Column(
             modifier = Modifier
@@ -111,24 +131,24 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp)
                 .padding(top = statusBarsPadding + 64.dp)
                 .padding(bottom = 60.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ── 1. Hero Zine Welcome Banner ──
+            // ── 1. Hero Zine Welcome Banner (32.dp Curves & Dual-Tone Gradient Depth) ──
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(28.dp)),
-                color = cardBg,
-                border = BorderStroke(1.5.dp, cardBorder),
-                shadowElevation = 8.dp
+                    .clip(RoundedCornerShape(32.dp)),
+                color = chalkBg,
+                border = BorderStroke(1.5.dp, chalkBorder),
+                shadowElevation = 12.dp
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Brush.verticalGradient(cardGradient))
-                        .padding(20.dp)
+                        .background(Brush.verticalGradient(colors = cardGradientColors))
+                        .padding(24.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -142,48 +162,51 @@ fun HomeScreen(
                                     imageVector = Icons.Outlined.Shield,
                                     contentDescription = "VITTA Crest",
                                     tint = neonMint,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = "VITTA COMMAND LAB",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 11.sp,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.5.sp,
-                                    color = textSecondary
+                                    letterSpacing = 2.sp,
+                                    color = mintText
                                 )
                             }
 
                             Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = neonMint.copy(alpha = 0.15f),
-                                border = BorderStroke(1.dp, neonMint.copy(alpha = 0.4f))
+                                shape = RoundedCornerShape(20.dp),
+                                color = neonMint.copy(alpha = 0.2f),
+                                border = BorderStroke(1.dp, neonMint.copy(alpha = 0.5f))
                             ) {
                                 Text(
                                     text = "⚡ ACTIVE OS",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp,
                                     color = neonMint
                                 )
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(2.dp))
+
                         Text(
                             text = "KONNICHIWA!\nMAKE TODAY LEGENDARY.",
                             style = MaterialTheme.typography.headlineLarge,
-                            fontSize = 26.sp,
+                            fontSize = 28.sp,
                             fontWeight = FontWeight.Black,
-                            lineHeight = 30.sp,
+                            lineHeight = 32.sp,
                             letterSpacing = (-0.5).sp,
-                            color = textPrimary
+                            color = mintText
                         )
 
                         Text(
                             text = "今日を最高の一日にしよう (Continuous self-refinement)",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = neonMint
                         )
@@ -191,90 +214,98 @@ fun HomeScreen(
                 }
             }
 
-            // ── 2. Financial Pulse Card ──
+            // ── 2. Financial Pulse Card (32.dp Poster Card) ──
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(32.dp))
                     .clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onNavigateTab(1) // Jump to Salary
                     },
-                color = cardBg,
-                border = BorderStroke(1.5.dp, cardBorder),
-                shadowElevation = 6.dp
+                color = chalkBg,
+                border = BorderStroke(1.5.dp, chalkBorder),
+                shadowElevation = 12.dp
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Brush.verticalGradient(colors = cardGradientColors))
+                        .padding(24.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.AccountBalanceWallet,
+                                    contentDescription = "Salary Pulse",
+                                    tint = neonMint,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "FINANCIAL PULSE",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.5.sp,
+                                    color = neonMint
+                                )
+                            }
+
                             Icon(
-                                imageVector = Icons.Outlined.AccountBalanceWallet,
-                                contentDescription = "Salary Pulse",
+                                imageVector = Icons.Default.ArrowForward,
+                                contentDescription = "Go to Salary",
                                 tint = neonMint,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = "FINANCIAL PULSE",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp,
-                                color = textPrimary
+                                modifier = Modifier.size(18.dp)
                             )
                         }
 
-                        Icon(
-                            imageVector = Icons.Default.ArrowForward,
-                            contentDescription = "Go to Salary",
-                            tint = textSecondary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Bottom
-                    ) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
                                 text = "TOTAL CUMULATIVE EARNINGS",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontSize = 10.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = textSecondary
+                                letterSpacing = 1.sp,
+                                color = neonMint
                             )
                             Text(
                                 text = formattedTotalEarnings,
-                                fontSize = 28.sp,
+                                fontSize = 36.sp,
                                 fontWeight = FontWeight.Black,
-                                letterSpacing = (-1.0).sp,
-                                color = textPrimary
+                                letterSpacing = (-1.5).sp,
+                                color = mintText
                             )
                         }
 
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "14 DAYS LEFT",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                color = neonMint
-                            )
-                            Text(text = "🔥", fontSize = 16.sp)
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = neonMint.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, neonMint.copy(alpha = 0.4f))
+                            ) {
+                                Text(
+                                    text = "⚡ 14 DAYS TILL NEXT PAYDAY",
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = neonMint
+                                )
+                            }
+
+                            Text(text = "🔥", fontSize = 22.sp)
                         }
                     }
                 }
@@ -284,91 +315,96 @@ fun HomeScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(32.dp))
                     .clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onNavigateTab(3) // Jump to Kotoba
                     },
-                color = cardBg,
-                border = BorderStroke(1.5.dp, cardBorder),
-                shadowElevation = 6.dp
+                color = chalkBg,
+                border = BorderStroke(1.5.dp, chalkBorder),
+                shadowElevation = 12.dp
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Brush.verticalGradient(colors = cardGradientColors))
+                        .padding(24.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Translate,
-                                contentDescription = "Kotoba Word",
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = "WORD OF THE DAY",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp,
-                                color = textPrimary
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Translate,
+                                    contentDescription = "Kotoba Word",
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "WORD OF THE DAY",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.5.sp,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f))
+                            ) {
+                                Text(
+                                    text = featuredWord.studyTag.ifEmpty { "JLPT N1" },
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
 
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = featuredWord.studyTag.ifEmpty { "JLPT N1" },
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                    }
+                            Column {
+                                Text(
+                                    text = featuredWord.furiganaReading,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = textSecondary
+                                )
+                                Text(
+                                    text = featuredWord.kanjiWord,
+                                    fontSize = 44.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 2.sp,
+                                    color = mintText
+                                )
+                            }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = featuredWord.furiganaReading,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textSecondary
-                            )
-                            Text(
-                                text = featuredWord.kanjiWord,
-                                fontSize = 48.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 2.sp,
-                                color = textPrimary
-                            )
-                        }
-
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = featuredWord.meaning.uppercase(),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = featuredWord.meaning.uppercase(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = mintText,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
                 }
@@ -378,78 +414,86 @@ fun HomeScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(32.dp))
                     .clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onNavigateTab(2) // Jump to Exercise
                     },
-                color = cardBg,
-                border = BorderStroke(1.5.dp, cardBorder),
-                shadowElevation = 6.dp
+                color = chalkBg,
+                border = BorderStroke(1.5.dp, chalkBorder),
+                shadowElevation = 12.dp
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .background(Brush.verticalGradient(colors = cardGradientColors))
+                        .padding(24.dp)
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-                            modifier = Modifier.size(44.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Outlined.FitnessCenter,
-                                    contentDescription = "Workout Streak",
-                                    tint = MaterialTheme.colorScheme.tertiary,
-                                    modifier = Modifier.size(22.dp)
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.FitnessCenter,
+                                        contentDescription = "Workout Streak",
+                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "WORKOUT STREAK",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                                Text(
+                                    text = "🔥 14 DAY STREAK",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = mintText
                                 )
                             }
                         }
 
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
+                        ) {
                             Text(
-                                text = "WORKOUT STREAK",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textSecondary
-                            )
-                            Text(
-                                text = "🔥 14 DAY STREAK",
-                                fontSize = 18.sp,
+                                text = "LOG GYM ➔",
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
-                                color = textPrimary
+                                letterSpacing = 0.5.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                         }
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.tertiaryContainer
-                    ) {
-                        Text(
-                            text = "LOG GYM ➔",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
                     }
                 }
             }
 
-            // ── 5. Quick Launchpad Action Pills ──
+            // ── 5. High-Chroma Quick Launchpad Action Pills ──
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
                     text = "QUICK LAUNCHPAD",
@@ -457,22 +501,24 @@ fun HomeScreen(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 1.5.sp,
-                    color = textSecondary
+                    color = neonMint
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    // Salary Pill Button
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(1)
                             },
-                        color = MaterialTheme.colorScheme.primaryContainer
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shadowElevation = 4.dp
                     ) {
                         Row(
                             modifier = Modifier.padding(vertical = 12.dp, horizontal = 10.dp),
@@ -483,28 +529,31 @@ fun HomeScreen(
                                 imageVector = Icons.Filled.Wallet,
                                 contentDescription = "Salary",
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "SALARY",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                letterSpacing = 0.5.sp,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     }
 
+                    // Kotoba Pill Button
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(3)
                             },
-                        color = MaterialTheme.colorScheme.secondaryContainer
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shadowElevation = 4.dp
                     ) {
                         Row(
                             modifier = Modifier.padding(vertical = 12.dp, horizontal = 10.dp),
@@ -520,23 +569,26 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "KOTOBA",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     }
 
+                    // Settings Pill Button
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(4)
                             },
-                        color = MaterialTheme.colorScheme.tertiaryContainer
+                        color = neonMint,
+                        shadowElevation = 4.dp
                     ) {
                         Row(
                             modifier = Modifier.padding(vertical = 12.dp, horizontal = 10.dp),
@@ -547,15 +599,16 @@ fun HomeScreen(
                                 imageVector = Icons.Filled.Settings,
                                 contentDescription = "Settings",
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "SETTINGS",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                letterSpacing = 0.5.sp,
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     }
