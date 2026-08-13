@@ -36,6 +36,7 @@ import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.toPath
 import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.Canvas
@@ -1170,52 +1171,77 @@ fun ExpressiveButton(
 }
 
 @Composable
+fun ExpressiveLinearWavyProgressIndicator(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+    waveAmplitude: Dp = 3.dp,
+    waveFrequency: Float = 12f
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "wavy_progress_inf")
+    val wavePhase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)),
+        label = "wavy_phase"
+    )
+
+    Canvas(modifier = modifier.height(16.dp)) {
+        val strokeWidth = 8.dp.toPx()
+        val height = size.height
+        val width = size.width
+        val yCenter = height / 2f
+        val activeWidth = width * progress.coerceIn(0f, 1f)
+        val ampPx = waveAmplitude.toPx()
+
+        // 1. Inactive Track Line
+        drawLine(
+            color = trackColor,
+            start = Offset(0f, yCenter),
+            end = Offset(width, yCenter),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
+        )
+
+        // 2. Active Animated Wavy Path
+        if (activeWidth > 0f) {
+            val wavePath = Path()
+            val steps = (activeWidth / 2.dp.toPx()).toInt().coerceAtLeast(10)
+
+            for (i in 0..steps) {
+                val x = activeWidth * (i.toFloat() / steps)
+                val progressRatio = x / width
+                val y = yCenter + kotlin.math.sin(progressRatio * waveFrequency * 2 * Math.PI + wavePhase).toFloat() * ampPx
+
+                if (i == 0) {
+                    wavePath.moveTo(x, y)
+                } else {
+                    wavePath.lineTo(x, y)
+                }
+            }
+
+            drawPath(
+                path = wavePath,
+                color = color,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+            )
+        }
+    }
+}
+
+@Composable
 fun RetroProgressIndicator(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
     trackColor: Color = MaterialTheme.colorScheme.primaryContainer
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
-    if (isSpaceTerminal) {
-        val infiniteTransition = rememberInfiniteTransition(label = "retro_progress_inf")
-        val progressPercent by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1500, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            ),
-            label = "progress_percent"
-        )
-        Canvas(modifier = modifier.height(8.dp)) {
-            val totalSegments = 12
-            val spacing = 3.dp.toPx()
-            val segmentWidth = (size.width - (totalSegments - 1) * spacing) / totalSegments
-            val activeCount = (progressPercent * totalSegments).toInt()
-            
-            for (i in 0 until totalSegments) {
-                val isSegmentActive = i < activeCount
-                val segmentColor = if (isSegmentActive) {
-                    if (i > totalSegments * 0.8f) Color(0xFFFF7E6B) else color
-                } else {
-                    trackColor.copy(alpha = 0.15f)
-                }
-                val x = i * (segmentWidth + spacing)
-                drawRoundRect(
-                    color = segmentColor,
-                    topLeft = Offset(x, 0f),
-                    size = androidx.compose.ui.geometry.Size(segmentWidth, size.height),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.dp.toPx())
-                )
-            }
-        }
-    } else {
-        LinearProgressIndicator(
-            modifier = modifier,
-            color = color,
-            trackColor = trackColor
-        )
-    }
+    ExpressiveLinearWavyProgressIndicator(
+        progress = 0.7f,
+        modifier = modifier,
+        color = color,
+        trackColor = trackColor
+    )
 }
 
 @Composable

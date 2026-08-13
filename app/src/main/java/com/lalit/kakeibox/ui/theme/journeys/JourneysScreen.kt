@@ -913,47 +913,12 @@ fun WaveformProgressIndicator(saved: Float, target: Float) {
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Canvas(modifier = Modifier.fillMaxWidth().height(24.dp)) {
-            val width = size.width
-            val height = size.height
-            
-            // Draw background track
-            drawRoundRect(
-                color = trackColor,
-                size = Size(width, height),
-                cornerRadius = CornerRadius(height / 2)
-            )
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && runtimeShader != null && shaderBrush != null) {
-                runtimeShader.setFloatUniform("u_resolution", width, height)
-                runtimeShader.setFloatUniform("u_time", waveOffset)
-                runtimeShader.setFloatUniform("u_progress", progress)
-                drawRect(brush = shaderBrush, size = Size(width, height))
-            } else {
-                // Fallback CPU Path Rendering
-                val activeWidth = width * progress
-                if (activeWidth > 0) {
-                    clipRect(right = activeWidth) {
-                        val path = Path()
-                        val waveAmp = height * 0.15f
-                        val waveFreq = 20f
-                        
-                        path.moveTo(0f, height / 2f)
-                        for (x in 0..width.toInt() step 5) {
-                            val normalizedX = x / width
-                            val yOffset = sin(normalizedX * waveFreq + waveOffset) * waveAmp
-                            path.lineTo(x.toFloat(), height / 2f + yOffset)
-                        }
-                        
-                        drawPath(
-                            path = path,
-                            color = activeColor,
-                            style = Stroke(width = height, cap = StrokeCap.Round)
-                        )
-                    }
-                }
-            }
-        }
+        com.personal.kakeibox.ui.components.ExpressiveLinearWavyProgressIndicator(
+            progress = progress,
+            modifier = Modifier.fillMaxWidth().height(16.dp),
+            color = activeColor,
+            trackColor = trackColor
+        )
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -16,30 +17,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
+import com.personal.kakeibox.ui.components.RoundedPolygonShape
 import com.personal.kakeibox.ui.salary.SalaryViewModel
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.vocab.VocabViewModel
@@ -66,7 +77,6 @@ fun HomeScreen(
     val haptic = LocalHapticFeedback.current
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val totalSalary by salaryViewModel.totalSalary.collectAsStateWithLifecycle()
-    val currentSalaryEntry by salaryViewModel.currentEntry.collectAsStateWithLifecycle()
     val allVocab by vocabViewModel.allEntries.collectAsStateWithLifecycle()
     val isPrivacyMode = themeSettings.privacyModeEnabled
     val isDark = isSystemInDarkTheme()
@@ -83,14 +93,36 @@ fun HomeScreen(
             id = 1,
             kanjiWord = "改善",
             furiganaReading = "かいぜん",
-            meaning = "Continuous Improvement",
+            meaning = "Kaizen (Improvement)",
             category = "Vocabulary",
             studyTag = "JLPT N1",
-            exampleSentence = "毎日少しずつ改善していく。"
+            exampleSentence = "毎日少しずつ業務を改善していく。"
         )
     }
 
-    // Dynamic Slate Navy Atmospheric Canvas (100% Identical to SalaryScreen background)
+    // Interactive States
+    var isKanjiCardFlipped by remember { mutableStateOf(false) }
+    var isWorkoutLoggedToday by remember { mutableStateOf(false) }
+    var workoutStreakCount by remember { mutableIntStateOf(14) }
+
+    // Pulsing animations
+    val infiniteTransition = rememberInfiniteTransition(label = "hero_pulse")
+    val flameScale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 1.25f,
+        animationSpec = infiniteRepeatable(tween(800, easing = FastOutSlowInEasing), repeatMode = RepeatMode.Reverse),
+        label = "flame_scale"
+    )
+
+    // Continuous M3 Expressive Wavy Arc Phase Animation
+    val wavePhase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
+        label = "m3_wavy_phase"
+    )
+
+    // Top App Bar & Background Setup
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val topAppBarContainerColor by animateColorAsState(
         targetValue = when (themeSettings.topAppBarBackground) {
@@ -100,7 +132,6 @@ fun HomeScreen(
         label = "home_top_app_bar_color"
     )
 
-    // Theme-Adaptive Color Palette & Gradient (100% Identical to ExpressiveEditorialPosterCard)
     val chalkBg = if (isDark) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface
     val neonMint = MaterialTheme.colorScheme.primary
     val mintText = MaterialTheme.colorScheme.onSurface
@@ -133,11 +164,10 @@ fun HomeScreen(
                 .padding(bottom = 60.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ── 1. Hero Zine Welcome Banner (32.dp Curves & Dual-Tone Gradient Depth) ──
+            // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(32.dp)),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(32.dp),
                 color = chalkBg,
                 border = BorderStroke(1.5.dp, chalkBorder),
                 shadowElevation = 12.dp
@@ -146,9 +176,17 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Brush.verticalGradient(colors = cardGradientColors))
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onNavigateTab(1)
+                        }
                         .padding(24.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Header Badge
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -160,14 +198,14 @@ fun HomeScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Shield,
-                                    contentDescription = "VITTA Crest",
+                                    contentDescription = "Shield",
                                     tint = neonMint,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = "VITTA COMMAND LAB",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontSize = 15.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 2.sp,
                                     color = mintText
@@ -180,7 +218,7 @@ fun HomeScreen(
                                 border = BorderStroke(1.dp, neonMint.copy(alpha = 0.5f))
                             ) {
                                 Text(
-                                    text = "⚡ ACTIVE OS",
+                                    text = "⚡ LIVE GAUGE",
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 10.sp,
@@ -191,218 +229,103 @@ fun HomeScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(2.dp))
-
-                        Text(
-                            text = "KONNICHIWA!\nMAKE TODAY LEGENDARY.",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Black,
-                            lineHeight = 32.sp,
-                            letterSpacing = (-0.5).sp,
-                            color = mintText
-                        )
-
-                        Text(
-                            text = "今日を最高の一日にしよう (Continuous self-refinement)",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = neonMint
-                        )
-                    }
-                }
-            }
-
-            // ── 2. Financial Pulse Card (32.dp Poster Card) ──
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(32.dp))
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onNavigateTab(1) // Jump to Salary
-                    },
-                color = chalkBg,
-                border = BorderStroke(1.5.dp, chalkBorder),
-                shadowElevation = 12.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Brush.verticalGradient(colors = cardGradientColors))
-                        .padding(24.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        // Central Circular Progress Gauge Wheel
+                        Box(
+                            modifier = Modifier.size(200.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.AccountBalanceWallet,
-                                    contentDescription = "Salary Pulse",
-                                    tint = neonMint,
-                                    modifier = Modifier.size(20.dp)
+                            val primaryColor = MaterialTheme.colorScheme.primary
+                            val outlineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                // 1. Smooth Flat Background Track Arc (Official M3 Spec)
+                                val trackStrokeWidth = 14.dp.toPx()
+                                val arcSize = size.width - trackStrokeWidth
+                                val topLeft = Offset(trackStrokeWidth / 2f, trackStrokeWidth / 2f)
+
+                                drawArc(
+                                    color = outlineColor,
+                                    startAngle = 135f,
+                                    sweepAngle = 270f,
+                                    useCenter = false,
+                                    topLeft = topLeft,
+                                    size = Size(arcSize, arcSize),
+                                    style = Stroke(width = trackStrokeWidth, cap = StrokeCap.Round)
                                 )
+
+                                // 2. Active Thick Bubbly Wavy Progress Arc Riding On Top (Official M3 Spec)
+                                val center = Offset(size.width / 2f, size.height / 2f)
+                                val baseRadius = arcSize / 2f
+                                val activeProgress = 0.53f
+                                val waveAmplitude = 4.dp.toPx()
+                                val numWaves = 4.5
+                                val startAngleRad = Math.toRadians(135.0)
+                                val activeSweepAngleRad = Math.toRadians(270.0 * activeProgress)
+                                val steps = 60
+
+                                val points = ArrayList<Offset>()
+                                for (i in 0..steps) {
+                                    val t = i.toFloat() / steps
+                                    val angle = startAngleRad + t * activeSweepAngleRad
+                                    val waveOffset = (kotlin.math.sin(t * numWaves * 2 * Math.PI + wavePhase)).toFloat() * waveAmplitude
+                                    val r = baseRadius + waveOffset
+                                    val x = center.x + r * kotlin.math.cos(angle).toFloat()
+                                    val y = center.y + r * kotlin.math.sin(angle).toFloat()
+                                    points.add(Offset(x, y))
+                                }
+
+                                val activeWavyPath = androidx.compose.ui.graphics.Path()
+                                if (points.isNotEmpty()) {
+                                    activeWavyPath.moveTo(points[0].x, points[0].y)
+                                    for (i in 1 until points.size - 1) {
+                                        val p0 = points[i]
+                                        val p1 = points[i + 1]
+                                        val midX = (p0.x + p1.x) / 2f
+                                        val midY = (p0.y + p1.y) / 2f
+                                        activeWavyPath.quadraticTo(p0.x, p0.y, midX, midY)
+                                    }
+                                    activeWavyPath.lineTo(points.last().x, points.last().y)
+                                }
+
+                                drawPath(
+                                    path = activeWavyPath,
+                                    brush = Brush.sweepGradient(
+                                        colors = listOf(primaryColor, Color(0xFF00E676), Color(0xFF00B0FF), primaryColor)
+                                    ),
+                                    style = Stroke(width = 16.dp.toPx(), cap = StrokeCap.Round)
+                                )
+                            }
+
+                            // Inner Gauge Text
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
                                 Text(
-                                    text = "FINANCIAL PULSE",
+                                    text = "🔥 14 DAYS",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.5.sp,
-                                    color = neonMint
+                                    letterSpacing = 1.sp,
+                                    color = neonMint,
+                                    modifier = Modifier.graphicsLayer {
+                                        scaleX = flameScale
+                                        scaleY = flameScale
+                                    }
                                 )
-                            }
-
-                            Icon(
-                                imageVector = Icons.Default.ArrowForward,
-                                contentDescription = "Go to Salary",
-                                tint = neonMint,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = "TOTAL CUMULATIVE EARNINGS",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                color = neonMint
-                            )
-                            Text(
-                                text = formattedTotalEarnings,
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = (-1.5).sp,
-                                color = mintText
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = neonMint.copy(alpha = 0.15f),
-                                border = BorderStroke(1.dp, neonMint.copy(alpha = 0.4f))
-                            ) {
                                 Text(
-                                    text = "⚡ 14 DAYS TILL NEXT PAYDAY",
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 11.sp,
+                                    text = formattedTotalEarnings,
+                                    fontSize = 24.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = neonMint
-                                )
-                            }
-
-                            Text(text = "🔥", fontSize = 22.sp)
-                        }
-                    }
-                }
-            }
-
-            // ── 3. Japanese Kotoba Word of the Day Card ──
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(32.dp))
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onNavigateTab(3) // Jump to Kotoba
-                    },
-                color = chalkBg,
-                border = BorderStroke(1.5.dp, chalkBorder),
-                shadowElevation = 12.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Brush.verticalGradient(colors = cardGradientColors))
-                        .padding(24.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Translate,
-                                    contentDescription = "Kotoba Word",
-                                    tint = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(
-                                    text = "WORD OF THE DAY",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.5.sp,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f))
-                            ) {
-                                Text(
-                                    text = featuredWord.studyTag.ifEmpty { "JLPT N1" },
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = featuredWord.furiganaReading,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = textSecondary
-                                )
-                                Text(
-                                    text = featuredWord.kanjiWord,
-                                    fontSize = 44.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 2.sp,
+                                    letterSpacing = (-1).sp,
                                     color = mintText
                                 )
-                            }
-
-                            Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = featuredWord.meaning.uppercase(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = mintText,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
+                                    text = "TILL NEXT PAYDAY",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp,
+                                    color = textSecondary
                                 )
                             }
                         }
@@ -410,93 +333,311 @@ fun HomeScreen(
                 }
             }
 
-            // ── 4. Workout & Fitness Streak Card ──
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(32.dp))
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onNavigateTab(2) // Jump to Exercise
-                    },
-                color = chalkBg,
-                border = BorderStroke(1.5.dp, chalkBorder),
-                shadowElevation = 12.dp
+            // ── 2. ASYMMETRIC 2-COLUMN BENTO GRID ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(
+                // ── LEFT COLUMN: 3D Flip Kanji Art Poster (Razor-Sharp Borders & Zine Gradient Depth) ──
+                val cardRotationY by animateFloatAsState(
+                    targetValue = if (isKanjiCardFlipped) 180f else 0f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                    label = "kanji_flip_rotation"
+                )
+
+                Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Brush.verticalGradient(colors = cardGradientColors))
-                        .padding(24.dp)
+                        .weight(1.1f)
+                        .height(280.dp)
+                        .graphicsLayer {
+                            rotationY = cardRotationY
+                            cameraDistance = 12 * density.density
+                        },
+                    shape = RoundedCornerShape(32.dp),
+                    color = chalkBg,
+                    border = BorderStroke(1.5.dp, chalkBorder),
+                    shadowElevation = 10.dp
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Brush.verticalGradient(colors = cardGradientColors))
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                isKanjiCardFlipped = !isKanjiCardFlipped
+                            }
+                            .padding(18.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
-                                modifier = Modifier.size(48.dp)
+                        if (cardRotationY <= 90f) {
+                            // FRONT: Vertical Japanese Art Poster
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.FitnessCenter,
-                                        contentDescription = "Workout Streak",
-                                        tint = MaterialTheme.colorScheme.tertiary,
-                                        modifier = Modifier.size(24.dp)
+                                        imageVector = Icons.Outlined.Translate,
+                                        contentDescription = "Kotoba",
+                                        tint = MaterialTheme.colorScheme.secondary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f))
+                                    ) {
+                                        Text(
+                                            text = featuredWord.studyTag.ifEmpty { "JLPT N1" },
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+
+                                Column(horizontalAlignment = Alignment.Start) {
+                                    Text(
+                                        text = featuredWord.furiganaReading,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textSecondary
+                                    )
+                                    Text(
+                                        text = featuredWord.kanjiWord,
+                                        fontSize = 44.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 2.sp,
+                                        lineHeight = 48.sp,
+                                        color = mintText
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = featuredWord.meaning.uppercase(),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = mintText,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "TAP TO FLIP 🔄",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.secondary
                                     )
                                 }
                             }
+                        } else {
+                            // BACK: Example Sentence & Navigation
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .graphicsLayer { rotationY = 180f },
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text(
+                                        text = "例文 EXAMPLE",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                    Text(
+                                        text = featuredWord.exampleSentence.ifEmpty { "毎日少しずつ業務を改善していく。" },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        lineHeight = 18.sp,
+                                        color = mintText
+                                    )
+                                }
 
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(
-                                    text = "WORKOUT STREAK",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp,
-                                    color = MaterialTheme.colorScheme.tertiary
-                                )
-                                Text(
-                                    text = "🔥 14 DAY STREAK",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = mintText
-                                )
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onNavigateTab(3) }
+                                ) {
+                                    Text(
+                                        text = "OPEN DECK ➔",
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Black,
+                                        textAlign = TextAlign.Center,
+                                        color = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                }
                             }
                         }
+                    }
+                }
 
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
+                // ── RIGHT COLUMN: 2 Stacked Cards (Workout & Quick Actions with Razor-Sharp Borders) ──
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(280.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Top Right Cell: Gym Streak Card (Razor-Sharp Borders)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(28.dp),
+                        color = chalkBg,
+                        border = BorderStroke(1.5.dp, chalkBorder),
+                        shadowElevation = 8.dp
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Brush.verticalGradient(colors = cardGradientColors))
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    isWorkoutLoggedToday = !isWorkoutLoggedToday
+                                    if (isWorkoutLoggedToday) workoutStreakCount += 1 else workoutStreakCount = maxOf(14, workoutStreakCount - 1)
+                                }
+                                .padding(16.dp)
                         ) {
-                            Text(
-                                text = "LOG GYM ➔",
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 0.5.sp,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.FitnessCenter,
+                                        contentDescription = "Workout",
+                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isWorkoutLoggedToday) Color(0xFF00E676) else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
+                                    ) {
+                                        Text(
+                                            text = if (isWorkoutLoggedToday) "LOGGED! 🔥" else "LOG ➔",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = if (isWorkoutLoggedToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.tertiary
+                                        )
+                                    }
+                                }
+
+                                Column {
+                                    Text(
+                                        text = "WORKOUT",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.sp,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                    Text(
+                                        text = "🔥 $workoutStreakCount DAYS",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = mintText
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Bottom Right Cell: Quick Salary Jump Card (Razor-Sharp Borders)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(28.dp),
+                        color = chalkBg,
+                        border = BorderStroke(1.5.dp, chalkBorder),
+                        shadowElevation = 8.dp
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Brush.verticalGradient(colors = cardGradientColors))
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onNavigateTab(1)
+                                }
+                                .padding(16.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Wallet,
+                                        contentDescription = "Salary",
+                                        tint = neonMint,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowForward,
+                                        contentDescription = "Jump",
+                                        tint = neonMint,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = "SALARY LAB",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.sp,
+                                        color = neonMint
+                                    )
+                                    Text(
+                                        text = "VIEW LEDGER",
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = mintText
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // ── 5. High-Chroma Quick Launchpad Action Pills ──
+            // ── 3. HIGH-CHROMA DOCK ACTION PILLS ──
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "QUICK LAUNCHPAD",
+                    text = "COMMAND LAUNCHPAD",
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
@@ -517,11 +658,12 @@ fun HomeScreen(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(1)
                             },
+                        shape = RoundedCornerShape(20.dp),
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         shadowElevation = 4.dp
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 10.dp),
+                            modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
@@ -552,11 +694,12 @@ fun HomeScreen(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(3)
                             },
+                        shape = RoundedCornerShape(20.dp),
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         shadowElevation = 4.dp
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 10.dp),
+                            modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
@@ -587,11 +730,12 @@ fun HomeScreen(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(4)
                             },
+                        shape = RoundedCornerShape(20.dp),
                         color = neonMint,
                         shadowElevation = 4.dp
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 10.dp),
+                            modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
