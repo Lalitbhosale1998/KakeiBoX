@@ -124,24 +124,52 @@ fun HomeScreen(
         label = "m3_wavy_phase"
     )
 
-    // Top App Bar & Background Setup
-    val topAppBarContainerColor by animateColorAsState(
-        targetValue = MaterialTheme.colorScheme.surfaceContainer,
-        label = "home_top_app_bar_color"
-    )
+    val currentColorScheme = MaterialTheme.colorScheme
+    val sheetColorScheme = if (!isDark) {
+        val blendedSurface = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surface,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerHigh,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLow,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLowest,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        currentColorScheme.copy(
+            surface = blendedSurface,
+            surfaceContainer = blendedSurface,
+            surfaceContainerHigh = blendedSurfaceHigh,
+            surfaceContainerLow = blendedSurfaceLow,
+            surfaceContainerLowest = blendedSurfaceLowest
+        )
+    } else {
+        currentColorScheme
+    }
 
-    val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
-    val neonMint = MaterialTheme.colorScheme.primary
-    val mintText = MaterialTheme.colorScheme.onSurface
-    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val chalkBorder = Color.Transparent
-    val cardGradientColors = listOf(chalkBg, chalkBg)
+    MaterialTheme(colorScheme = sheetColorScheme) {
+        val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
+        val neonMint = MaterialTheme.colorScheme.primary
+        val mintText = MaterialTheme.colorScheme.onSurface
+        val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+        val chalkBorder = Color.Transparent
+        val cardGradientColors = listOf(chalkBg, chalkBg)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -905,4 +933,5 @@ fun HomeScreen(
             }
         }
     }
+}
 }
