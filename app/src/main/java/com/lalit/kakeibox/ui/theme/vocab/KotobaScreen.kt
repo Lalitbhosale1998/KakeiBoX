@@ -100,29 +100,16 @@ fun KotobaScreen(
                 topBar = {},
                 floatingActionButton = {
                     if (selectedVocabEntry == null) {
-                        ExtendedFloatingActionButton(
+                        com.personal.kakeibox.ui.components.ExpressiveScrollableFab(
+                            extended = isFabExpanded,
+                            text = if (isJapanese) "単語追加" else "Add Vocab",
+                            icon = Icons.Outlined.Translate,
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 showAddSheet = true
                             },
-                            expanded = isFabExpanded,
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Translate,
-                                    contentDescription = "Add Vocabulary"
-                                )
-                            },
-                            text = {
-                                Text(
-                                    text = if (isJapanese) "単語追加" else "Add Vocab",
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.labelLarge
-                                )
-                            },
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            shape = RoundedCornerShape(24.dp),
-                            elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }

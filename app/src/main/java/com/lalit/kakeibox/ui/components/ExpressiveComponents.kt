@@ -1541,3 +1541,188 @@ fun ExpressiveSwitch(
         )
     )
 }
+
+@Composable
+fun ExpressiveWavyProgressIndicator(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    strokeWidth: androidx.compose.ui.unit.Dp = 8.dp,
+    amplitude: Float = 6f
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "wavy_progress")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2f * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phase"
+    )
+
+    androidx.compose.foundation.Canvas(modifier = modifier.height(strokeWidth * 2)) {
+        val width = size.width
+        val height = size.height
+        val centerY = height / 2f
+        val strokePx = strokeWidth.toPx()
+
+        // Background track (straight line)
+        drawLine(
+            color = trackColor,
+            start = androidx.compose.ui.geometry.Offset(0f, centerY),
+            end = androidx.compose.ui.geometry.Offset(width, centerY),
+            strokeWidth = strokePx,
+            cap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+
+        // Active progress path (wavy sine curve)
+        val progressWidth = width * progress.coerceIn(0f, 1f)
+        if (progressWidth > 0f) {
+            val path = androidx.compose.ui.graphics.Path().apply {
+                moveTo(0f, centerY)
+                var x = 0f
+                val step = 4f
+                while (x <= progressWidth) {
+                    val y = centerY + kotlin.math.sin(x * 0.05f + phase) * amplitude
+                    lineTo(x, y)
+                    x += step
+                }
+            }
+            drawPath(
+                path = path,
+                color = color,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                    width = strokePx,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                    join = androidx.compose.ui.graphics.StrokeJoin.Round
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun ExpressiveScrollableFab(
+    extended: Boolean,
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val fabWidth by animateDpAsState(
+        targetValue = if (extended) 140.dp else 56.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "fab_width"
+    )
+    val cornerRadius by animateDpAsState(
+        targetValue = if (extended) 28.dp else 16.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "fab_corner"
+    )
+
+    Surface(
+        modifier = modifier
+            .height(56.dp)
+            .width(fabWidth)
+            .clip(RoundedCornerShape(cornerRadius))
+            .clickable {
+                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                onClick()
+            },
+        shape = RoundedCornerShape(cornerRadius),
+        color = containerColor,
+        contentColor = contentColor,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            androidx.compose.material3.Icon(
+                imageVector = icon,
+                contentDescription = text,
+                modifier = Modifier.size(24.dp)
+            )
+            AnimatedVisibility(
+                visible = extended,
+                enter = fadeIn() + expandHorizontally(),
+                exit = fadeOut() + shrinkHorizontally()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    androidx.compose.material3.Text(
+                        text = text,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun ExpressivePillSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    steps: Int = 0,
+    activeColor: Color = MaterialTheme.colorScheme.primary,
+    valueLabel: String = ""
+) {
+    var isDragging by remember { mutableStateOf(false) }
+    val calloutScale by animateFloatAsState(
+        targetValue = if (isDragging) 1f else 0f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "callout_scale"
+    )
+
+    Column(modifier = modifier) {
+        if (calloutScale > 0.01f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(scaleX = calloutScale, scaleY = calloutScale, alpha = calloutScale),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = activeColor,
+                    shadowElevation = 6.dp
+                ) {
+                    androidx.compose.material3.Text(
+                        text = valueLabel.ifBlank { "${(value * 100).toInt()}%" },
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+        androidx.compose.material3.Slider(
+            value = value,
+            onValueChange = {
+                isDragging = true
+                onValueChange(it)
+            },
+            onValueChangeFinished = { isDragging = false },
+            valueRange = valueRange,
+            steps = steps,
+            colors = androidx.compose.material3.SliderDefaults.colors(
+                thumbColor = activeColor,
+                activeTrackColor = activeColor
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}

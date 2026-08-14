@@ -607,15 +607,12 @@ fun SettingsScreen(
                                                     }
                                                 }
                                                 Spacer(modifier = Modifier.height(8.dp))
-                                                Slider(
+                                                com.personal.kakeibox.ui.components.ExpressivePillSlider(
                                                     value = themeSettings.dynamicColorChromaScale,
                                                     onValueChange = { viewModel.setDynamicColorChromaScale(it) },
                                                     valueRange = 0.4f..1.6f,
                                                     steps = 11,
-                                                    colors = SliderDefaults.colors(
-                                                        thumbColor = Color(0xFF10B981),
-                                                        activeTrackColor = Color(0xFF10B981)
-                                                    ),
+                                                    activeColor = Color(0xFF10B981),
                                                     modifier = Modifier.fillMaxWidth()
                                                 )
                                             }
