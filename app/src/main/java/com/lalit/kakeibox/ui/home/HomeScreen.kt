@@ -165,11 +165,15 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
+            val isSthapatyaTheme = themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.STHAPATYA
+            val heroCardShape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape else RoundedCornerShape(32.dp)
+            val heroBorderColor = if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder
+
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(32.dp),
+                shape = heroCardShape,
                 color = chalkBg,
-                border = BorderStroke(1.5.dp, chalkBorder),
+                border = BorderStroke(1.5.dp, heroBorderColor),
                 shadowElevation = 12.dp
             ) {
                 Box(
@@ -199,23 +203,23 @@ fun HomeScreen(
                                 Icon(
                                     imageVector = Icons.Outlined.Shield,
                                     contentDescription = "Shield",
-                                    tint = neonMint,
+                                    tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = "VITTA COMMAND LAB",
+                                    text = if (isSthapatyaTheme) "🛕 VITTA COMMAND LAB" else "VITTA COMMAND LAB",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 2.sp,
-                                    color = mintText
+                                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else mintText
                                 )
                             }
 
                             Surface(
-                                shape = RoundedCornerShape(20.dp),
-                                color = neonMint.copy(alpha = 0.2f),
-                                border = BorderStroke(1.dp, neonMint.copy(alpha = 0.5f))
+                                shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(20.dp),
+                                color = if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.15f) else neonMint.copy(alpha = 0.2f),
+                                border = BorderStroke(1.dp, if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.6f) else neonMint.copy(alpha = 0.5f))
                             ) {
                                 Text(
                                     text = "⚡ LIVE GAUGE",
@@ -224,11 +228,14 @@ fun HomeScreen(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 1.sp,
-                                    color = neonMint
+                                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
                                 )
                             }
                         }
 
+                        if (isSthapatyaTheme) {
+                            com.personal.kakeibox.ui.components.KonarkSuryaChakraGauge(progress = 0.53f)
+                        } else {
                         // Central Circular Progress Gauge Wheel
                         Box(
                             modifier = Modifier.size(200.dp),
@@ -349,6 +356,7 @@ fun HomeScreen(
                                 )
                             }
                         }
+                        }
                     }
                 }
             }
@@ -373,9 +381,9 @@ fun HomeScreen(
                             rotationY = cardRotationY
                             cameraDistance = 12 * density.density
                         },
-                    shape = RoundedCornerShape(32.dp),
+                    shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PancharathaCardShape else RoundedCornerShape(32.dp),
                     color = chalkBg,
-                    border = BorderStroke(1.5.dp, chalkBorder),
+                    border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
                     shadowElevation = 10.dp
                 ) {
                     Box(
@@ -402,13 +410,13 @@ fun HomeScreen(
                                     Icon(
                                         imageVector = Icons.Outlined.Translate,
                                         contentDescription = "Kotoba",
-                                        tint = MaterialTheme.colorScheme.secondary,
+                                        tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.secondary,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f))
+                                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(10.dp),
+                                        color = if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.15f) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+                                        border = BorderStroke(1.dp, if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.6f) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f))
                                     ) {
                                         Text(
                                             text = featuredWord.studyTag.ifEmpty { "JLPT N1" },
@@ -416,7 +424,7 @@ fun HomeScreen(
                                             style = MaterialTheme.typography.labelSmall,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = MaterialTheme.colorScheme.secondary
+                                            color = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.secondary
                                         )
                                     }
                                 }
@@ -519,9 +527,9 @@ fun HomeScreen(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
-                        shape = RoundedCornerShape(28.dp),
+                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PancharathaCardShape else RoundedCornerShape(28.dp),
                         color = chalkBg,
-                        border = BorderStroke(1.5.dp, chalkBorder),
+                        border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
                         shadowElevation = 8.dp
                     ) {
                         Box(
@@ -547,13 +555,13 @@ fun HomeScreen(
                                     Icon(
                                         imageVector = Icons.Outlined.FitnessCenter,
                                         contentDescription = "Workout",
-                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = if (isWorkoutLoggedToday) Color(0xFF00E676) else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
+                                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(10.dp),
+                                        color = if (isWorkoutLoggedToday) Color(0xFF00E676) else if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.15f) else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                                        border = BorderStroke(1.dp, if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.6f) else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
                                     ) {
                                         Text(
                                             text = if (isWorkoutLoggedToday) "LOGGED! 🔥" else "LOG ➔",
@@ -561,7 +569,7 @@ fun HomeScreen(
                                             style = MaterialTheme.typography.labelSmall,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = if (isWorkoutLoggedToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.tertiary
+                                            color = if (isWorkoutLoggedToday) MaterialTheme.colorScheme.onPrimary else if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.tertiary
                                         )
                                     }
                                 }
@@ -573,7 +581,7 @@ fun HomeScreen(
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
                                         letterSpacing = 1.sp,
-                                        color = MaterialTheme.colorScheme.tertiary
+                                        color = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.tertiary
                                     )
                                     Text(
                                         text = "🔥 $workoutStreakCount DAYS",
@@ -591,9 +599,9 @@ fun HomeScreen(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
-                        shape = RoundedCornerShape(28.dp),
+                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PancharathaCardShape else RoundedCornerShape(28.dp),
                         color = chalkBg,
-                        border = BorderStroke(1.5.dp, chalkBorder),
+                        border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
                         shadowElevation = 8.dp
                     ) {
                         Box(
@@ -618,13 +626,13 @@ fun HomeScreen(
                                     Icon(
                                         imageVector = Icons.Filled.Wallet,
                                         contentDescription = "Salary",
-                                        tint = neonMint,
+                                        tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint,
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Icon(
                                         imageVector = Icons.Default.ArrowForward,
                                         contentDescription = "Jump",
-                                        tint = neonMint,
+                                        tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -636,7 +644,7 @@ fun HomeScreen(
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
                                         letterSpacing = 1.sp,
-                                        color = neonMint
+                                        color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
                                     )
                                     Text(
                                         text = "VIEW LEDGER",
@@ -662,24 +670,28 @@ fun HomeScreen(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 1.5.sp,
-                    color = neonMint
+                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    val pillShape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(20.dp)
+                    val pillBorder = if (isSthapatyaTheme) BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.8f)) else null
+
                     // Salary Pill Button
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(pillShape)
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(1)
                             },
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = pillShape,
+                        color = if (isSthapatyaTheme) Color(0xFF5E2B13) else MaterialTheme.colorScheme.secondaryContainer,
+                        border = pillBorder,
                         shadowElevation = 4.dp
                     ) {
                         Row(
@@ -691,7 +703,7 @@ fun HomeScreen(
                                 imageVector = Icons.Filled.Wallet,
                                 contentDescription = "Salary",
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                tint = if (isSthapatyaTheme) Color(0xFFFFDBCB) else MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
@@ -700,7 +712,7 @@ fun HomeScreen(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 0.5.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color = if (isSthapatyaTheme) Color(0xFFFFDBCB) else MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     }
@@ -709,13 +721,14 @@ fun HomeScreen(
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(pillShape)
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(3)
                             },
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = pillShape,
+                        color = if (isSthapatyaTheme) Color(0xFF5E2B13) else MaterialTheme.colorScheme.secondaryContainer,
+                        border = pillBorder,
                         shadowElevation = 4.dp
                     ) {
                         Row(
@@ -727,7 +740,7 @@ fun HomeScreen(
                                 imageVector = Icons.Filled.Translate,
                                 contentDescription = "Kotoba",
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                tint = if (isSthapatyaTheme) Color(0xFFFFDBCB) else MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
@@ -736,7 +749,7 @@ fun HomeScreen(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 0.5.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color = if (isSthapatyaTheme) Color(0xFFFFDBCB) else MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     }
@@ -745,13 +758,14 @@ fun HomeScreen(
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(pillShape)
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onNavigateTab(4)
                             },
-                        shape = RoundedCornerShape(20.dp),
-                        color = neonMint,
+                        shape = pillShape,
+                        color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint,
+                        border = pillBorder,
                         shadowElevation = 4.dp
                     ) {
                         Row(
@@ -763,7 +777,7 @@ fun HomeScreen(
                                 imageVector = Icons.Filled.Settings,
                                 contentDescription = "Settings",
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = if (isSthapatyaTheme) Color(0xFF3B2E00) else MaterialTheme.colorScheme.onPrimary
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
@@ -772,7 +786,7 @@ fun HomeScreen(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 0.5.sp,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = if (isSthapatyaTheme) Color(0xFF3B2E00) else MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     }
