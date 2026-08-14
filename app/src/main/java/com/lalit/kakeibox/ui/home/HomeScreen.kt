@@ -187,10 +187,10 @@ fun HomeScreen(
                         .padding(24.dp)
                 ) {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(18.dp)
                     ) {
-                        // Header Badge
+                        // ── Editorial Top Header Row ──
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -198,13 +198,13 @@ fun HomeScreen(
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Shield,
                                     contentDescription = "Shield",
-                                    tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint,
-                                    modifier = Modifier.size(18.dp)
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Text(
                                     text = if (isSthapatyaTheme) "🛕 VITTA COMMAND LAB" else "VITTA COMMAND LAB",
@@ -212,14 +212,14 @@ fun HomeScreen(
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 2.sp,
-                                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else mintText
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
                             Surface(
-                                shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(20.dp),
-                                color = if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.15f) else neonMint.copy(alpha = 0.2f),
-                                border = BorderStroke(1.dp, if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.6f) else neonMint.copy(alpha = 0.5f))
+                                shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else CircleShape,
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                             ) {
                                 Text(
                                     text = "⚡ LIVE GAUGE",
@@ -228,134 +228,117 @@ fun HomeScreen(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 1.sp,
-                                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
 
-                        if (isSthapatyaTheme) {
-                            com.personal.kakeibox.ui.components.KonarkSuryaChakraGauge(progress = 0.53f)
-                        } else {
-                        // Central Circular Progress Gauge Wheel
-                        Box(
-                            modifier = Modifier.size(200.dp),
-                            contentAlignment = Alignment.Center
+                        // ── Editorial Zine Hero Content (Giant Numeral + Stacked Text) ──
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(18.dp)
                         ) {
-                            val primaryColor = MaterialTheme.colorScheme.primary
-                            val secondaryColor = MaterialTheme.colorScheme.secondary
-                            val tertiaryColor = MaterialTheme.colorScheme.tertiary
-                            val outlineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                // 1. Smooth Flat Background Track Arc (Official M3 Spec)
-                                val trackStrokeWidth = 14.dp.toPx()
-                                val arcSize = size.width - trackStrokeWidth
-                                val topLeft = Offset(trackStrokeWidth / 2f, trackStrokeWidth / 2f)
-
-                                drawArc(
-                                    color = outlineColor,
-                                    startAngle = 135f,
-                                    sweepAngle = 270f,
-                                    useCenter = false,
-                                    topLeft = topLeft,
-                                    size = Size(arcSize, arcSize),
-                                    style = Stroke(width = trackStrokeWidth, cap = StrokeCap.Round)
-                                )
-
-                                // 2. Active Thick Bubbly Wavy Progress Arc Riding On Top (Official M3 Spec)
-                                val center = Offset(size.width / 2f, size.height / 2f)
-                                val baseRadius = arcSize / 2f
-                                val activeProgress = 0.53f
-                                val waveAmplitude = 4.dp.toPx()
-                                val numWaves = 4.5
-                                val startAngleRad = Math.toRadians(135.0)
-                                val activeSweepAngleRad = Math.toRadians(270.0 * activeProgress)
-                                val steps = 60
-
-                                val points = ArrayList<Offset>()
-                                for (i in 0..steps) {
-                                    val t = i.toFloat() / steps
-                                    val angle = startAngleRad + t * activeSweepAngleRad
-                                    val waveOffset = (kotlin.math.sin(t * numWaves * 2 * Math.PI + wavePhase)).toFloat() * waveAmplitude
-                                    val r = baseRadius + waveOffset
-                                    val x = center.x + r * kotlin.math.cos(angle).toFloat()
-                                    val y = center.y + r * kotlin.math.sin(angle).toFloat()
-                                    points.add(Offset(x, y))
-                                }
-
-                                val activeWavyPath = androidx.compose.ui.graphics.Path()
-                                if (points.isNotEmpty()) {
-                                    activeWavyPath.moveTo(points[0].x, points[0].y)
-                                    for (i in 1 until points.size - 1) {
-                                        val p0 = points[i]
-                                        val p1 = points[i + 1]
-                                        val midX = (p0.x + p1.x) / 2f
-                                        val midY = (p0.y + p1.y) / 2f
-                                        activeWavyPath.quadraticTo(p0.x, p0.y, midX, midY)
-                                    }
-                                    activeWavyPath.lineTo(points.last().x, points.last().y)
-                                }
-
-                                drawPath(
-                                    path = activeWavyPath,
-                                    brush = Brush.sweepGradient(
-                                        colors = listOf(primaryColor, secondaryColor, tertiaryColor, primaryColor)
-                                    ),
-                                    style = Stroke(width = 16.dp.toPx(), cap = StrokeCap.Round)
-                                )
-
-                                // 3. Konark Sun Temple Wheel Spokes (Sthapatya Theme Special)
-                                if (themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.STHAPATYA) {
-                                    val spokeCount = 12
-                                    val fullAngleRad = Math.toRadians(270.0)
-                                    for (s in 0 until spokeCount) {
-                                        val spokeRatio = s.toFloat() / (spokeCount - 1)
-                                        val spokeAngleRad = startAngleRad + spokeRatio * fullAngleRad
-                                        val rInner = baseRadius - 16.dp.toPx()
-                                        val rOuter = baseRadius - 4.dp.toPx()
-                                        val p1 = Offset(center.x + rInner * kotlin.math.cos(spokeAngleRad).toFloat(), center.y + rInner * kotlin.math.sin(spokeAngleRad).toFloat())
-                                        val p2 = Offset(center.x + rOuter * kotlin.math.cos(spokeAngleRad).toFloat(), center.y + rOuter * kotlin.math.sin(spokeAngleRad).toFloat())
-                                        val isActiveSpoke = spokeRatio <= 0.53f
-                                        val spokeColor = if (isActiveSpoke) primaryColor else outlineColor
-                                        drawLine(color = spokeColor, start = p1, end = p2, strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-                                        drawCircle(color = spokeColor, radius = 2f.dp.toPx(), center = p1)
+                            // Left: Massive Hero Numeral 14 with Flame Accent
+                            Surface(
+                                shape = RoundedCornerShape(24.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                                modifier = Modifier.padding(2.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.LocalFireDepartment,
+                                            contentDescription = "Flame",
+                                            tint = MaterialTheme.colorScheme.tertiary,
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .graphicsLayer {
+                                                    scaleX = flameScale
+                                                    scaleY = flameScale
+                                                }
+                                        )
+                                        Text(
+                                            text = "14",
+                                            fontSize = 64.sp,
+                                            fontWeight = FontWeight.Black,
+                                            lineHeight = 64.sp,
+                                            letterSpacing = (-2).sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
                                 }
                             }
 
-                            // Inner Gauge Text
+                            // Right: Asymmetric Editorial Typography Stack
                             Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = "🔥 14 DAYS",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontSize = 12.sp,
+                                    text = "DAYS TILL PAYDAY",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.sp,
-                                    color = neonMint,
-                                    modifier = Modifier.graphicsLayer {
-                                        scaleX = flameScale
-                                        scaleY = flameScale
-                                    }
+                                    letterSpacing = 1.5.sp,
+                                    color = MaterialTheme.colorScheme.tertiary
                                 )
                                 Text(
                                     text = formattedTotalEarnings,
-                                    fontSize = 24.sp,
+                                    fontSize = 28.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = (-1).sp,
-                                    color = mintText
+                                    lineHeight = 32.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "TILL NEXT PAYDAY",
+                                    text = "REMAINING COMMAND BALANCE",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 10.sp,
+                                    fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp,
-                                    color = textSecondary
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
+
+                        // ── Bottom: Full-Width Wavy Payday Timeline Track ──
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "⚡ PAYDAY COUNTDOWN TIMELINE",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "53% ELAPSED",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            com.personal.kakeibox.ui.components.ExpressiveWavyProgressIndicator(
+                                progress = 0.53f,
+                                strokeWidth = 8.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 }
