@@ -1320,14 +1320,14 @@ fun CardShapePreference.toShape(isPressed: Boolean): Shape {
     return when (this) {
         CardShapePreference.DEFAULT -> {
             val radius by animateIntAsState(
-                targetValue = if (isPressed) 12 else 32,
+                targetValue = if (isPressed) 14 else 32,
                 animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph"
             )
             RoundedCornerShape(radius.dp)
         }
         CardShapePreference.SEMICIRCLE -> {
             val topRadius by animateIntAsState(targetValue = if (isPressed) 30 else 50, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
-            val bottomRadius by animateIntAsState(targetValue = if (isPressed) 12 else 8, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            val bottomRadius by animateIntAsState(targetValue = if (isPressed) 14 else 10, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
             RoundedCornerShape(
                 topStart = androidx.compose.foundation.shape.CornerSize(topRadius.dp), 
                 topEnd = androidx.compose.foundation.shape.CornerSize(topRadius.dp), 
@@ -1340,8 +1340,8 @@ fun CardShapePreference.toShape(isPressed: Boolean): Shape {
             RoundedCornerShape(radius.dp)
         }
         CardShapePreference.CLAMSHELL -> {
-            val lg by animateIntAsState(targetValue = if (isPressed) 20 else 40, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
-            val sm by animateIntAsState(targetValue = if (isPressed) 12 else 8, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            val lg by animateIntAsState(targetValue = if (isPressed) 22 else 40, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            val sm by animateIntAsState(targetValue = if (isPressed) 14 else 10, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
             RoundedCornerShape(
                 topStart = androidx.compose.foundation.shape.CornerSize(lg.dp), 
                 topEnd = androidx.compose.foundation.shape.CornerSize(lg.dp), 
@@ -1350,12 +1350,42 @@ fun CardShapePreference.toShape(isPressed: Boolean): Shape {
             )
         }
         CardShapePreference.SLANTED -> {
-            val cut by animateIntAsState(targetValue = if (isPressed) 12 else 24, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
-            androidx.compose.foundation.shape.CutCornerShape(topStart = cut.dp, bottomEnd = cut.dp)
+            // Official M3 Expressive Slanted: Skewed organic rounded parallelogram (NO M2 CutCornerShape!)
+            val lg by animateIntAsState(targetValue = if (isPressed) 22 else 42, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            val sm by animateIntAsState(targetValue = if (isPressed) 12 else 14, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            RoundedCornerShape(
+                topStart = androidx.compose.foundation.shape.CornerSize(lg.dp),
+                topEnd = androidx.compose.foundation.shape.CornerSize(sm.dp),
+                bottomEnd = androidx.compose.foundation.shape.CornerSize(lg.dp),
+                bottomStart = androidx.compose.foundation.shape.CornerSize(sm.dp)
+            )
         }
         CardShapePreference.SQUARE -> {
-            val radius by animateIntAsState(targetValue = if (isPressed) 4 else 8, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            // Official M3 Expressive Square: Organic rounded container
+            val radius by animateIntAsState(targetValue = if (isPressed) 12 else 24, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
             RoundedCornerShape(radius.dp)
+        }
+        CardShapePreference.COOKIE -> {
+            // Official M3 Expressive 4-sided Cookie
+            val lg by animateIntAsState(targetValue = if (isPressed) 16 else 32, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            val sm by animateIntAsState(targetValue = if (isPressed) 8 else 10, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            RoundedCornerShape(
+                topStart = androidx.compose.foundation.shape.CornerSize(lg.dp),
+                topEnd = androidx.compose.foundation.shape.CornerSize(sm.dp),
+                bottomEnd = androidx.compose.foundation.shape.CornerSize(lg.dp),
+                bottomStart = androidx.compose.foundation.shape.CornerSize(sm.dp)
+            )
+        }
+        CardShapePreference.BUN -> {
+            // Official M3 Expressive Bun
+            val top by animateIntAsState(targetValue = if (isPressed) 20 else 36, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            val bot by animateIntAsState(targetValue = if (isPressed) 12 else 16, animationSpec = ExpressivePhysics.fluidSnappy(), label = "corner_morph")
+            RoundedCornerShape(
+                topStart = androidx.compose.foundation.shape.CornerSize(top.dp),
+                topEnd = androidx.compose.foundation.shape.CornerSize(top.dp),
+                bottomEnd = androidx.compose.foundation.shape.CornerSize(bot.dp),
+                bottomStart = androidx.compose.foundation.shape.CornerSize(bot.dp)
+            )
         }
     }
 }

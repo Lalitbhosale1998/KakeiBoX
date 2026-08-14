@@ -2151,8 +2151,8 @@ fun SettingsGroup(
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
         )
         Surface(

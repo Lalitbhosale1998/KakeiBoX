@@ -19,7 +19,7 @@ enum class ColorIntensityPreset {
 }
 
 enum class CardShapePreference {
-    DEFAULT, SEMICIRCLE, PILL, CLAMSHELL, SLANTED, SQUARE;
+    DEFAULT, SEMICIRCLE, PILL, CLAMSHELL, SLANTED, SQUARE, COOKIE, BUN;
 
     companion object {
         fun fromStorage(value: String?): CardShapePreference {

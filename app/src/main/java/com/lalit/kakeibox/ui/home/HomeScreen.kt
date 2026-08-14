@@ -665,7 +665,7 @@ fun HomeScreen(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 1.5.sp,
-                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
+                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.onSurface
                 )
 
                 Row(
@@ -799,7 +799,7 @@ fun HomeScreen(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 1.5.sp,
-                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
+                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.onSurface
                 )
 
                 Row(
