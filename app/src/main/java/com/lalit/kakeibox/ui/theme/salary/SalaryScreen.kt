@@ -835,10 +835,18 @@ fun SalaryScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeDialog() },
             sheetState = salarySheetState,
-            containerColor = sheetColorScheme.surfaceContainer,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-            modifier = Modifier.statusBarsPadding()
+            containerColor = sheetColorScheme.surfaceContainerHigh,
+            dragHandle = {
+                Surface(
+                    modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+                    shape = CircleShape,
+                    color = Color(0xFF10B981)
+                ) {
+                    Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
+                }
+            },
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 ExpressiveAddEditSheet(
@@ -869,10 +877,18 @@ fun SalaryScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleHistorySheet() },
             sheetState = historySheetState,
-            containerColor = sheetColorScheme.surfaceContainer,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-            modifier = Modifier.statusBarsPadding()
+            containerColor = sheetColorScheme.surfaceContainerHigh,
+            dragHandle = {
+                Surface(
+                    modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
+                }
+            },
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 HistoryBottomSheet(
@@ -894,16 +910,17 @@ fun SalaryScreen(
         ModalBottomSheet(
             onDismissRequest = { themeViewModel.toggleBirthdaySheet(false) },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.statusBarsPadding(),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
             dragHandle = {
-                Box(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .width(32.dp)
-                        .height(4.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                )
+                Surface(
+                    modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.tertiary
+                ) {
+                    Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
+                }
             }
         ) {
             BirthdayManagementContent(

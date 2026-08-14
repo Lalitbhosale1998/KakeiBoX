@@ -293,10 +293,18 @@ fun ExerciseScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeAddEditSheet() },
             sheetState = exerciseSheetState,
-            containerColor = sheetColorScheme.surfaceContainer,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-            modifier = Modifier.statusBarsPadding()
+            containerColor = sheetColorScheme.surfaceContainerHigh,
+            dragHandle = {
+                Surface(
+                    modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+                    shape = CircleShape,
+                    color = Color(0xFF00F5D4)
+                ) {
+                    Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
+                }
+            },
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 ExerciseAddEditSheet(
