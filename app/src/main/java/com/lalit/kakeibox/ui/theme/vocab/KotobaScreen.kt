@@ -248,7 +248,18 @@ fun KotobaScreen(
         ModalBottomSheet(
             onDismissRequest = { showAddSheet = false },
             sheetState = sheetState,
-            modifier = Modifier.statusBarsPadding()
+            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            dragHandle = {
+                Surface(
+                    modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                ) {
+                    Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
+                }
+            }
         ) {
             ExpressiveVocabAddSheet(
                 categories = categories.filter { it != "All" },

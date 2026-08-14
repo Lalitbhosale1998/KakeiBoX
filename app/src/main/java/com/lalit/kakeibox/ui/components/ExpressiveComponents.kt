@@ -1726,3 +1726,75 @@ fun ExpressivePillSlider(
         )
     }
 }
+
+object ExpressiveHaptics {
+    fun tabSwap(haptic: androidx.compose.ui.hapticfeedback.HapticFeedback) {
+        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+    }
+    fun cardExpand(haptic: androidx.compose.ui.hapticfeedback.HapticFeedback) {
+        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+    }
+    fun snap(haptic: androidx.compose.ui.hapticfeedback.HapticFeedback) {
+        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+    }
+}
+
+@Composable
+fun <T> ExpressiveSegmentedControl(
+    options: List<T>,
+    selectedOption: T,
+    onOptionSelected: (T) -> Unit,
+    labelProvider: (T) -> String,
+    modifier: Modifier = Modifier,
+    activeColor: Color = MaterialTheme.colorScheme.primary,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val selectedIndex = options.indexOf(selectedOption).coerceAtLeast(0)
+
+    Surface(
+        modifier = modifier.height(44.dp),
+        shape = androidx.compose.foundation.shape.CircleShape,
+        color = containerColor
+    ) {
+        Row(
+            modifier = Modifier.padding(4.dp).fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            options.forEachIndexed { index, option ->
+                val isSelected = index == selectedIndex
+                val pillBg by animateColorAsState(
+                    targetValue = if (isSelected) activeColor else Color.Transparent,
+                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                    label = "segmented_pill_bg"
+                )
+                val textColor by animateColorAsState(
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                    label = "segmented_text_color"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(pillBg)
+                        .clickable {
+                            ExpressiveHaptics.cardExpand(haptic)
+                            onOptionSelected(option)
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.Text(
+                        text = labelProvider(option),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+                        color = textColor,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
