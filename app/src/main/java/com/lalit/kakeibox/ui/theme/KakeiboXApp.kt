@@ -726,16 +726,32 @@ fun KakeiboXApp(
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding(), bottom = 0.dp)
         ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                when (page) {
-                    0 -> com.personal.kakeibox.ui.home.HomeScreen(onNavigateTab = { target -> coroutineScope.launch { pagerState.animateScrollToPage(target) } })
-                    1 -> SalaryScreen()
-                    2 -> ExerciseScreen()
-                    3 -> KotobaScreen()
-                    4 -> SettingsScreen()
+            @OptIn(ExperimentalSharedTransitionApi::class)
+            SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    AnimatedContent(
+                        targetState = page,
+                        transitionSpec = {
+                            (fadeIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) +
+                             scaleIn(initialScale = 0.92f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)))
+                                .togetherWith(
+                                    fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
+                                    scaleOut(targetScale = 0.92f, animationSpec = spring(stiffness = Spring.StiffnessMedium))
+                                )
+                        },
+                        label = "main_tab_3d_morph"
+                    ) { targetPage ->
+                        when (targetPage) {
+                            0 -> com.personal.kakeibox.ui.home.HomeScreen(onNavigateTab = { target -> coroutineScope.launch { pagerState.animateScrollToPage(target) } })
+                            1 -> SalaryScreen()
+                            2 -> ExerciseScreen()
+                            3 -> KotobaScreen()
+                            4 -> SettingsScreen()
+                        }
+                    }
                 }
             }
 

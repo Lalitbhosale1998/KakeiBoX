@@ -402,12 +402,16 @@ fun VocabCardItem(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Tags Row
-                LazyRow(
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Tags FlowRow (Wraps cleanly without horizontal overflow)
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    item {
+                    if (entry.category.isNotBlank()) {
                         Surface(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.secondaryContainer
@@ -421,35 +425,31 @@ fun VocabCardItem(
                         }
                     }
                     if (entry.subCategory.isNotBlank()) {
-                        item {
-                            val isPositive = entry.subCategory.contains("良い")
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
-                            ) {
-                                Text(
-                                    text = if (isPositive) "🌸 良い意味" else "⚡️ よくない意味",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (isPositive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
+                        val isPositive = entry.subCategory.contains("良い")
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
+                        ) {
+                            Text(
+                                text = if (isPositive) "🌸 良い意味" else "⚡️ よくない意味",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isPositive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                            )
                         }
                     }
                     if (entry.studyTag.isNotBlank()) {
-                        item {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.tertiaryContainer
-                            ) {
-                                Text(
-                                    text = "📅 ${entry.studyTag}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.tertiaryContainer
+                        ) {
+                            Text(
+                                text = "📅 ${entry.studyTag}",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
