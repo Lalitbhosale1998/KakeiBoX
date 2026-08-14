@@ -851,25 +851,50 @@ fun KakeiboXApp(
                             modifier = Modifier.rotate(-spinAnim.value),
                             contentAlignment = Alignment.Center
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Menu,
-                                    contentDescription = "Menu",
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Text(
-                                    text = "MENU",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.5.sp,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
+                            AnimatedContent(
+                                targetState = pagerState.currentPage,
+                                transitionSpec = {
+                                    (fadeIn(spring(stiffness = Spring.StiffnessMedium)) + scaleIn(initialScale = 0.6f))
+                                        .togetherWith(fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(targetScale = 0.6f))
+                                },
+                                label = "pill_content_morph"
+                            ) { page ->
+                                val icon = when (page) {
+                                    0 -> Icons.Default.Menu
+                                    1 -> Icons.Outlined.Wallet
+                                    2 -> Icons.Outlined.FitnessCenter
+                                    3 -> Icons.Default.Translate
+                                    4 -> Icons.Outlined.Settings
+                                    else -> Icons.Default.Menu
+                                }
+                                val labelText = when (page) {
+                                    0 -> "HOME"
+                                    1 -> "SALARY"
+                                    2 -> "WORKOUT"
+                                    3 -> "KOTOBA"
+                                    4 -> "SETTINGS"
+                                    else -> "MENU"
+                                }
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = labelText,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = labelText,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 1.5.sp,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
                     }
