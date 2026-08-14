@@ -546,100 +546,7 @@ fun SettingsScreen(
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
-                                    SettingsSelectorRow(
-                                        title = "App Background Style",
-                                        description = "Choose Monet Pastel, Full Vibrant Primary (matches top pill), or Solid Surface",
-                                        icon = Icons.Outlined.Palette,
-                                        selectedValueLabel = when (themeSettings.backgroundCanvasStyle) {
-                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.MONET_PASTEL -> "Monet Pastel 🍃"
-                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.FULL_VIBRANT_PRIMARY -> "Full Vibrant Primary ⚡"
-                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.SOLID_SURFACE -> "Solid Surface 🏛️"
-                                        },
-                                        options = listOf(
-                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.MONET_PASTEL to "Monet Pastel 🍃",
-                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.FULL_VIBRANT_PRIMARY to "Full Vibrant Primary ⚡",
-                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.SOLID_SURFACE to "Solid Surface 🏛️"
-                                        ),
-                                        selectedOption = themeSettings.backgroundCanvasStyle,
-                                        onOptionSelected = { viewModel.setBackgroundCanvasStyle(it) },
-                                        accentColor = Color(0xFF00F2FE)
-                                    )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
-                                    AnimatedVisibility(
-                                        visible = themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL,
-                                        enter = expandVertically() + fadeIn(),
-                                        exit = shrinkVertically() + fadeOut()
-                                    ) {
-                                        Column {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Row(
-                                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ) {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .size(36.dp)
-                                                                .clip(CircleShape)
-                                                                .background(Color(0xFF10B981).copy(alpha = 0.15f)),
-                                                            contentAlignment = Alignment.Center
-                                                        ) {
-                                                            Icon(
-                                                                imageVector = Icons.Outlined.Tune,
-                                                                contentDescription = null,
-                                                                tint = Color(0xFF10B981),
-                                                                modifier = Modifier.size(20.dp)
-                                                            )
-                                                        }
-                                                        Column {
-                                                            Text(
-                                                                text = strings.dynamicColorSaturation,
-                                                                style = MaterialTheme.typography.titleMedium,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = MaterialTheme.colorScheme.onSurface
-                                                            )
-                                                            Text(
-                                                                text = strings.fineTuneWallpaper,
-                                                                style = MaterialTheme.typography.bodySmall,
-                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                            )
-                                                        }
-                                                    }
-                                                    Surface(
-                                                        shape = CircleShape,
-                                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                    ) {
-                                                        Text(
-                                                            text = "${(themeSettings.dynamicColorChromaScale * 100).toInt()}%",
-                                                            style = MaterialTheme.typography.labelMedium,
-                                                            fontWeight = FontWeight.Bold,
-                                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                                        )
-                                                    }
-                                                }
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                com.personal.kakeibox.ui.components.ExpressivePillSlider(
-                                                    value = themeSettings.dynamicColorChromaScale,
-                                                    onValueChange = { viewModel.setDynamicColorChromaScale(it) },
-                                                    valueRange = 0.4f..1.6f,
-                                                    steps = 11,
-                                                    activeColor = Color(0xFF10B981),
-                                                    modifier = Modifier.fillMaxWidth()
-                                                )
-                                            }
-                                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                                        }
-                                    }
                                     SettingsSelectorRow(
                                         title = strings.darkThemeTitle,
                                         description = strings.darkThemeDesc,
@@ -658,21 +565,7 @@ fun SettingsScreen(
                                         onCheckedChange = { viewModel.setUseDynamicColor(it) },
                                         accentColor = Color(0xFFD946EF)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                                    SettingsSelectorRow(
-                                        title = strings.themeControlsIntensity,
-                                        description = strings.controlToneSaturation,
-                                        icon = Icons.Outlined.Palette,
-                                        selectedValueLabel = themeSettings.intensityPreset.name.lowercase().replaceFirstChar { it.uppercase() },
-                                        options = listOf(
-                                            ColorIntensityPreset.NEUTRAL to "Neutral",
-                                            ColorIntensityPreset.SOFT to "Soft",
-                                            ColorIntensityPreset.BRIGHT to "Bright",
-                                        ColorIntensityPreset.BOLD to "Bold"
-                                        ),
-                                        onOptionSelected = { viewModel.setIntensityPreset(it) },
-                                        accentColor = Color(0xFF10B981)
-                                    )
+
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
                                         title = "Launch Setup Wizard 🪄",
@@ -710,36 +603,6 @@ fun SettingsScreen(
                                          ),
                                         onOptionSelected = { viewModel.setAppFont(it) },
                                         accentColor = Color(0xFFF59E0B)
-                                    )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                                    SettingsSelectorRow(
-                                        title = strings.backgroundStyle,
-                                        description = strings.chooseBackgroundStyle,
-                                        icon = Icons.Outlined.Dock,
-                                        selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
-                                        options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
-                                         onOptionSelected = { viewModel.setTopAppBarBackground(it) },
-                                        accentColor = Color(0xFF0D9488)
-                                    )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                                    SettingsSelectorRow(
-                                        title = strings.navbarAnimation,
-                                        description = strings.selectNavbarAnimation,
-                                        icon = Icons.Outlined.AutoMode,
-                                        selectedValueLabel = when (themeSettings.navAnimation) {
-                                            NavAnimationPreference.MORPHING -> "Morphing Inflate"
-                                            NavAnimationPreference.ELASTIC_JELLY -> "Elastic Jelly"
-                                            NavAnimationPreference.LIQUID_RIPPLE -> "Liquid Ripple"
-                                            NavAnimationPreference.ARCADE_3D -> "Elevated 3D"
-                                        },
-                                        options = listOf(
-                                            NavAnimationPreference.MORPHING to "Morphing Inflate",
-                                            NavAnimationPreference.ELASTIC_JELLY to "Elastic Jelly",
-                                            NavAnimationPreference.LIQUID_RIPPLE to "Liquid Ripple",
-                                            NavAnimationPreference.ARCADE_3D to "Elevated 3D"
-                                        ),
-                                         onOptionSelected = { viewModel.setNavAnimation(it) },
-                                        accentColor = Color(0xFFEC4899)
                                     )
                                 }
 
@@ -916,22 +779,7 @@ fun SettingsScreen(
                                 accentColor = Color(0xFFD946EF)
                             )
                         }
-                        if (shouldShow("Theme Controls Intensity", keywords = listOf("intensity", "saturation", "preset", "contrast"))) {
-                            SettingsSelectorRow(
-                                title = "Theme Controls Intensity",
-                                description = "Control tone saturation and contrast (Neutral, Soft, Bright, Bold).",
-                                icon = Icons.Outlined.Palette,
-                                selectedValueLabel = themeSettings.intensityPreset.name.lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(
-                                    ColorIntensityPreset.NEUTRAL to "Neutral",
-                                    ColorIntensityPreset.SOFT to "Soft",
-                                    ColorIntensityPreset.BRIGHT to "Bright",
-                                    ColorIntensityPreset.BOLD to "Bold"
-                                ),
-                                onOptionSelected = { viewModel.setIntensityPreset(it) },
-                                accentColor = Color(0xFF10B981)
-                            )
-                        }
+
                         if (shouldShow("App Font Face", keywords = listOf("font", "typeface", "text", "style"))) {
                             SettingsSelectorRow(
                                 title = "App Font Family",
@@ -950,17 +798,7 @@ fun SettingsScreen(
                                 accentColor = Color(0xFFF59E0B)
                             )
                         }
-                        if (shouldShow("Background Style", keywords = listOf("header", "navigation", "surface", "container"))) {
-                            SettingsSelectorRow(
-                                title = "Background Style",
-                                description = "Choose background style for screen canvas backdrop.",
-                                icon = Icons.Outlined.Dock,
-                                selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
-                                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
-                                accentColor = Color(0xFF0D9488)
-                            )
-                        }
+
                     }
                 }
                 
@@ -1090,36 +928,8 @@ fun SettingsScreen(
                             )
                         }
                         if (shouldShow("Developer")) {
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Background Style",
-                                description = "Choose background style for screen canvas backdrop.",
-                                icon = Icons.Outlined.Dock,
-                                selectedValueLabel = themeSettings.topAppBarBackground.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
-                                options = listOf(TopAppBarBackground.SURFACE to "Surface", TopAppBarBackground.PRIMARY_CONTAINER to "Primary Container"),
-                                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
-                                accentColor = Color(0xFF0D9488)
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            SettingsSelectorRow(
-                                title = "Navbar Motion Effect",
-                                description = "Select animation style for the floating navigation bar.",
-                                icon = Icons.Outlined.AutoMode,
-                                selectedValueLabel = when (themeSettings.navAnimation) {
-                                    NavAnimationPreference.MORPHING -> "Morphing Inflate"
-                                    NavAnimationPreference.ELASTIC_JELLY -> "Elastic Jelly"
-                                    NavAnimationPreference.LIQUID_RIPPLE -> "Liquid Ripple"
-                                    NavAnimationPreference.ARCADE_3D -> "Elevated 3D"
-                                },
-                                options = listOf(
-                                    NavAnimationPreference.MORPHING to "Morphing Inflate",
-                                    NavAnimationPreference.ELASTIC_JELLY to "Elastic Jelly",
-                                    NavAnimationPreference.LIQUID_RIPPLE to "Liquid Ripple",
-                                    NavAnimationPreference.ARCADE_3D to "Elevated 3D"
-                                ),
-                                onOptionSelected = { viewModel.setNavAnimation(it) },
-                                accentColor = Color(0xFFEC4899)
-                            )
+
+
                             SettingsActionRow(
                                 title = stringResource(R.string.about_developer),
                                 description = stringResource(R.string.about_developer_desc),

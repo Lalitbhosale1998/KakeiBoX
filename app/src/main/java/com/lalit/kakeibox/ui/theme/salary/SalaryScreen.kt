@@ -1027,7 +1027,7 @@ fun AuraExpressiveHeroCard(
                     float2 uv = fragCoord / uSize;
                     float wave = sin(uv.x * 5.0 + uTime * 1.2) * cos(uv.y * 5.0 + uTime * 0.9) * 0.5 + 0.5;
                     float3 color = mix(uColor1, uColor2, wave);
-                    return half4(color, 0.15);
+                    return half4(color, 0.04);
                 }
             """.trimIndent()
             AgslShaderHelper.createShaderBrush(
@@ -1039,8 +1039,8 @@ fun AuraExpressiveHeroCard(
         } else {
             Brush.linearGradient(
                 colors = listOf(
-                    primaryColor.copy(alpha = 0.12f),
-                    tertiaryColor.copy(alpha = 0.12f)
+                    primaryColor.copy(alpha = 0.05f),
+                    tertiaryColor.copy(alpha = 0.05f)
                 )
             )
         }
@@ -1058,15 +1058,13 @@ fun AuraExpressiveHeroCard(
         label = "holo_x"
     )
 
-    val holoPrismBrush = remember(holoTranslateX, primaryColor, tertiaryColor, secondaryColor, onSurfaceColor) {
+    val holoPrismBrush = remember(holoTranslateX, primaryColor, tertiaryColor, secondaryColor) {
         Brush.linearGradient(
             colors = listOf(
-                onSurfaceColor,
                 primaryColor,
                 tertiaryColor,
                 secondaryColor,
-                primaryColor,
-                onSurfaceColor
+                primaryColor
             ),
             start = Offset(holoTranslateX, 0f),
             end = Offset(holoTranslateX + 350f, 100f)

@@ -102,31 +102,21 @@ fun ExpressiveEditorialPosterCard(
 
     // Theme-Adaptive Color Palette (Crisp High-Contrast Zine for Light & Dark Mode)
     val isDark = isSystemInDarkTheme()
-    val chalkBg = if (isDark) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface
-    val neonMint = MaterialTheme.colorScheme.primary
+    val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
     val mintText = MaterialTheme.colorScheme.onSurface
+    val neonMint = MaterialTheme.colorScheme.primary
     val flameRed = MaterialTheme.colorScheme.secondary
-    val chalkBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-    val cardGradientColors = if (isDark) {
-        listOf(Color(0xFF19201C), chalkBg)
-    } else {
-        listOf(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.surfaceContainerLow)
-    }
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(32.dp)),
+            .clip(RoundedCornerShape(28.dp)),
         color = chalkBg,
-        border = BorderStroke(1.5.dp, chalkBorder),
-        shadowElevation = 12.dp
+        shadowElevation = 0.dp
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(colors = cardGradientColors)
-                )
                 .padding(24.dp)
         ) {
             Column(

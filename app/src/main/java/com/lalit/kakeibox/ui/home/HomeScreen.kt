@@ -125,38 +125,22 @@ fun HomeScreen(
     )
 
     // Top App Bar & Background Setup
-    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val topAppBarContainerColor by animateColorAsState(
-        targetValue = when (themeSettings.topAppBarBackground) {
-            TopAppBarBackground.SURFACE -> MaterialTheme.colorScheme.primaryContainer
-            TopAppBarBackground.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
-        },
+        targetValue = MaterialTheme.colorScheme.surfaceContainer,
         label = "home_top_app_bar_color"
     )
 
-    val chalkBg = if (isDark) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface
+    val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
     val neonMint = MaterialTheme.colorScheme.primary
     val mintText = MaterialTheme.colorScheme.onSurface
     val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val chalkBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-
-    val cardGradientColors = if (isDark) {
-        listOf(Color(0xFF19201C), chalkBg)
-    } else {
-        listOf(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.surfaceContainerLow)
-    }
+    val chalkBorder = Color.Transparent
+    val cardGradientColors = listOf(chalkBg, chalkBg)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .expressiveBackground(
-                isDark = isDark,
-                isPrimaryContainer = isPrimaryContainer,
-                primaryColor = MaterialTheme.colorScheme.primary,
-                containerColor = topAppBarContainerColor,
-                pattern = themeSettings.backdropPattern,
-                backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
-            )
+            .background(MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(
             modifier = Modifier
@@ -169,20 +153,17 @@ fun HomeScreen(
         ) {
             // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
             val isSthapatyaTheme = themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.STHAPATYA
-            val heroCardShape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape else RoundedCornerShape(32.dp)
-            val heroBorderColor = if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder
+            val heroCardShape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape else RoundedCornerShape(28.dp)
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = heroCardShape,
-                color = chalkBg,
-                border = BorderStroke(1.5.dp, heroBorderColor),
-                shadowElevation = 12.dp
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shadowElevation = 0.dp
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Brush.verticalGradient(colors = cardGradientColors))
                         .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             onNavigateTab(1)

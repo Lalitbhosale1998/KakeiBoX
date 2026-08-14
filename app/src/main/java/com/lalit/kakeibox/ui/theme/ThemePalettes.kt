@@ -472,16 +472,6 @@ object ThemePalettes {
     )
 
     fun getColorScheme(flavor: ThemeFlavor, isDark: Boolean): ColorScheme? {
-        return when (flavor) {
-            ThemeFlavor.DYNAMIC_MATERIAL    -> null
-            ThemeFlavor.MIDNIGHT_OBSIDIAN   -> if (isDark) MidnightObsidianDark else MidnightObsidianLight
-            ThemeFlavor.EMERALD_ZEN         -> if (isDark) EmeraldZenDark else EmeraldZenLight
-            ThemeFlavor.SUNSET_CORAL        -> if (isDark) SunsetCoralDark else SunsetCoralLight
-            ThemeFlavor.TOKYO_GLASS         -> if (isDark) TokyoGlassDark else TokyoGlassLight
-            ThemeFlavor.SHU_NURI            -> if (isDark) ShuNuriDark else ShuNuriLight
-            ThemeFlavor.O_MIKI              -> if (isDark) OMikiDark else OMikiLight
-            ThemeFlavor.NEON_BRUTALIST      -> if (isDark) NeonBrutalistDark else NeonBrutalistLight
-            ThemeFlavor.STHAPATYA           -> if (isDark) SthapatyaDark else SthapatyaLight
-        }
+        return null // Clean baseline strip: fall back directly to native M3 dynamic color scheme!
     }
 }

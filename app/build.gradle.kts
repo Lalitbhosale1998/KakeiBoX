@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.personal.kakeibox"
-        minSdk = 31
+        minSdk = 36
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
