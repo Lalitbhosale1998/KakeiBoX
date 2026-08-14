@@ -811,6 +811,14 @@ fun KakeiboXTheme(
             large      = RoundedCornerShape(28.dp),
             extraLarge = RoundedCornerShape(32.dp)
         )
+        ThemeFlavor.STHAPATYA -> Shapes(
+            // Pancharatha step-pyramid temple geometry — 5-tiered stepped cut corners
+            extraSmall = SthapatyaShapes.PancharathaBadgeShape,
+            small      = SthapatyaShapes.PancharathaBadgeShape,
+            medium     = SthapatyaShapes.PancharathaCardShape,
+            large      = SthapatyaShapes.PancharathaCardShape,
+            extraLarge = SthapatyaShapes.PancharathaCardShape
+        )
         else -> KakeiboXShapes
     }
     val selectedFont = appFont
