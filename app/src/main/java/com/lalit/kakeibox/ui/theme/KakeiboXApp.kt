@@ -759,50 +759,62 @@ fun KakeiboXApp(
             if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
                 var isScreenMenuOpen by remember { mutableStateOf(false) }
 
+                val spinAnim = remember { Animatable(0f) }
+                LaunchedEffect(pagerState.currentPage) {
+                    spinAnim.snapTo(0f)
+                    spinAnim.animateTo(
+                        targetValue = 360f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                }
+
                 val targetTopStart by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
-                        0 -> 20.dp
-                        1 -> 24.dp
+                        0 -> 22.dp
+                        1 -> 28.dp
                         2 -> 8.dp
-                        3 -> 24.dp
+                        3 -> 28.dp
                         4 -> 12.dp
-                        else -> 20.dp
+                        else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
                     label = "menu_top_start"
                 )
                 val targetTopEnd by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
-                        0 -> 20.dp
+                        0 -> 22.dp
                         1 -> 8.dp
-                        2 -> 24.dp
-                        3 -> 24.dp
+                        2 -> 28.dp
+                        3 -> 28.dp
                         4 -> 12.dp
-                        else -> 20.dp
+                        else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
                     label = "menu_top_end"
                 )
                 val targetBottomEnd by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
-                        0 -> 20.dp
-                        1 -> 24.dp
+                        0 -> 22.dp
+                        1 -> 28.dp
                         2 -> 8.dp
                         3 -> 6.dp
                         4 -> 12.dp
-                        else -> 20.dp
+                        else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
                     label = "menu_bottom_end"
                 )
                 val targetBottomStart by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
-                        0 -> 20.dp
+                        0 -> 22.dp
                         1 -> 8.dp
-                        2 -> 24.dp
+                        2 -> 28.dp
                         3 -> 6.dp
                         4 -> 12.dp
-                        else -> 20.dp
+                        else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
                     label = "menu_bottom_start"
@@ -825,6 +837,7 @@ fun KakeiboXApp(
                 ) {
                     Surface(
                         modifier = Modifier
+                            .rotate(spinAnim.value)
                             .clip(menuShape)
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -834,25 +847,30 @@ fun KakeiboXApp(
                         color = MaterialTheme.colorScheme.primary,
                         shadowElevation = 10.dp
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        Box(
+                            modifier = Modifier.rotate(-spinAnim.value),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = "MENU",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.5.sp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu",
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "MENU",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.5.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
                         }
                     }
                 }
