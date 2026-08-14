@@ -792,6 +792,150 @@ fun HomeScreen(
                     }
                 }
             }
+
+            // ── 4. DAILY SNAPSHOT & QUICK ACTIVITY BENTO ROW ──
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "DAILY SNAPSHOT & ACTIVITY",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.5.sp,
+                    color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Card 1: Today's Budget Status
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(130.dp)
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onNavigateTab(1)
+                            },
+                        shape = RoundedCornerShape(24.dp),
+                        color = chalkBg,
+                        border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
+                        shadowElevation = 6.dp
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Brush.verticalGradient(colors = cardGradientColors))
+                                .padding(14.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Wallet,
+                                        contentDescription = "Budget",
+                                        tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = "ON TRACK",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = "MONTHLY BUDGET",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textSecondary
+                                    )
+                                    Text(
+                                        text = "78% SAVED",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = mintText
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Card 2: Kotoba Mastery Queue
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(130.dp)
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onNavigateTab(3)
+                            },
+                        shape = RoundedCornerShape(24.dp),
+                        color = chalkBg,
+                        border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
+                        shadowElevation = 6.dp
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Brush.verticalGradient(colors = cardGradientColors))
+                                .padding(14.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Translate,
+                                        contentDescription = "Review",
+                                        tint = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.secondary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = "DUE NOW",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = "VOCAB REVIEW",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textSecondary
+                                    )
+                                    Text(
+                                        text = "12 WORDS ➔",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = mintText
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

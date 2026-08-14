@@ -288,6 +288,21 @@ fun Modifier.expressiveBackground(
                 radius = size.width * 1.3f
             )
             drawRect(brush = gradientBrush)
+
+            // Draw lower ambient floating color orb at the bottom screen region
+            val bottomOrbGradient = androidx.compose.ui.graphics.Brush.radialGradient(
+                colors = listOf(
+                    primaryColor.copy(alpha = 0.14f),
+                    Color.Transparent
+                ),
+                center = Offset(size.width * 0.3f, size.height * 0.80f),
+                radius = size.width * 0.95f
+            )
+            drawCircle(
+                brush = bottomOrbGradient,
+                center = Offset(size.width * 0.3f, size.height * 0.80f),
+                radius = size.width * 0.95f
+            )
         } else {
             // Light Mode: High-Contrast M3 Expressive Radial Canvas (Rich 38% primary glow fading into deeper 85% lightness slate base for crisp 3D card pop)
             val luminousPastelTop = androidx.compose.ui.graphics.lerp(
@@ -309,6 +324,21 @@ fun Modifier.expressiveBackground(
                 radius = size.width * 1.3f
             )
             drawRect(brush = gradientBrush)
+
+            // Draw lower ambient floating color orb at the bottom screen region
+            val bottomOrbGradient = androidx.compose.ui.graphics.Brush.radialGradient(
+                colors = listOf(
+                    primaryColor.copy(alpha = 0.22f),
+                    Color.Transparent
+                ),
+                center = Offset(size.width * 0.3f, size.height * 0.80f),
+                radius = size.width * 0.95f
+            )
+            drawCircle(
+                brush = bottomOrbGradient,
+                center = Offset(size.width * 0.3f, size.height * 0.80f),
+                radius = size.width * 0.95f
+            )
         }
     } else {
         // Standard style: solid surface color

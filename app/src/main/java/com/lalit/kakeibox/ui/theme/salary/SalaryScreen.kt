@@ -3064,42 +3064,94 @@ fun ExpressiveDeleteDialog(
             label = "dialog_alpha"
         )
 
-        Surface(
-            modifier = Modifier
-                .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 6.dp
-        ) {
-            Column(modifier = Modifier.padding(28.dp)) {
-                Text(
-                    text = "Delete Entry?",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "This action cannot be undone.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(28.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancel", fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    ExpressiveButton(
-                        onClick = onConfirm,
-                        backgroundColor = MaterialTheme.colorScheme.error
+        val infiniteTransition = rememberInfiniteTransition(label = "danger_aura_inf")
+        val auraPulseScale by infiniteTransition.animateFloat(
+            initialValue = 1.01f,
+            targetValue = 1.06f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "aura_scale"
+        )
+        val auraPulseAlpha by infiniteTransition.animateFloat(
+            initialValue = 0.2f,
+            targetValue = 0.55f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "aura_alpha"
+        )
+
+        Box(contentAlignment = Alignment.Center) {
+            // Pulsing Danger Aura Glow
+            Box(
+                modifier = Modifier
+                    .graphicsLayer(scaleX = scale * auraPulseScale, scaleY = scale * auraPulseScale, alpha = alpha * auraPulseAlpha)
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(topStart = 36.dp, bottomEnd = 36.dp, topEnd = 12.dp, bottomStart = 12.dp))
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
+            )
+
+            Surface(
+                modifier = Modifier
+                    .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 32.dp, bottomEnd = 32.dp, topEnd = 10.dp, bottomStart = 10.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.6f)),
+                tonalElevation = 8.dp
+            ) {
+                Column(modifier = Modifier.padding(28.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text("Delete", fontWeight = FontWeight.ExtraBold)
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier.size(38.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Warning,
+                                    contentDescription = "Danger",
+                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = "Delete Entry?",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "This action cannot be undone. All associated ledger records will be permanently removed.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(28.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(onClick = onDismiss) {
+                            Text("Cancel", fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        ExpressiveButton(
+                            onClick = onConfirm,
+                            backgroundColor = MaterialTheme.colorScheme.error
+                        ) {
+                            Text("Delete", fontWeight = FontWeight.ExtraBold)
+                        }
                     }
                 }
             }
