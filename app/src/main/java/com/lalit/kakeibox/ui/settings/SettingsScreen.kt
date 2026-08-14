@@ -339,7 +339,8 @@ fun SettingsScreen(
                 isPrimaryContainer = isPrimaryContainer,
                 primaryColor = MaterialTheme.colorScheme.primary,
                 containerColor = topAppBarContainerColor,
-                pattern = themeSettings.backdropPattern
+                pattern = themeSettings.backdropPattern,
+                backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
             ),
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -541,6 +542,26 @@ fun SettingsScreen(
                                         ),
                                         selectedOption = themeSettings.themeFlavor,
                                         onOptionSelected = { viewModel.setThemeFlavor(it) },
+                                        accentColor = Color(0xFF00F2FE)
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+
+                                    SettingsSelectorRow(
+                                        title = "App Background Style",
+                                        description = "Choose Monet Pastel, Full Vibrant Primary (matches top pill), or Solid Surface",
+                                        icon = Icons.Outlined.Palette,
+                                        selectedValueLabel = when (themeSettings.backgroundCanvasStyle) {
+                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.MONET_PASTEL -> "Monet Pastel 🍃"
+                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.FULL_VIBRANT_PRIMARY -> "Full Vibrant Primary ⚡"
+                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.SOLID_SURFACE -> "Solid Surface 🏛️"
+                                        },
+                                        options = listOf(
+                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.MONET_PASTEL to "Monet Pastel 🍃",
+                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.FULL_VIBRANT_PRIMARY to "Full Vibrant Primary ⚡",
+                                            com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.SOLID_SURFACE to "Solid Surface 🏛️"
+                                        ),
+                                        selectedOption = themeSettings.backgroundCanvasStyle,
+                                        onOptionSelected = { viewModel.setBackgroundCanvasStyle(it) },
                                         accentColor = Color(0xFF00F2FE)
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))

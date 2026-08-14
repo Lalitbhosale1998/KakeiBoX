@@ -39,6 +39,7 @@ private object Keys {
     val NAV_ANIMATION = stringPreferencesKey("nav_animation")
     val SAVINGS_CARD_SHAPE = stringPreferencesKey("savings_card_shape")
     val REMITTANCE_CARD_SHAPE = stringPreferencesKey("remittance_card_shape")
+    val BACKGROUND_CANVAS_STYLE = stringPreferencesKey("background_canvas_style")
     val IS_SETUP_COMPLETE = booleanPreferencesKey("is_setup_complete")
 }
 
@@ -105,6 +106,7 @@ class UserPreferencesRepository @Inject constructor(
             earningsCardShape = CardShapePreference.fromStorage(prefs[Keys.EARNINGS_CARD_SHAPE]),
             savingsCardShape = CardShapePreference.fromStorage(prefs[Keys.SAVINGS_CARD_SHAPE]),
             remittanceCardShape = CardShapePreference.fromStorage(prefs[Keys.REMITTANCE_CARD_SHAPE]),
+            backgroundCanvasStyle = BackgroundCanvasStyle.fromStorage(prefs[Keys.BACKGROUND_CANVAS_STYLE]),
             isSetupComplete = prefs[Keys.IS_SETUP_COMPLETE] ?: false
         )
     }
@@ -224,6 +226,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setRemittanceCardShape(shape: CardShapePreference) {
         dataStore.edit { it[Keys.REMITTANCE_CARD_SHAPE] = shape.name }
+    }
+
+    suspend fun setBackgroundCanvasStyle(style: BackgroundCanvasStyle) {
+        dataStore.edit { it[Keys.BACKGROUND_CANVAS_STYLE] = style.name }
     }
 
     suspend fun applyStylePreset(

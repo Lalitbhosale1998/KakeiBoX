@@ -46,6 +46,20 @@ enum class NavAnimationPreference {
     }
 }
 
+enum class BackgroundCanvasStyle {
+    MONET_PASTEL, FULL_VIBRANT_PRIMARY, SOLID_SURFACE;
+
+    companion object {
+        fun fromStorage(value: String?): BackgroundCanvasStyle {
+            return try {
+                value?.let { valueOf(it) } ?: MONET_PASTEL
+            } catch (e: Exception) {
+                MONET_PASTEL
+            }
+        }
+    }
+}
+
 data class ThemeSettings(
     val darkThemePreference: DarkThemePreference = DarkThemePreference.SYSTEM,
     val useDynamicColor: Boolean = true,
@@ -74,6 +88,7 @@ data class ThemeSettings(
     val earningsCardShape: CardShapePreference = CardShapePreference.PILL,
     val savingsCardShape: CardShapePreference = CardShapePreference.PILL,
     val remittanceCardShape: CardShapePreference = CardShapePreference.PILL,
+    val backgroundCanvasStyle: BackgroundCanvasStyle = BackgroundCanvasStyle.MONET_PASTEL,
     val isSetupComplete: Boolean = true
 )
 

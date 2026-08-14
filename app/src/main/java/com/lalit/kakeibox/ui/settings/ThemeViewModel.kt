@@ -227,6 +227,12 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun setBackgroundCanvasStyle(style: com.personal.kakeibox.data.preferences.BackgroundCanvasStyle) {
+        viewModelScope.launch {
+            preferencesRepository.setBackgroundCanvasStyle(style)
+        }
+    }
+
     fun setDynamicColorChromaScale(scale: Float) {
         viewModelScope.launch {
             preferencesRepository.setDynamicColorChromaScale(scale)

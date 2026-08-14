@@ -269,9 +269,15 @@ fun Modifier.expressiveBackground(
     isPrimaryContainer: Boolean,
     primaryColor: Color,
     containerColor: Color,
-    pattern: BackdropPattern
+    pattern: BackdropPattern,
+    backgroundCanvasStyle: com.personal.kakeibox.data.preferences.BackgroundCanvasStyle = com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.MONET_PASTEL
 ): Modifier = this.drawBehind {
-    if (isPrimaryContainer) {
+    if (backgroundCanvasStyle == com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.FULL_VIBRANT_PRIMARY) {
+        // Draw 100% Solid Pure Flat Primary Canvas matching the floating navigation pill!
+        drawRect(color = primaryColor)
+    } else if (backgroundCanvasStyle == com.personal.kakeibox.data.preferences.BackgroundCanvasStyle.SOLID_SURFACE) {
+        drawRect(color = containerColor)
+    } else if (isPrimaryContainer) {
         if (isDark) {
             val darkBaseColor = androidx.compose.ui.graphics.lerp(
                 Color(0xFF0F172A), // Deep midnight slate

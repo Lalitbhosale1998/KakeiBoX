@@ -189,7 +189,8 @@ fun ExerciseScreen(
                 isPrimaryContainer = isPrimaryContainer,
                 primaryColor = MaterialTheme.colorScheme.primary,
                 containerColor = topAppBarContainerColor,
-                pattern = themeSettings.backdropPattern
+                pattern = themeSettings.backdropPattern,
+                backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
             )
     ) {
         Scaffold(
