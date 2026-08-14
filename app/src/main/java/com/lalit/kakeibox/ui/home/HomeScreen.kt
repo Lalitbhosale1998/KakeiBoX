@@ -84,6 +84,8 @@ fun HomeScreen(
     val density = androidx.compose.ui.platform.LocalDensity.current
     val statusBarsPadding = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
 
+    val paydayInfo = remember { com.personal.kakeibox.util.DateUtils.calculatePaydayProgress() }
+
     val formattedTotalEarnings = remember(totalSalary, isPrivacyMode) {
         CurrencyUtils.formatAmount(totalSalary ?: 5806060L, themeSettings.currencySymbol, isPrivacyMode, compact = false)
     }
@@ -263,7 +265,7 @@ fun HomeScreen(
                                                 }
                                         )
                                         Text(
-                                            text = "14",
+                                            text = "${paydayInfo.daysRemaining}",
                                             fontSize = 64.sp,
                                             fontWeight = FontWeight.Black,
                                             lineHeight = 64.sp,
@@ -325,7 +327,7 @@ fun HomeScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    text = "53% ELAPSED",
+                                    text = "${(paydayInfo.progressRatio * 100).toInt()}% ELAPSED",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
@@ -333,7 +335,7 @@ fun HomeScreen(
                                 )
                             }
                             com.personal.kakeibox.ui.components.ExpressiveWavyProgressIndicator(
-                                progress = 0.53f,
+                                progress = paydayInfo.progressRatio,
                                 strokeWidth = 8.dp,
                                 color = MaterialTheme.colorScheme.primary,
                                 trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
