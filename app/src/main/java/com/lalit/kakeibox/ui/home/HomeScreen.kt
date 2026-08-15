@@ -180,7 +180,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
-            val isSthapatyaTheme = themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.STHAPATYA
+            val isSthapatyaTheme = false
             val heroCardShape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape else RoundedCornerShape(28.dp)
 
             Surface(
@@ -409,7 +409,7 @@ fun HomeScreen(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Surface(
-                                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(10.dp),
+                                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(20.dp),
                                         color = if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.15f) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
                                         border = BorderStroke(1.dp, if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.6f) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f))
                                     ) {
@@ -489,7 +489,7 @@ fun HomeScreen(
                                 }
 
                                 Surface(
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = RoundedCornerShape(20.dp),
                                     color = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -554,7 +554,7 @@ fun HomeScreen(
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Surface(
-                                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(10.dp),
+                                        shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(16.dp),
                                         color = if (isWorkoutLoggedToday) Color(0xFF00E676) else if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.15f) else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
                                         border = BorderStroke(1.dp, if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.6f) else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
                                     ) {

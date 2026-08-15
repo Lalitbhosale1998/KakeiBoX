@@ -501,7 +501,7 @@ fun SalaryScreen(
             ) {
                 // Header top spacing
                 item {
-                    val isExpressive = themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST
+                    val isExpressive = themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE
                     Spacer(modifier = Modifier.height(statusBarPadding + if (isExpressive) 14.dp else 76.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -667,7 +667,7 @@ fun SalaryScreen(
                                         alpha = cardAlpha
                                     }
                             ) {
-                                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+                                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE) {
                                     com.personal.kakeibox.ui.components.ExpressiveEditorialPosterCard(
                                         totalSalary = totalSalary ?: 0L,
                                         thisMonthSalary = entry.salaryAmount,
@@ -1344,7 +1344,7 @@ fun AuraExpressiveHeroCard(
                                     color = MaterialTheme.colorScheme.tertiary
                                 )
                             }
-                            if (themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+                            if (false) {
                                 Text(
                                     text = String.format("%03d", paydayInfo.daysRemaining),
                                     style = MaterialTheme.typography.displayMedium,

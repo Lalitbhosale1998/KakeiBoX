@@ -380,33 +380,7 @@ fun KakeiboXTheme(
     val colorScheme = rawColorScheme
 
     // Per-flavor shape tokens: architectural (Shu-Nuri), pillow-round (O-Miki), default (all others)
-    val shapes = when (themeFlavor) {
-        ThemeFlavor.SHU_NURI -> Shapes(
-            // Torii gate geometry — angular, architectural, minimal radius
-            extraSmall = RoundedCornerShape(4.dp),
-            small      = RoundedCornerShape(6.dp),
-            medium     = RoundedCornerShape(8.dp),
-            large      = RoundedCornerShape(10.dp),
-            extraLarge = RoundedCornerShape(12.dp)
-        )
-        ThemeFlavor.O_MIKI -> Shapes(
-            // Barrel silhouette — very round, pillow-like, celebratory
-            extraSmall = RoundedCornerShape(16.dp),
-            small      = RoundedCornerShape(20.dp),
-            medium     = RoundedCornerShape(24.dp),
-            large      = RoundedCornerShape(28.dp),
-            extraLarge = RoundedCornerShape(32.dp)
-        )
-        ThemeFlavor.STHAPATYA -> Shapes(
-            // Pancharatha step-pyramid temple geometry — 5-tiered stepped cut corners
-            extraSmall = SthapatyaShapes.PancharathaBadgeShape,
-            small      = SthapatyaShapes.PancharathaBadgeShape,
-            medium     = SthapatyaShapes.PancharathaCardShape,
-            large      = SthapatyaShapes.PancharathaCardShape,
-            extraLarge = SthapatyaShapes.PancharathaCardShape
-        )
-        else -> KakeiboXShapes
-    }
+    val shapes = KakeiboXShapes
     val selectedFont = appFont
     val typography = getTypography(selectedFont)
 

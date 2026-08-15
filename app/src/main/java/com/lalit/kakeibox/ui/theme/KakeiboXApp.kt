@@ -756,7 +756,7 @@ fun KakeiboXApp(
             }
 
             // ── Top Left Screen Navigation Menu Pill ──
-            if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE || themeSettings.themeFlavor == com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST) {
+            if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE) {
                 var isScreenMenuOpen by remember { mutableStateOf(false) }
 
                 val spinAnim = remember { Animatable(0f) }

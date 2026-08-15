@@ -2,7 +2,6 @@ package com.personal.kakeibox.ui.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -55,23 +54,23 @@ object SthapatyaShapes {
         }
     }
 
-    // Pancharatha 5-Tiered Stepped Corner Shape for Temple Bento Cards
-    val PancharathaCardShape = CutCornerShape(
-        topStart = 16.dp,
-        topEnd = 8.dp,
-        bottomEnd = 16.dp,
-        bottomStart = 8.dp
+    // Pancharatha 5-Tiered Stepped Corner Shape for Temple Bento Cards (Official M3 Expressive Organic Shape)
+    val PancharathaCardShape = RoundedCornerShape(
+        topStart = 28.dp,
+        topEnd = 12.dp,
+        bottomEnd = 28.dp,
+        bottomStart = 12.dp
     )
 
     // Padma (8-Petal Sacred Lotus) Scalloped Shape for Action Chips & Badges
     val PadmaChipShape = RoundedCornerShape(22.dp)
 
-    // Small Stepped Chip Shape for Header Badges
-    val PancharathaBadgeShape = CutCornerShape(
-        topStart = 8.dp,
-        topEnd = 4.dp,
-        bottomEnd = 8.dp,
-        bottomStart = 4.dp
+    // Small Stepped Chip Shape for Header Badges (Official M3 Expressive Organic Badge)
+    val PancharathaBadgeShape = RoundedCornerShape(
+        topStart = 14.dp,
+        topEnd = 6.dp,
+        bottomEnd = 14.dp,
+        bottomStart = 6.dp
     )
 }
 

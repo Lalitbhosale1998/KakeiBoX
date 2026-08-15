@@ -1108,9 +1108,7 @@ private fun ThemeFontStep(themeSettings: ThemeSettings, viewModel: ThemeViewMode
                     }
 
                     val flavors = listOf(
-                        Triple(ThemeFlavor.DYNAMIC_MATERIAL, "Dynamic Wallpaper", "🎨"),
-                        Triple(ThemeFlavor.SHU_NURI, "朱塗り Shu-Nuri", "⛩️"),
-                        Triple(ThemeFlavor.O_MIKI, "御神酒 O-Miki", "🍶")
+                        Triple(ThemeFlavor.DYNAMIC_MATERIAL, "Dynamic Wallpaper", "🎨")
                     )
 
                     Row(

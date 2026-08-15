@@ -76,10 +76,41 @@ fun KotobaScreen(
     val systemDark = isSystemInDarkTheme()
     val isDark = themeSettings.darkThemePreference.isDark(systemDark)
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
-    val topAppBarContainerColor = MaterialTheme.colorScheme.primaryContainer
+    val currentColorScheme = MaterialTheme.colorScheme
+    val sheetColorScheme = remember(currentColorScheme) {
+        val blendedSurface = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surface,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerHigh,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLow,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
+            currentColorScheme.surfaceContainerLowest,
+            currentColorScheme.primaryContainer,
+            0.35f
+        )
+        currentColorScheme.copy(
+            surface = blendedSurface,
+            surfaceContainer = blendedSurface,
+            surfaceContainerHigh = blendedSurfaceHigh,
+            surfaceContainerLow = blendedSurfaceLow,
+            surfaceContainerLowest = blendedSurfaceLowest
+        )
+    }
+    val topAppBarContainerColor = sheetColorScheme.primaryContainer
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    MaterialTheme(colorScheme = sheetColorScheme) {
     SharedTransitionLayout {
         val sharedTransitionScope = this
 
@@ -251,7 +282,7 @@ fun KotobaScreen(
             sheetState = sheetState,
             modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             dragHandle = {
                 Surface(
                     modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
@@ -272,6 +303,7 @@ fun KotobaScreen(
             )
         }
     }
+}
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -855,7 +887,7 @@ fun ExpressiveVocabAddSheet(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -913,7 +945,7 @@ fun ExpressiveVocabAddSheet(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -1045,7 +1077,7 @@ fun ExpressiveVocabAddSheet(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {

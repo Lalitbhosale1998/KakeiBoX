@@ -110,9 +110,12 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.HorizontalDivider
@@ -513,38 +516,6 @@ fun SettingsScreen(
                                 val strings = getAppStrings(themeSettings.appLanguage)
                                 // Theme & Color Group
                                 SettingsGroup(title = strings.themeColorSettings) {
-
-                                    SettingsSelectorRow(
-                                        title = strings.themeFlavorTitle,
-                                        description = strings.themeFlavorDesc,
-                                        icon = Icons.Outlined.Palette,
-                                        selectedValueLabel = when (themeSettings.themeFlavor) {
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL -> "Dynamic Material"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.MIDNIGHT_OBSIDIAN -> "Midnight Obsidian"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.EMERALD_ZEN -> "Emerald Zen"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL -> "Sunset Coral"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS -> "Tokyo Glass"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SHU_NURI -> "朱塗り Shu-Nuri"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.O_MIKI -> "御神酒 O-Miki"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST -> "Neon Brutalist ⚡"
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.STHAPATYA -> "स्थापत्य Sthapatya 🛕"
-                                        },
-                                        options = listOf(
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.DYNAMIC_MATERIAL to "Dynamic Material",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.MIDNIGHT_OBSIDIAN to "Midnight Obsidian 🌌",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.EMERALD_ZEN to "Emerald Zen 🌿",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SUNSET_CORAL to "Sunset Coral 🌅",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.TOKYO_GLASS to "Tokyo Glass 💎",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.SHU_NURI to "朱塗り Shu-Nuri 🩩",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.O_MIKI to "御神酒 O-Miki 🎏",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.NEON_BRUTALIST to "Neon Brutalist ⚡",
-                                            com.personal.kakeibox.data.preferences.ThemeFlavor.STHAPATYA to "स्थापत्य Sthapatya 🛕"
-                                        ),
-                                        selectedOption = themeSettings.themeFlavor,
-                                        onOptionSelected = { viewModel.setThemeFlavor(it) },
-                                        accentColor = Color(0xFF00F2FE)
-                                    )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
 
                                     SettingsSelectorRow(
@@ -2370,65 +2341,233 @@ fun <T> SettingsSelectorRow(
                             )
                         }
 
-                        options.forEach { (value, label) ->
-                            val normSelected = selectedValueLabel.trim().replace("_", " ").lowercase()
-                            val normLabel = label.trim().replace("_", " ").lowercase()
+                        if (options.size > 8) {
+                            // ── HYBRID 2-TAB 2-COLUMN BENTO GRID FOR FONTS ──
+                            var selectedTab by remember { mutableStateOf(0) } // 0 = Global/Latin, 1 = Japanese
 
-                            val isSelected = when {
-                                selectedOption != null && value == selectedOption -> true
-                                selectedValueLabel == label -> true
-                                normSelected == normLabel -> true
-                                normLabel.startsWith(normSelected) || normSelected.startsWith(normLabel) -> true
-                                normLabel.contains(normSelected) || normSelected.contains(normLabel) -> true
-                                else -> false
+                            val globalOptions = remember(options) {
+                                options.filter { !it.second.contains("JAPANESE") && !it.second.contains("⛩️") && !it.second.contains("🌸") && !it.second.contains("🍡") && !it.second.contains("🍵") && !it.second.contains("🏯") && !it.second.contains("🎌") }
                             }
-                            val optionBg = if (isSelected) {
-                                if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                if (isSpaceTerminal) Color(0xFF1E293B).copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.45f)
+                            val japaneseOptions = remember(options) {
+                                options.filter { it.second.contains("JAPANESE") || it.second.contains("⛩️") || it.second.contains("🌸") || it.second.contains("🍡") || it.second.contains("🍵") || it.second.contains("🏯") || it.second.contains("🎌") }
                             }
 
-                            val optionTextColor = if (isSelected) {
-                                if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurface
-                            }
-
-                            val itemShape = RoundedCornerShape(20.dp)
-
-                            Surface(
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onOptionSelected(value)
-                                    expanded = false
-                                },
-                                shape = itemShape,
-                                color = optionBg,
-                                border = if (isSelected && isSpaceTerminal) BorderStroke(1.dp, Color(0xFF46C2B4)) else null,
+                            // 1. M3 Expressive Sliding Fluid Indicator Segmented Control
+                            BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
+                                    .padding(bottom = 16.dp)
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                    .padding(4.dp)
                             ) {
-                                Row(
+                                val tabWidth = (maxWidth - 4.dp) / 2
+                                val targetOffset = if (selectedTab == 0) 0.dp else tabWidth
+
+                                val indicatorOffset by animateDpAsState(
+                                    targetValue = targetOffset,
+                                    animationSpec = com.personal.kakeibox.ui.theme.ExpressivePhysics.fluidSnappy(),
+                                    label = "tab_indicator_slide"
+                                )
+
+                                // Fluid Sliding Background Pill
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = indicatorOffset)
+                                        .width(tabWidth)
+                                        .height(44.dp)
+                                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(20.dp))
+                                )
+
+                                Row(modifier = Modifier.fillMaxWidth()) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .width(tabWidth)
+                                            .height(44.dp)
+                                            .clickable {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                selectedTab = 0
+                                            }
+                                    ) {
+                                        val text1Color by animateColorAsState(
+                                            targetValue = if (selectedTab == 0) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            label = "tab_text1"
+                                        )
+                                        Text(
+                                            text = "🌐 Global / Latin (${globalOptions.size})",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = text1Color
+                                        )
+                                    }
+
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .width(tabWidth)
+                                            .height(44.dp)
+                                            .clickable {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                selectedTab = 1
+                                            }
+                                    ) {
+                                        val text2Color by animateColorAsState(
+                                            targetValue = if (selectedTab == 1) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            label = "tab_text2"
+                                        )
+                                        Text(
+                                            text = "🇯🇵 日本語 (${japaneseOptions.size})",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = text2Color
+                                        )
+                                    }
+                                }
+                            }
+
+                            // 2. Animated 2-Column Grid Content Transition
+                            AnimatedContent(
+                                targetState = selectedTab,
+                                transitionSpec = {
+                                    if (targetState > initialState) {
+                                        (slideInHorizontally { width -> width / 3 } + fadeIn()).togetherWith(slideOutHorizontally { width -> -width / 3 } + fadeOut())
+                                    } else {
+                                        (slideInHorizontally { width -> -width / 3 } + fadeIn()).togetherWith(slideOutHorizontally { width -> width / 3 } + fadeOut())
+                                    }
+                                },
+                                label = "tab_grid_transition"
+                            ) { tabIndex ->
+                                val currentTabOptions = if (tabIndex == 0) globalOptions else japaneseOptions
+                                val optionPairs = remember(currentTabOptions) {
+                                    currentTabOptions.chunked(2)
+                                }
+
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    optionPairs.forEach { rowItems ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            rowItems.forEach { (value, rawLabel) ->
+                                                val label = rawLabel.replace("── 🇯🇵 JAPANESE ── ", "")
+                                                val normSelected = selectedValueLabel.trim().replace("_", " ").lowercase()
+                                                val normLabel = label.trim().replace("_", " ").lowercase()
+                                                val isSelected = when {
+                                                    selectedOption != null && value == selectedOption -> true
+                                                    selectedValueLabel == label -> true
+                                                    normSelected == normLabel -> true
+                                                    else -> false
+                                                }
+                                                val optionBg = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.45f)
+                                                val optionTextColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+
+                                                Surface(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        onOptionSelected(value)
+                                                        expanded = false
+                                                    },
+                                                    shape = RoundedCornerShape(20.dp),
+                                                    color = optionBg,
+                                                    modifier = Modifier.weight(1f)
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(horizontal = 12.dp, vertical = 14.dp),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.SpaceBetween
+                                                    ) {
+                                                        Text(
+                                                            text = label,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                            color = optionTextColor,
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            modifier = Modifier.weight(1f, fill = false)
+                                                        )
+                                                        if (isSelected) {
+                                                            Spacer(modifier = Modifier.width(4.dp))
+                                                            Icon(
+                                                                imageVector = Icons.Outlined.Check,
+                                                                contentDescription = "Selected",
+                                                                tint = optionTextColor,
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if (rowItems.size == 1) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            options.forEach { (value, label) ->
+                                val normSelected = selectedValueLabel.trim().replace("_", " ").lowercase()
+                                val normLabel = label.trim().replace("_", " ").lowercase()
+
+                                val isSelected = when {
+                                    selectedOption != null && value == selectedOption -> true
+                                    selectedValueLabel == label -> true
+                                    normSelected == normLabel -> true
+                                    normLabel.startsWith(normSelected) || normSelected.startsWith(normLabel) -> true
+                                    normLabel.contains(normSelected) || normSelected.contains(normLabel) -> true
+                                    else -> false
+                                }
+                                val optionBg = if (isSelected) {
+                                    if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    if (isSpaceTerminal) Color(0xFF1E293B).copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.45f)
+                                }
+
+                                val optionTextColor = if (isSelected) {
+                                    if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurface
+                                }
+
+                                val itemShape = RoundedCornerShape(20.dp)
+
+                                Surface(
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onOptionSelected(value)
+                                        expanded = false
+                                    },
+                                    shape = itemShape,
+                                    color = optionBg,
+                                    border = if (isSelected && isSpaceTerminal) BorderStroke(1.dp, Color(0xFF46C2B4)) else null,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                        .padding(vertical = 4.dp)
                                 ) {
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = optionTextColor
-                                    )
-                                    if (isSelected) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Check,
-                                            contentDescription = "Selected",
-                                            tint = optionTextColor,
-                                            modifier = Modifier.size(20.dp)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            color = optionTextColor
                                         )
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.Check,
+                                                contentDescription = "Selected",
+                                                tint = optionTextColor,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
