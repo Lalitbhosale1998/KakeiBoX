@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -24,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -65,6 +69,35 @@ fun KotobaScreen(
 
     var showAddSheet by remember { mutableStateOf(false) }
     var selectedVocabEntry by remember { mutableStateOf<VocabEntry?>(null) }
+
+    // Curriculum Navigation State
+    var selectedWeek by remember { mutableStateOf<String?>(null) }
+    var selectedDay by remember { mutableStateOf<String>("1日目") }
+    var selectedCategoryFilter by remember { mutableStateOf<String?>(null) }
+
+    // Dynamically group entries by Week and Day
+    val weeksList = remember(allEntries) {
+        val extracted = allEntries.mapNotNull { entry ->
+            val tag = entry.studyTag
+            if (tag.startsWith("第") && tag.contains("週")) {
+                val weekPart = tag.substringBefore("・").trim()
+                if (weekPart.isNotEmpty()) weekPart else null
+            } else null
+        }.distinct().sorted()
+
+        if (extracted.isEmpty()) listOf("第1週") else extracted
+    }
+
+    val entriesByWeek = remember(allEntries) {
+        allEntries.groupBy { entry ->
+            val tag = entry.studyTag
+            if (tag.startsWith("第") && tag.contains("週")) {
+                tag.substringBefore("・").trim()
+            } else {
+                "その他"
+            }
+        }
+    }
 
     val lazyListState = rememberLazyListState()
     val isFabExpanded by remember {
@@ -160,6 +193,7 @@ fun KotobaScreen(
                 ) { targetEntry ->
                     if (targetEntry == null) {
                         // ── Main List View ──
+                        // ── Main Curriculum / List View ──
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -200,55 +234,510 @@ fun KotobaScreen(
                                 )
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
 
-                            // ── Vocab Entry List / Cards ──
-                            if (filteredEntries.isEmpty()) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(32.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Icon(
-                                            imageVector = Icons.Default.Translate,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                            modifier = Modifier.size(64.dp)
-                                        )
-                                        Spacer(modifier = Modifier.height(12.dp))
+                            // ── NAVIGATION CONTROLLER (SEARCH OVERRIDE vs CURRICULUM LEVELS) ──
+                            if (searchQuery.isNotEmpty()) {
+                                // 🔍 SEARCH MODE: Display Search Results across all entries
+                                Text(
+                                    text = if (isJapanese) "検索結果 (${filteredEntries.size}件)" else "Search Results (${filteredEntries.size})",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                                )
+                                if (filteredEntries.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         Text(
-                                            text = if (isJapanese) "単語がありません" else "No Vocabulary Entries",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
+                                            text = if (isJapanese) "該当する単語が見つかりません" else "No matching words found",
+                                            style = MaterialTheme.typography.bodyLarge,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                        Text(
-                                            text = if (isJapanese) "右下の「単語追加」ボタンからJLPT N1単語を登録しましょう！" else "Tap '+ Add Vocab' at the bottom right to register JLPT N1 words!",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                            textAlign = TextAlign.Center
-                                        )
+                                    }
+                                } else {
+                                    LazyColumn(
+                                        state = lazyListState,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = innerPadding.calculateBottomPadding() + 130.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        items(filteredEntries, key = { it.id }) { entry ->
+                                            VocabCardItem(
+                                                entry = entry,
+                                                sharedTransitionScope = sharedTransitionScope,
+                                                animatedVisibilityScope = this@AnimatedContent,
+                                                onClickCard = { selectedVocabEntry = entry },
+                                                onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
+                                                onToggleStarred = { viewModel.toggleStarredStatus(entry) },
+                                                onDelete = { viewModel.deleteVocabEntry(entry) }
+                                            )
+                                        }
                                     }
                                 }
                             } else {
-                                LazyColumn(
-                                    state = lazyListState,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = innerPadding.calculateBottomPadding() + 130.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    items(filteredEntries, key = { it.id }) { entry ->
-                                        VocabCardItem(
-                                            entry = entry,
-                                            sharedTransitionScope = sharedTransitionScope,
-                                            animatedVisibilityScope = this@AnimatedContent,
-                                            onClickCard = { selectedVocabEntry = entry },
-                                            onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
-                                            onToggleStarred = { viewModel.toggleStarredStatus(entry) },
-                                            onDelete = { viewModel.deleteVocabEntry(entry) }
-                                        )
+                                // ── M3 EXPRESSIVE CURRICULUM DRILL-DOWN ANIMATEDCONTENT (LEVEL 1 ⇄ LEVEL 2/3) ──
+                                AnimatedContent(
+                                    targetState = selectedWeek,
+                                    transitionSpec = {
+                                        if (targetState != null) {
+                                            // Drilling down into a Week (Level 1 -> Level 2/3)
+                                            (slideInHorizontally(ExpressivePhysics.fluidBouncy()) { width -> width / 3 } + fadeIn(ExpressivePhysics.fluidBouncy()))
+                                                .togetherWith(slideOutHorizontally(ExpressivePhysics.fluidBouncy()) { width -> -width / 3 } + fadeOut(ExpressivePhysics.fluidBouncy()))
+                                        } else {
+                                            // Going back to Weeks Hub (Level 2/3 -> Level 1)
+                                            (slideInHorizontally(ExpressivePhysics.fluidBouncy()) { width -> -width / 3 } + fadeIn(ExpressivePhysics.fluidBouncy()))
+                                                .togetherWith(slideOutHorizontally(ExpressivePhysics.fluidBouncy()) { width -> width / 3 } + fadeOut(ExpressivePhysics.fluidBouncy()))
+                                        }
+                                    },
+                                    label = "curriculum_week_transition"
+                                ) { activeWeek ->
+                                    if (activeWeek == null) {
+                                        // ── LEVEL 1: WEEKS SELECTION HUB (週一覧) ──
+                                        Column(modifier = Modifier.fillMaxSize()) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Column {
+                                                    Text(
+                                                        text = if (isJapanese) "週別学習カリキュラム" else "Weekly Curriculum",
+                                                        style = MaterialTheme.typography.titleLarge,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                    Text(
+                                                        text = if (isJapanese) "学習する週を選択してください" else "Select a week to begin study",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                                Surface(
+                                                    shape = RoundedCornerShape(16.dp),
+                                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                                                ) {
+                                                    Text(
+                                                        text = "${weeksList.size} Weeks",
+                                                        style = MaterialTheme.typography.labelMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                                    )
+                                                }
+                                            }
+
+                                            LazyColumn(
+                                                state = lazyListState,
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = innerPadding.calculateBottomPadding() + 130.dp),
+                                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                                            ) {
+                                                items(weeksList) { weekName ->
+                                                    val weekEntries = entriesByWeek[weekName] ?: emptyList()
+                                                    val totalCount = weekEntries.size
+                                                    val masteredCount = weekEntries.count { it.isMastered }
+                                                    val progress = if (totalCount > 0) masteredCount.toFloat() / totalCount.toFloat() else 0f
+                                                    val progressPercent = (progress * 100).toInt()
+
+                                                    Surface(
+                                                        onClick = {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            selectedWeek = weekName
+                                                            selectedDay = "1日目"
+                                                        },
+                                                        shape = RoundedCornerShape(24.dp),
+                                                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                                                        modifier = Modifier.fillMaxWidth()
+                                                    ) {
+                                                        Column(modifier = Modifier.padding(20.dp)) {
+                                                            Row(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.SpaceBetween
+                                                            ) {
+                                                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                                                    Surface(
+                                                                        shape = CircleShape,
+                                                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                                                        modifier = Modifier.size(42.dp)
+                                                                    ) {
+                                                                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                                                            Icon(
+                                                                                imageVector = Icons.Outlined.DateRange,
+                                                                                contentDescription = null,
+                                                                                tint = MaterialTheme.colorScheme.primary,
+                                                                                modifier = Modifier.size(22.dp)
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                    Column {
+                                                                        Text(
+                                                                            text = weekName,
+                                                                            style = MaterialTheme.typography.titleMedium,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            color = MaterialTheme.colorScheme.onSurface
+                                                                        )
+                                                                        Text(
+                                                                            text = "$totalCount Words • $masteredCount Mastered",
+                                                                            style = MaterialTheme.typography.bodySmall,
+                                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                                        )
+                                                                    }
+                                                                }
+
+                                                                Surface(
+                                                                    shape = CircleShape,
+                                                                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+                                                                    modifier = Modifier.size(36.dp)
+                                                                ) {
+                                                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                                                        Icon(
+                                                                            imageVector = Icons.Default.ChevronRight,
+                                                                            contentDescription = "Open Week",
+                                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            Spacer(modifier = Modifier.height(16.dp))
+
+                                                            // Progress Bar & Percentage
+                                                            Row(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.SpaceBetween
+                                                            ) {
+                                                                Text(
+                                                                    text = if (isJapanese) "進捗率" else "Mastery Progress",
+                                                                    style = MaterialTheme.typography.labelSmall,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                                )
+                                                                Text(
+                                                                    text = "$progressPercent%",
+                                                                    style = MaterialTheme.typography.labelSmall,
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    color = MaterialTheme.colorScheme.primary
+                                                                )
+                                                            }
+                                                            Spacer(modifier = Modifier.height(6.dp))
+                                                            LinearProgressIndicator(
+                                                                progress = { progress },
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .height(8.dp)
+                                                                    .clip(CircleShape),
+                                                                color = MaterialTheme.colorScheme.primary,
+                                                                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // ── LEVEL 2 & 3: WEEK DETAIL VIEW WITH DAY SELECTOR BAR & TARGETED DAY VOCAB LIST ──
+                                        val weekName = activeWeek
+                                        val weekEntries = entriesByWeek[weekName] ?: emptyList()
+
+                                        Column(modifier = Modifier.fillMaxSize()) {
+                                            // Top Header with Back Button
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                IconButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        selectedWeek = null
+                                                    }
+                                                ) {
+                                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Weeks")
+                                                }
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = weekName,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                    Text(
+                                                        text = if (isJapanese) "日別の学習単語" else "Daily Vocab List",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+
+                                            // ── LEVEL 2: HORIZONTAL DAY SELECTOR BAR WITH ANIMATED SPRING SCALE & AUTO-SCROLL ──
+                                            val dayOptions = listOf("1日目", "2日目", "3日目", "4日目", "5日目", "6日目", "7日目 (復習)")
+                                            val dayLazyRowState = rememberLazyListState()
+                                            val coroutineScope = rememberCoroutineScope()
+
+                                            LazyRow(
+                                                state = dayLazyRowState,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 8.dp),
+                                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                itemsIndexed(dayOptions) { index, dayName ->
+                                                    val countForDay = weekEntries.count { it.studyTag.contains(dayName.take(3)) }
+                                                    val isSelected = selectedDay == dayName || selectedDay.startsWith(dayName.take(3))
+
+                                                    val pillBg by animateColorAsState(
+                                                        targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f),
+                                                        animationSpec = tween(250),
+                                                        label = "pill_bg"
+                                                    )
+                                                    val pillTextColor by animateColorAsState(
+                                                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        animationSpec = tween(250),
+                                                        label = "pill_text"
+                                                    )
+                                                    val pillScale by animateFloatAsState(
+                                                        targetValue = if (isSelected) 1.0f else 0.94f,
+                                                        animationSpec = ExpressivePhysics.fluidBouncy(),
+                                                        label = "pill_scale"
+                                                    )
+
+                                                    Surface(
+                                                        onClick = {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            selectedDay = dayName
+                                                            coroutineScope.launch {
+                                                                dayLazyRowState.animateScrollToItem(index)
+                                                            }
+                                                        },
+                                                        shape = RoundedCornerShape(20.dp),
+                                                        color = pillBg,
+                                                        border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null,
+                                                        modifier = Modifier.graphicsLayer {
+                                                            scaleX = pillScale
+                                                            scaleY = pillScale
+                                                        }
+                                                    ) {
+                                                        Row(
+                                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                        ) {
+                                                            Text(
+                                                                text = dayName,
+                                                                style = MaterialTheme.typography.labelMedium,
+                                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                                color = pillTextColor
+                                                            )
+                                                            if (countForDay > 0) {
+                                                                Surface(
+                                                                    shape = CircleShape,
+                                                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
+                                                                ) {
+                                                                    Text(
+                                                                        text = "$countForDay",
+                                                                        style = MaterialTheme.typography.labelSmall,
+                                                                        fontSize = 10.sp,
+                                                                        fontWeight = FontWeight.Bold,
+                                                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Spacer(modifier = Modifier.height(4.dp))
+
+                                            // ── LEVEL 3: TARGETED DAY VOCAB LIST WITH DIRECTIONAL ANIMATEDCONTENT SWITCH ──
+                                            AnimatedContent(
+                                                targetState = selectedDay,
+                                                transitionSpec = {
+                                                    (slideInHorizontally(ExpressivePhysics.fluidBouncy()) { width -> width / 4 } + fadeIn(ExpressivePhysics.fluidBouncy()))
+                                                        .togetherWith(slideOutHorizontally(ExpressivePhysics.fluidBouncy()) { width -> -width / 4 } + fadeOut(ExpressivePhysics.fluidBouncy()))
+                                                },
+                                                label = "curriculum_day_transition"
+                                            ) { currentDay ->
+                                                LaunchedEffect(activeWeek, currentDay) {
+                                                    selectedCategoryFilter = null
+                                                }
+
+                                                val selectedDayPrefix = currentDay.take(3) // e.g. "1日目" -> "1日目"
+                                                val dayEntries = remember(weekEntries, selectedDayPrefix) {
+                                                    weekEntries.filter { it.studyTag.contains(selectedDayPrefix) }
+                                                }
+
+                                                // Auto-discover dynamic Categories & Subcategories for this Day
+                                                val dynamicDayFilters = remember(dayEntries) {
+                                                    val catList = dayEntries.mapNotNull { it.category.ifBlank { null } }.distinct()
+                                                    val subCatList = dayEntries.mapNotNull { it.subCategory.ifBlank { null } }.distinct()
+                                                    (catList + subCatList).distinct()
+                                                }
+
+                                                val finalFilteredDayEntries = remember(dayEntries, selectedCategoryFilter) {
+                                                    if (selectedCategoryFilter == null) {
+                                                        dayEntries
+                                                    } else {
+                                                        dayEntries.filter { it.category == selectedCategoryFilter || it.subCategory == selectedCategoryFilter }
+                                                    }
+                                                }
+
+                                                Column(modifier = Modifier.fillMaxSize()) {
+                                                    // 🏷️ Dynamic Category & Subcategory Filter Chips Row
+                                                    if (dayEntries.isNotEmpty() && dynamicDayFilters.isNotEmpty()) {
+                                                        val filterLazyRowState = rememberLazyListState()
+                                                        LazyRow(
+                                                            state = filterLazyRowState,
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(bottom = 6.dp),
+                                                            contentPadding = PaddingValues(horizontal = 16.dp),
+                                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                        ) {
+                                                            item {
+                                                                val isAllSelected = selectedCategoryFilter == null
+                                                                val allScale by animateFloatAsState(
+                                                                    targetValue = if (isAllSelected) 1.0f else 0.94f,
+                                                                    animationSpec = ExpressivePhysics.fluidBouncy(),
+                                                                    label = "all_chip_scale"
+                                                                )
+                                                                Surface(
+                                                                    onClick = {
+                                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                        selectedCategoryFilter = null
+                                                                        coroutineScope.launch {
+                                                                            filterLazyRowState.animateScrollToItem(0)
+                                                                        }
+                                                                    },
+                                                                    shape = CircleShape,
+                                                                    color = if (isAllSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+                                                                    modifier = Modifier.graphicsLayer {
+                                                                        scaleX = allScale
+                                                                        scaleY = allScale
+                                                                    }
+                                                                ) {
+                                                                    Text(
+                                                                        text = if (isJapanese) "すべて (${dayEntries.size})" else "All (${dayEntries.size})",
+                                                                        style = MaterialTheme.typography.labelSmall,
+                                                                        fontWeight = if (isAllSelected) FontWeight.Bold else FontWeight.Medium,
+                                                                        color = if (isAllSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                                    )
+                                                                }
+                                                            }
+
+                                                            itemsIndexed(dynamicDayFilters) { fIndex, filterTag ->
+                                                                val countForTag = dayEntries.count { it.category == filterTag || it.subCategory == filterTag }
+                                                                val isSelected = selectedCategoryFilter == filterTag
+                                                                val chipBg = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
+                                                                val chipColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                                                val chipScale by animateFloatAsState(
+                                                                    targetValue = if (isSelected) 1.0f else 0.94f,
+                                                                    animationSpec = ExpressivePhysics.fluidBouncy(),
+                                                                    label = "chip_scale"
+                                                                )
+
+                                                                Surface(
+                                                                    onClick = {
+                                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                        selectedCategoryFilter = if (isSelected) null else filterTag
+                                                                        coroutineScope.launch {
+                                                                            filterLazyRowState.animateScrollToItem(fIndex + 1)
+                                                                        }
+                                                                    },
+                                                                    shape = CircleShape,
+                                                                    color = chipBg,
+                                                                    border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null,
+                                                                    modifier = Modifier.graphicsLayer {
+                                                                        scaleX = chipScale
+                                                                        scaleY = chipScale
+                                                                    }
+                                                                ) {
+                                                                    Row(
+                                                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                                        verticalAlignment = Alignment.CenterVertically,
+                                                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                                    ) {
+                                                                        Text(
+                                                                            text = filterTag,
+                                                                            style = MaterialTheme.typography.labelSmall,
+                                                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                                            color = chipColor
+                                                                        )
+                                                                        Text(
+                                                                            text = "($countForTag)",
+                                                                            style = MaterialTheme.typography.labelSmall,
+                                                                            fontSize = 10.sp,
+                                                                            color = chipColor.copy(alpha = 0.8f)
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (finalFilteredDayEntries.isEmpty()) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .padding(32.dp),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                                Icon(
+                                                                    imageVector = Icons.Outlined.EventAvailable,
+                                                                    contentDescription = null,
+                                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                                                    modifier = Modifier.size(56.dp)
+                                                                )
+                                                                Spacer(modifier = Modifier.height(12.dp))
+                                                                Text(
+                                                                    text = if (isJapanese) "$currentDay の単語はありません" else "No words registered for $currentDay",
+                                                                    style = MaterialTheme.typography.titleMedium,
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                                )
+                                                                Text(
+                                                                    text = if (isJapanese) "右下の「単語追加」ボタンから登録できます" else "Tap '+ Add Vocab' to register words for this day",
+                                                                    style = MaterialTheme.typography.bodySmall,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                                                )
+                                                            }
+                                                        }
+                                                    } else {
+                                                        LazyColumn(
+                                                            state = lazyListState,
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = innerPadding.calculateBottomPadding() + 130.dp),
+                                                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                                        ) {
+                                                            items(finalFilteredDayEntries, key = { it.id }) { entry ->
+                                                                VocabCardItem(
+                                                                    entry = entry,
+                                                                    sharedTransitionScope = sharedTransitionScope,
+                                                                    animatedVisibilityScope = this@AnimatedContent,
+                                                                    onClickCard = { selectedVocabEntry = entry },
+                                                                    onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
+                                                                    onToggleStarred = { viewModel.toggleStarredStatus(entry) },
+                                                                    onDelete = { viewModel.deleteVocabEntry(entry) }
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
