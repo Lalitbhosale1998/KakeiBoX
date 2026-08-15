@@ -74,6 +74,7 @@ fun KotobaScreen(
     var selectedWeek by remember { mutableStateOf<String?>(null) }
     var selectedDay by remember { mutableStateOf<String>("1日目") }
     var selectedCategoryFilter by remember { mutableStateOf<String?>(null) }
+    var showOnlyStarred by remember { mutableStateOf(false) }
 
     // Dynamically group entries by Week and Day
     val weeksList = remember(allEntries) {
@@ -294,7 +295,75 @@ fun KotobaScreen(
                                     },
                                     label = "curriculum_week_transition"
                                 ) { activeWeek ->
-                                    if (activeWeek == null) {
+                                    if (showOnlyStarred) {
+                                        // ── STARRED FLASHCARDS DEDICATED VIEW ──
+                                        val starredEntries = remember(allEntries) { allEntries.filter { it.isStarred } }
+                                        Column(modifier = Modifier.fillMaxSize()) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                IconButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        showOnlyStarred = false
+                                                    }
+                                                ) {
+                                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                                }
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = if (isJapanese) "⭐ スター単語 (${starredEntries.size})" else "⭐ Starred Words (${starredEntries.size})",
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                    Text(
+                                                        text = if (isJapanese) "お気に入り登録した単語一覧" else "Your saved favorite vocabulary cards",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+
+                                            if (starredEntries.isEmpty()) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .padding(32.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = if (isJapanese) "スター登録された単語はありません" else "No starred words yet",
+                                                        style = MaterialTheme.typography.bodyLarge,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            } else {
+                                                LazyColumn(
+                                                    state = lazyListState,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = innerPadding.calculateBottomPadding() + 130.dp),
+                                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                                ) {
+                                                    items(starredEntries, key = { it.id }) { entry ->
+                                                        VocabCardItem(
+                                                            entry = entry,
+                                                            sharedTransitionScope = sharedTransitionScope,
+                                                            animatedVisibilityScope = this@AnimatedContent,
+                                                            onClickCard = { selectedVocabEntry = entry },
+                                                            onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
+                                                            onToggleStarred = { viewModel.toggleStarredStatus(entry) },
+                                                            onDelete = { viewModel.deleteVocabEntry(entry) }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else if (activeWeek == null) {
                                         // ── LEVEL 1: WEEKS SELECTION HUB (週一覧) ──
                                         Column(modifier = Modifier.fillMaxSize()) {
                                             Row(
@@ -317,17 +386,56 @@ fun KotobaScreen(
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
                                                 }
-                                                Surface(
-                                                    shape = RoundedCornerShape(16.dp),
-                                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                                 ) {
-                                                    Text(
-                                                        text = "${weeksList.size} Weeks",
-                                                        style = MaterialTheme.typography.labelMedium,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                                    )
+                                                    // ⭐ OPTION 1: TOP HEADER QUICK ACTION PILL FOR STARRED WORDS
+                                                    val starredCount = remember(allEntries) { allEntries.count { it.isStarred } }
+                                                    if (starredCount > 0) {
+                                                        Surface(
+                                                            onClick = {
+                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                showOnlyStarred = true
+                                                            },
+                                                            shape = CircleShape,
+                                                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f))
+                                                        ) {
+                                                            Row(
+                                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Default.Star,
+                                                                    contentDescription = null,
+                                                                    tint = MaterialTheme.colorScheme.secondary,
+                                                                    modifier = Modifier.size(16.dp)
+                                                                )
+                                                                Text(
+                                                                    text = "$starredCount",
+                                                                    style = MaterialTheme.typography.labelSmall,
+                                                                    fontWeight = FontWeight.ExtraBold,
+                                                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+
+                                                    Surface(
+                                                        shape = RoundedCornerShape(16.dp),
+                                                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                                                    ) {
+                                                        Text(
+                                                            text = "${weeksList.size} Weeks",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                                        )
+                                                    }
                                                 }
                                             }
 
@@ -447,7 +555,6 @@ fun KotobaScreen(
 
                                                                 Spacer(modifier = Modifier.height(18.dp))
 
-                                                                // Prominent Action Button inside Hero Card
                                                                 Button(
                                                                     onClick = {
                                                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -473,148 +580,16 @@ fun KotobaScreen(
                                                     }
                                                 }
 
-                                                // 🍱 BENTO ROW 2: ASYMMETRIC 2-COLUMN (STARRED REVIEW CARD + UPCOMING WEEK)
-                                                item {
-                                                    val remainingWeeks = weeksList.drop(1)
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                                                    ) {
-                                                        // Starred Review Bento Card
-                                                        val starredCount = allEntries.count { it.isStarred }
-                                                        Surface(
-                                                            onClick = {
-                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                                viewModel.setSearchQuery("⭐")
-                                                            },
-                                                            shape = RoundedCornerShape(28.dp),
-                                                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)),
-                                                            modifier = Modifier
-                                                                .weight(1f)
-                                                                .height(150.dp)
-                                                        ) {
-                                                            Column(
-                                                                modifier = Modifier
-                                                                    .fillMaxSize()
-                                                                    .padding(16.dp),
-                                                                verticalArrangement = Arrangement.SpaceBetween
-                                                            ) {
-                                                                Row(
-                                                                    modifier = Modifier.fillMaxWidth(),
-                                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                                    verticalAlignment = Alignment.CenterVertically
-                                                                ) {
-                                                                    Icon(
-                                                                        imageVector = Icons.Default.Star,
-                                                                        contentDescription = null,
-                                                                        tint = MaterialTheme.colorScheme.secondary,
-                                                                        modifier = Modifier.size(28.dp)
-                                                                    )
-                                                                    Surface(
-                                                                        shape = CircleShape,
-                                                                        color = MaterialTheme.colorScheme.secondary
-                                                                    ) {
-                                                                        Text(
-                                                                            text = "$starredCount",
-                                                                            style = MaterialTheme.typography.labelSmall,
-                                                                            fontWeight = FontWeight.Bold,
-                                                                            color = MaterialTheme.colorScheme.onSecondary,
-                                                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                                                        )
-                                                                    }
-                                                                }
-                                                                Column {
-                                                                    Text(
-                                                                        text = if (isJapanese) "スター単語" else "Starred Words",
-                                                                        style = MaterialTheme.typography.titleMedium,
-                                                                        fontWeight = FontWeight.Bold,
-                                                                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                                                                    )
-                                                                    Text(
-                                                                        text = if (isJapanese) "復習用 flashcards" else "Quick Review",
-                                                                        style = MaterialTheme.typography.bodySmall,
-                                                                        fontSize = 11.sp,
-                                                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                                                                    )
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Next Week Bento Card (if available)
-                                                        if (remainingWeeks.isNotEmpty()) {
-                                                            val nextWeekName = remainingWeeks.first()
-                                                            val nEntries = entriesByWeek[nextWeekName] ?: emptyList()
-                                                            val nTotal = nEntries.size
-                                                            val nNumStr = nextWeekName.filter { it.isDigit() }.ifBlank { "2" }
-
-                                                            Surface(
-                                                                onClick = {
-                                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                                    selectedWeek = nextWeekName
-                                                                    selectedDay = "1日目"
-                                                                },
-                                                                shape = RoundedCornerShape(28.dp),
-                                                                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.85f),
-                                                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                                                                modifier = Modifier
-                                                                    .weight(1f)
-                                                                    .height(150.dp)
-                                                            ) {
-                                                                Column(
-                                                                    modifier = Modifier
-                                                                        .fillMaxSize()
-                                                                        .padding(16.dp),
-                                                                    verticalArrangement = Arrangement.SpaceBetween
-                                                                ) {
-                                                                    Row(
-                                                                        modifier = Modifier.fillMaxWidth(),
-                                                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                                                        verticalAlignment = Alignment.CenterVertically
-                                                                    ) {
-                                                                        Text(
-                                                                            text = nNumStr,
-                                                                            style = MaterialTheme.typography.displaySmall,
-                                                                            fontSize = 32.sp,
-                                                                            fontWeight = FontWeight.Black,
-                                                                            color = MaterialTheme.colorScheme.primary
-                                                                        )
-                                                                        Icon(
-                                                                            imageVector = Icons.Default.ChevronRight,
-                                                                            contentDescription = null,
-                                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                                        )
-                                                                    }
-                                                                    Column {
-                                                                        Text(
-                                                                            text = nextWeekName,
-                                                                            style = MaterialTheme.typography.titleMedium,
-                                                                            fontWeight = FontWeight.Bold,
-                                                                            color = MaterialTheme.colorScheme.onSurface
-                                                                        )
-                                                                        Text(
-                                                                            text = "$nTotal Words",
-                                                                            style = MaterialTheme.typography.bodySmall,
-                                                                            fontSize = 11.sp,
-                                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                                        )
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                // 🍱 REMAINING WEEKS (IF ANY)
-                                                val otherWeeks = weeksList.drop(2)
-                                                itemsIndexed(otherWeeks) { idx, weekName ->
+                                                // 🍱 ALL REMAINING WEEKS TILED IN BENTO GRID
+                                                val remainingWeeksList = weeksList.drop(1)
+                                                itemsIndexed(remainingWeeksList) { idx, weekName ->
                                                     val weekEntries = entriesByWeek[weekName] ?: emptyList()
                                                     val totalCount = weekEntries.size
                                                     val masteredCount = weekEntries.count { it.isMastered }
                                                     val remainingCount = totalCount - masteredCount
                                                     val progress = if (totalCount > 0) masteredCount.toFloat() / totalCount.toFloat() else 0f
                                                     val progressPercent = (progress * 100).toInt()
-                                                    val weekNumStr = weekName.filter { it.isDigit() }.ifBlank { "${idx + 3}" }
+                                                    val weekNumStr = weekName.filter { it.isDigit() }.ifBlank { "${idx + 2}" }
 
                                                     Surface(
                                                         onClick = {
@@ -636,16 +611,16 @@ fun KotobaScreen(
                                                                 Box(
                                                                     contentAlignment = Alignment.Center,
                                                                     modifier = Modifier
-                                                                        .size(60.dp)
+                                                                        .size(64.dp)
                                                                         .background(
                                                                             color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                                                            shape = RoundedCornerShape(18.dp)
+                                                                            shape = RoundedCornerShape(20.dp)
                                                                         )
                                                                 ) {
                                                                     Text(
                                                                         text = weekNumStr,
                                                                         style = MaterialTheme.typography.displayMedium,
-                                                                        fontSize = 36.sp,
+                                                                        fontSize = 38.sp,
                                                                         fontWeight = FontWeight.Black,
                                                                         color = MaterialTheme.colorScheme.primary
                                                                     )
