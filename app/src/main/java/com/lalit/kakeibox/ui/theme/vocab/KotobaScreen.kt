@@ -180,21 +180,10 @@ fun KotobaScreen(
                     }
                 }
             ) { innerPadding ->
-                AnimatedContent(
-                    targetState = selectedVocabEntry,
-                    transitionSpec = {
-                        (fadeIn(ExpressivePhysics.fluidBouncy()) +
-                                scaleIn(initialScale = 0.90f, animationSpec = ExpressivePhysics.fluidBouncy()))
-                            .togetherWith(
-                                fadeOut(ExpressivePhysics.fluidBouncy()) +
-                                        scaleOut(targetScale = 0.90f, animationSpec = ExpressivePhysics.fluidBouncy())
-                            )
-                    },
-                    label = "kotoba_container_transform"
-                ) { targetEntry ->
-                    if (targetEntry == null) {
-                        // ── Main List View ──
-                        // ── Main Curriculum / List View ──
+                AnimatedVisibility(visible = true) {
+                    val rootAnimatedVisibilityScope = this
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // ── Main Curriculum / List View (Always Mounted) ──
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -269,7 +258,7 @@ fun KotobaScreen(
                                             VocabCardItem(
                                                 entry = entry,
                                                 sharedTransitionScope = sharedTransitionScope,
-                                                animatedVisibilityScope = this@AnimatedContent,
+                                                animatedVisibilityScope = rootAnimatedVisibilityScope,
                                                 onClickCard = { selectedVocabEntry = entry },
                                                 onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
                                                 onToggleStarred = { viewModel.toggleStarredStatus(entry) },
@@ -353,7 +342,7 @@ fun KotobaScreen(
                                                         VocabCardItem(
                                                             entry = entry,
                                                             sharedTransitionScope = sharedTransitionScope,
-                                                            animatedVisibilityScope = this@AnimatedContent,
+                                                            animatedVisibilityScope = rootAnimatedVisibilityScope,
                                                             onClickCard = { selectedVocabEntry = entry },
                                                             onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
                                                             onToggleStarred = { viewModel.toggleStarredStatus(entry) },
@@ -936,7 +925,7 @@ fun KotobaScreen(
                                                                 VocabCardItem(
                                                                     entry = entry,
                                                                     sharedTransitionScope = sharedTransitionScope,
-                                                                    animatedVisibilityScope = this@AnimatedContent,
+                                                                    animatedVisibilityScope = rootAnimatedVisibilityScope,
                                                                     onClickCard = { selectedVocabEntry = entry },
                                                                     onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
                                                                     onToggleStarred = { viewModel.toggleStarredStatus(entry) },
@@ -952,22 +941,30 @@ fun KotobaScreen(
                                 }
                             }
                         }
-                    } else {
-                        // ── Expanded Container Detail View ──
-                        val liveEntry = allEntries.find { it.id == targetEntry.id } ?: targetEntry
-                        ExpressiveVocabDetailView(
-                            entry = liveEntry,
-                            isJapanese = isJapanese,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = this@AnimatedContent,
-                            onClose = { selectedVocabEntry = null },
-                            onToggleMastered = { viewModel.toggleMasteredStatus(liveEntry) },
-                            onToggleStarred = { viewModel.toggleStarredStatus(liveEntry) },
-                            onDelete = {
-                                viewModel.deleteVocabEntry(liveEntry)
-                                selectedVocabEntry = null
+
+                        // ── Expanded Container Detail View Overlay (Root Level) ──
+                        AnimatedVisibility(
+                            visible = selectedVocabEntry != null,
+                            enter = fadeIn(ExpressivePhysics.fluidBouncy()),
+                            exit = fadeOut(ExpressivePhysics.fluidBouncy())
+                        ) {
+                            selectedVocabEntry?.let { targetEntry ->
+                                val liveEntry = allEntries.find { it.id == targetEntry.id } ?: targetEntry
+                                ExpressiveVocabDetailView(
+                                    entry = liveEntry,
+                                    isJapanese = isJapanese,
+                                    sharedTransitionScope = sharedTransitionScope,
+                                    animatedVisibilityScope = rootAnimatedVisibilityScope,
+                                    onClose = { selectedVocabEntry = null },
+                                    onToggleMastered = { viewModel.toggleMasteredStatus(liveEntry) },
+                                    onToggleStarred = { viewModel.toggleStarredStatus(liveEntry) },
+                                    onDelete = {
+                                        viewModel.deleteVocabEntry(liveEntry)
+                                        selectedVocabEntry = null
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -1231,7 +1228,7 @@ fun ExpressiveVocabDetailView(
                     .sharedBounds(
                         sharedContentState = rememberSharedContentState(key = "vocab_card_${entry.id}"),
                         animatedVisibilityScope = animatedVisibilityScope,
-                        boundsTransform = { _, _ -> tween(500, easing = ExpressiveMotion.EasingEmphasized) }
+                        boundsTransform = { _, _ -> ExpressivePhysics.fluidBouncy() }
                     )
                     .clickable(enabled = false) {},
                 shape = RoundedCornerShape(32.dp),
