@@ -1365,6 +1365,10 @@ fun BirthdayManagementContent(
     onDelete: (BirthdayEntry) -> Unit,
     onToggleEnabled: (BirthdayEntry) -> Unit
 ) {
+    val themeSettings = com.personal.kakeibox.ui.theme.LocalThemeSettings.current
+    val strings = com.personal.kakeibox.ui.theme.getAppStrings(themeSettings.appLanguage)
+    val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
+
     var showAddDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -1398,13 +1402,13 @@ fun BirthdayManagementContent(
         ) {
             Column {
                 Text(
-                    text = "Birthdays Hub",
+                    text = strings.birthdaysHub,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Never miss a celebration",
+                    text = strings.neverMissCelebration,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1457,13 +1461,13 @@ fun BirthdayManagementContent(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "No birthdays saved",
+                        strings.noBirthdaysSaved,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        "Tap the '+' to start adding",
+                        strings.tapPlusToAdd,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -1546,7 +1550,7 @@ fun BirthdayManagementContent(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Add New Birthday",
+                    text = strings.addNewBirthday,
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -1554,7 +1558,7 @@ fun BirthdayManagementContent(
                 )
 
                 Text(
-                    text = "Make sure you never miss a celebration!",
+                    text = strings.neverMissCelebrationDetail,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -1571,8 +1575,8 @@ fun BirthdayManagementContent(
                     ExpressiveOutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
-                        placeholder = { Text("Who's birthday is it?") },
-                        label = { Text("Person's Name") },
+                        placeholder = { Text(strings.whosBirthdayIsIt) },
+                        label = { Text(strings.personsName) },
                         singleLine = true,
                         containerColor = MaterialTheme.colorScheme.surface,
                         modifier = Modifier.fillMaxWidth()
@@ -1596,12 +1600,13 @@ fun BirthdayManagementContent(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Birthday Date",
+                                    text = strings.birthdayDate,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
+                                val datePattern = if (isJapanese) "yyyy年MM月dd日" else "MMMM dd, yyyy"
                                 Text(
-                                    text = selectedDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")),
+                                    text = selectedDate.format(DateTimeFormatter.ofPattern(datePattern)),
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -1634,7 +1639,7 @@ fun BirthdayManagementContent(
                                 onClick = { showDatePicker = false },
                                 modifier = Modifier.padding(bottom = 8.dp)
                             ) {
-                                Text("Done", fontWeight = FontWeight.Black)
+                                Text(strings.done, fontWeight = FontWeight.Black)
                             }
                         }
                     }
@@ -1655,7 +1660,7 @@ fun BirthdayManagementContent(
                     enabled = newName.isNotBlank()
                 ) {
                     Text(
-                        "Save Birthday", 
+                        strings.saveBirthday, 
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

@@ -1,4 +1,4 @@
-﻿package com.personal.kakeibox.ui.components
+package com.personal.kakeibox.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -170,9 +170,11 @@ fun ExpressiveDatePicker(
     onDateChange: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val months = remember {
+    val themeSettings = com.personal.kakeibox.ui.theme.LocalThemeSettings.current
+    val locale = if (themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE) Locale.JAPANESE else Locale.ENGLISH
+    val months = remember(locale) {
         (1..12).map { 
-            LocalDate.of(2024, it, 1).month.getDisplayName(TextStyle.SHORT, Locale.getDefault()) 
+            LocalDate.of(2024, it, 1).month.getDisplayName(TextStyle.SHORT, locale) 
         }
     }
     

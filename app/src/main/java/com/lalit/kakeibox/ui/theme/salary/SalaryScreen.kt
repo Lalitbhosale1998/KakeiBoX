@@ -173,11 +173,13 @@ fun SalaryFilterTabRow(
     val glowIntensity = LocalGlowIntensity.current
 
     val primaryColor = MaterialTheme.colorScheme.primary
-    val tabs = remember(primaryColor) {
+    val themeSettings = LocalThemeSettings.current
+    val strings = getAppStrings(themeSettings.appLanguage)
+    val tabs = remember(primaryColor, strings) {
         listOf(
-            SalaryTabInfo(SalaryFilter.ALL, "All Time", Icons.Outlined.History, primaryColor),
-            SalaryTabInfo(SalaryFilter.THIS_YEAR, "This Year", Icons.Outlined.CalendarMonth, primaryColor),
-            SalaryTabInfo(SalaryFilter.HIGH_SAVINGS, "High Savings", Icons.AutoMirrored.Outlined.TrendingUp, primaryColor)
+            SalaryTabInfo(SalaryFilter.ALL, strings.allTime, Icons.Outlined.History, primaryColor),
+            SalaryTabInfo(SalaryFilter.THIS_YEAR, strings.thisYear, Icons.Outlined.CalendarMonth, primaryColor),
+            SalaryTabInfo(SalaryFilter.HIGH_SAVINGS, strings.highSavings, Icons.AutoMirrored.Outlined.TrendingUp, primaryColor)
         )
     }
 
@@ -366,6 +368,7 @@ fun SalaryScreen(
     val haptic = LocalHapticFeedback.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
+    val strings = getAppStrings(themeSettings.appLanguage)
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val currentEntry by viewModel.currentEntry.collectAsStateWithLifecycle()
     val totalSavings by viewModel.totalSavings.collectAsStateWithLifecycle()
@@ -454,11 +457,21 @@ fun SalaryScreen(
         showHistory = true
     }
 
-    LaunchedEffect(uiState.snackbarMessage) {
+    LaunchedEffect(uiState.snackbarMessage, themeSettings.appLanguage) {
         uiState.snackbarMessage?.let { message ->
-            // Snappier 2-second timeout for Expressive Snackbars
+            val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
+            val localizedMessage = when {
+                message.startsWith("Updated ") && message.endsWith(" salary entries") -> {
+                    val count = message.removePrefix("Updated ").removeSuffix(" salary entries")
+                    if (isJapanese) "${count}件の給与記録を更新しました" else message
+                }
+                message == "Entry updated" -> if (isJapanese) "給与記録を更新しました" else message
+                message == "Entry saved" -> if (isJapanese) "給与記録を保存しました" else message
+                message == "Entry deleted" -> if (isJapanese) "記録を削除しました" else message
+                else -> message
+            }
             withTimeoutOrNull(2000L) {
-                snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Indefinite)
+                snackbarHostState.showSnackbar(localizedMessage, duration = SnackbarDuration.Indefinite)
             }
             viewModel.clearSnackbar()
         }
@@ -768,12 +781,12 @@ fun SalaryScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "History",
+                                    text = strings.history,
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Black
                                 )
                                 TextButton(onClick = { viewModel.toggleHistorySheet() }) {
-                                    Text("See All")
+                                    Text(strings.seeAll)
                                 }
                             }
                             
@@ -2189,8 +2202,9 @@ fun ExpressiveHistoryBentoBox(
                                     shape = RoundedCornerShape(8.dp),
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                                 ) {
+                                    val itemMonthLocale = if (themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE) java.util.Locale.JAPAN else java.util.Locale.ENGLISH
                                     Text(
-                                        text = DateUtils.getShortMonthName(entry.month).uppercase(),
+                                        text = DateUtils.getShortMonthName(entry.month, itemMonthLocale).uppercase(),
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Black,
@@ -2229,13 +2243,14 @@ fun ExpressiveHistoryBentoBox(
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
 
                             Column(modifier = Modifier.fillMaxWidth()) {
+                                val strings = getAppStrings(themeSettings.appLanguage)
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "SAVINGS",
+                                        text = strings.totalSavings.uppercase(),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
@@ -2287,9 +2302,10 @@ fun ExpressiveHistoryBentoBox(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
+                                val strings = getAppStrings(themeSettings.appLanguage)
                                 Column {
                                     Text(
-                                        text = "REMITTANCE",
+                                        text = strings.remittanceLabel.uppercase(),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
@@ -2303,7 +2319,7 @@ fun ExpressiveHistoryBentoBox(
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text(
-                                        text = "SPENT",
+                                        text = strings.spent.uppercase(),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
@@ -2319,6 +2335,7 @@ fun ExpressiveHistoryBentoBox(
                             }
 
                             if (entry.note.isNotBlank()) {
+                                val strings = getAppStrings(themeSettings.appLanguage)
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -2326,7 +2343,7 @@ fun ExpressiveHistoryBentoBox(
                                         .padding(8.dp)
                                 ) {
                                     Text(
-                                        text = "NOTE",
+                                        text = strings.note.uppercase(),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -2343,6 +2360,7 @@ fun ExpressiveHistoryBentoBox(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
+                                val strings = getAppStrings(themeSettings.appLanguage)
                                 OutlinedButton(
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -2354,7 +2372,7 @@ fun ExpressiveHistoryBentoBox(
                                 ) {
                                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Edit Record", style = MaterialTheme.typography.labelMedium)
+                                    Text(strings.editRecord, style = MaterialTheme.typography.labelMedium)
                                 }
                             }
                         }
@@ -2398,8 +2416,9 @@ fun ExpressiveSalaryCard(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val itemMonthLocale = if (themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE) java.util.Locale.JAPAN else java.util.Locale.ENGLISH
                         Text(
-                            text = DateUtils.getShortMonthName(entry.month).uppercase(),
+                            text = DateUtils.getShortMonthName(entry.month, itemMonthLocale).uppercase(),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
@@ -2596,6 +2615,9 @@ fun ExpressiveAddEditSheet(
     var isRemittanceFocused by remember { mutableStateOf(false) }
     var showNoteField by remember { mutableStateOf(uiState.inputNote.isNotBlank()) }
 
+    val strings = getAppStrings(themeSettings.appLanguage)
+    val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
+
     val savingsWeight by animateFloatAsState(
         targetValue = if (isSavingsFocused) 1.5f else if (isRemittanceFocused) 0.6f else 1.0f,
         animationSpec = spring(dampingRatio = 0.55f, stiffness = 300f),
@@ -2624,10 +2646,6 @@ fun ExpressiveAddEditSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .graphicsLayer(translationY = slideY.value, alpha = sheetAlpha)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 36.dp)
             .navigationBarsPadding()
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -2639,12 +2657,12 @@ fun ExpressiveAddEditSheet(
         ) {
             Column {
                 Text(
-                    text = if (uiState.editingEntry == null) "Add Salary" else "Edit Salary",
+                    text = if (uiState.editingEntry == null) strings.addSalary else strings.editSalary,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Black
                 )
                 Text(
-                    text = "Track your monthly earnings & splits",
+                    text = if (isJapanese) "月次の収入と配分を管理します" else "Track your monthly earnings & splits",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
@@ -2667,7 +2685,7 @@ fun ExpressiveAddEditSheet(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "PAY PERIOD",
+                    text = strings.payPeriod,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Black,
@@ -2706,7 +2724,7 @@ fun ExpressiveAddEditSheet(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "TOTAL EARNINGS",
+                    text = strings.totalEarnings,
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isSalaryFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Black,
@@ -2799,7 +2817,7 @@ fun ExpressiveAddEditSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Net Remaining: ${themeSettings.currencySymbol}$remainingText",
+                        text = "${strings.netRemaining}: ${themeSettings.currencySymbol}$remainingText",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = if (remaining >= 0) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer
@@ -2817,7 +2835,7 @@ fun ExpressiveAddEditSheet(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "ALLOCATIONS",
+                    text = strings.allocations,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Black,
@@ -2834,7 +2852,7 @@ fun ExpressiveAddEditSheet(
                         ExpressiveOutlinedTextField(
                             value = uiState.inputSavings,
                             onValueChange = onSavingsChange,
-                            label = { Text("Savings") },
+                            label = { Text(strings.savingsLabel) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .onFocusChanged { isSavingsFocused = it.isFocused },
@@ -2848,7 +2866,7 @@ fun ExpressiveAddEditSheet(
                             exit = shrinkVertically() + fadeOut()
                         ) {
                             Text(
-                                text = "Target: 20%+",
+                                text = if (isJapanese) "目標: 20%以上" else "Target: 20%+",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(start = 8.dp, top = 4.dp),
@@ -2862,7 +2880,7 @@ fun ExpressiveAddEditSheet(
                         ExpressiveOutlinedTextField(
                             value = uiState.inputRemittance,
                             onValueChange = onRemittanceChange,
-                            label = { Text("Remittance") },
+                            label = { Text(strings.remittanceLabel) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .onFocusChanged { isRemittanceFocused = it.isFocused },
@@ -2876,7 +2894,7 @@ fun ExpressiveAddEditSheet(
                             exit = shrinkVertically() + fadeOut()
                         ) {
                             Text(
-                                text = "Transfers/Family",
+                                text = if (isJapanese) "仕送り・家族送金" else "Transfers/Family",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(start = 8.dp, top = 4.dp),
@@ -2901,36 +2919,36 @@ fun ExpressiveAddEditSheet(
                         modifier = Modifier.padding(horizontal = 4.dp)
                     ) {
                         // Segmented progress bar
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f),
+                            modifier = Modifier.fillMaxWidth().height(10.dp)
                         ) {
-                            if (savingsRatio > 0.001) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(savingsRatio.toFloat())
-                                        .fillMaxHeight()
-                                        .background(MaterialTheme.colorScheme.primary)
-                                )
-                            }
-                            if (remittanceRatio > 0.001) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(remittanceRatio.toFloat())
-                                        .fillMaxHeight()
-                                        .background(Color(0xFF8B5CF6)) // Premium Purple
-                                )
-                            }
-                            if (remainingRatio > 0.001) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(remainingRatio.toFloat())
-                                        .fillMaxHeight()
-                                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                                )
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                if (savingsRatio > 0.001) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(savingsRatio.toFloat())
+                                            .fillMaxHeight()
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    )
+                                }
+                                if (remittanceRatio > 0.001) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(remittanceRatio.toFloat())
+                                            .fillMaxHeight()
+                                            .background(Color(0xFF8B5CF6)) // Premium Purple
+                                    )
+                                }
+                                if (remainingRatio > 0.001) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(remainingRatio.toFloat())
+                                            .fillMaxHeight()
+                                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                    )
+                                }
                             }
                         }
                         
@@ -2945,7 +2963,7 @@ fun ExpressiveAddEditSheet(
                                 Box(modifier = Modifier.size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "Saved: ${(savingsRatio * 100).toInt()}%",
+                                    text = "${strings.saved}: ${(savingsRatio * 100).toInt()}%",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -2954,7 +2972,7 @@ fun ExpressiveAddEditSheet(
                                 Box(modifier = Modifier.size(6.dp).background(Color(0xFF8B5CF6), CircleShape))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "Remitted: ${(remittanceRatio * 100).toInt()}%",
+                                    text = "${strings.remittanceLabel}: ${(remittanceRatio * 100).toInt()}%",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -2963,7 +2981,7 @@ fun ExpressiveAddEditSheet(
                                 Box(modifier = Modifier.size(6.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), CircleShape))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "Spent: ${(remainingRatio * 100).toInt()}%",
+                                    text = "${strings.spent}: ${(remainingRatio * 100).toInt()}%",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -2983,10 +3001,10 @@ fun ExpressiveAddEditSheet(
                         ExpressiveOutlinedTextField(
                             value = uiState.inputNote,
                             onValueChange = onNoteChange,
-                            label = { Text("Notes (Optional)") },
+                            label = { Text(strings.noteLabel) },
                             modifier = Modifier.fillMaxWidth(),
                             leadingIcon = { Icon(Icons.Outlined.NoteAlt, contentDescription = null) },
-                            placeholder = { Text("Bonus, overtime, etc.") }
+                            placeholder = { Text(if (isJapanese) "ボーナス、残業代など" else "Bonus, overtime, etc.") }
                         )
                     }
                 }
@@ -2998,7 +3016,7 @@ fun ExpressiveAddEditSheet(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Add Note", style = MaterialTheme.typography.labelLarge)
+                        Text(if (isJapanese) "メモを追加" else "Add Note", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -3029,7 +3047,7 @@ fun ExpressiveAddEditSheet(
                     Icon(if (valid) Icons.Default.Check else Icons.Default.Lock, contentDescription = null)
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        if (valid) "Confirm Entry" else "Enter Salary to Save",
+                        if (valid) strings.saveRecord else if (isJapanese) "金額を入力してください" else "Enter Salary to Save",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black
                     )
@@ -3213,8 +3231,9 @@ fun HistoryBottomSheet(
                 .padding(bottom = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val strings = getAppStrings(themeSettings.appLanguage)
             Text(
-                text = stringResource(R.string.history),
+                text = strings.salaryHistory,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.ExtraBold
             )
@@ -3328,8 +3347,9 @@ fun InteractiveAnalyticsChart(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            val strings = getAppStrings(themeSettings.appLanguage)
             Text(
-                text = "INCOME VS. SAVINGS TREND",
+                text = strings.incomeVsSavingsTrend,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary,
@@ -3454,8 +3474,9 @@ fun InteractiveAnalyticsChart(
             ) {
                 last6.forEachIndexed { idx, entry ->
                     val isSelected = selectedIndex == idx
+                    val chartMonthLocale = if (themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE) java.util.Locale.JAPAN else java.util.Locale.ENGLISH
                     Text(
-                        text = DateUtils.getShortMonthName(entry.month),
+                        text = DateUtils.getShortMonthName(entry.month, chartMonthLocale),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -3474,11 +3495,11 @@ fun InteractiveAnalyticsChart(
             ) {
                 Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Income", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(strings.income, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(20.dp))
                 Box(modifier = Modifier.size(8.dp).background(Color(0xFF10B981), CircleShape))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Savings", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(strings.totalSavings, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -3487,16 +3508,18 @@ fun InteractiveAnalyticsChart(
 @Composable
 fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
     val haptic = LocalHapticFeedback.current
+    val strings = getAppStrings(themeSettings.appLanguage)
+    val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
     var savingsRate by remember { mutableStateOf(20f) }
 
     val annualSavings = (averageSalary * (savingsRate / 100f) * 12).toLong()
     val monthlyRemaining = (averageSalary * (1f - savingsRate / 100f)).toLong()
 
     val motivationText = when {
-        savingsRate < 10f -> "Simulation: Budget constraints 📉"
-        savingsRate < 25f -> "Simulation: Balanced split 👍"
-        savingsRate < 40f -> "Simulation: Wealth builder mode 🚀"
-        else -> "Simulation: Hyper-savings champion 🏆"
+        savingsRate < 10f -> if (isJapanese) "シミュレーション: 予算制限モード 📉" else "Simulation: Budget constraints 📉"
+        savingsRate < 25f -> strings.balancedSplit
+        savingsRate < 40f -> if (isJapanese) "シミュレーション: 資産ビルドモード 🚀" else "Simulation: Wealth builder mode 🚀"
+        else -> if (isJapanese) "シミュレーション: 高貯蓄チャンピオン 🏆" else "Simulation: Hyper-savings champion 🏆"
     }
 
     Surface(
@@ -3509,7 +3532,7 @@ fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "SALARY ALLOCATION PLAYGROUND",
+                text = strings.salaryAllocationPlayground,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary,
@@ -3518,7 +3541,7 @@ fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
             )
 
             Text(
-                text = "Adjust the slider to simulate target savings rates and project wealth trajectory.",
+                text = strings.allocationDesc,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
@@ -3578,7 +3601,7 @@ fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
-                            text = "PROJECTED ANNUAL SAVINGS",
+                            text = strings.projectedAnnualSavings,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary,
@@ -3603,7 +3626,7 @@ fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
-                            text = "EST. DISPOSABLE INCOME",
+                            text = strings.estDisposableIncome,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

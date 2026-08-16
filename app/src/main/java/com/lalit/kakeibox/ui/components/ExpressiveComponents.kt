@@ -181,8 +181,10 @@ fun ExpressivePeriodSelector(
     onYearChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val months = remember {
-        (1..12).map { DateUtils.getShortMonthName(it) }
+    val themeSettings = com.personal.kakeibox.ui.theme.LocalThemeSettings.current
+    val locale = if (themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE) java.util.Locale.JAPANESE else java.util.Locale.ENGLISH
+    val months = remember(locale) {
+        (1..12).map { DateUtils.getShortMonthName(it, locale) }
     }
     val years = remember {
         DateUtils.getYearRange().map { it.toString() }

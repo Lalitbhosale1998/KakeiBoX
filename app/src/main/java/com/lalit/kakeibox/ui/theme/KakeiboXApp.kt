@@ -867,14 +867,15 @@ fun KakeiboXApp(
                                     4 -> Icons.Outlined.Settings
                                     else -> Icons.Default.Menu
                                 }
-                                val labelText = when (page) {
-                                    0 -> "HOME"
-                                    1 -> "SALARY"
-                                    2 -> "WORKOUT"
-                                    3 -> "KOTOBA"
-                                    4 -> "SETTINGS"
-                                    else -> "MENU"
-                                }
+                                 val strings = com.personal.kakeibox.ui.theme.getAppStrings(themeSettings.appLanguage)
+                                 val labelText = when (page) {
+                                     0 -> strings.home.uppercase()
+                                     1 -> strings.salary.uppercase()
+                                     2 -> strings.exercise.uppercase()
+                                     3 -> strings.kotoba.uppercase()
+                                     4 -> strings.settings.uppercase()
+                                     else -> "MENU"
+                                 }
                                 Row(
                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically,

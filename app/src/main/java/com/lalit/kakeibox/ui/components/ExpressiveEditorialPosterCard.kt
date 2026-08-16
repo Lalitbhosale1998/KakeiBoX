@@ -89,6 +89,9 @@ fun ExpressiveEditorialPosterCard(
     val paydayInfo = remember { DateUtils.calculatePaydayProgress() }
     var isMenuExpanded by remember { mutableStateOf(false) }
 
+    val strings = com.personal.kakeibox.ui.theme.getAppStrings(themeSettings.appLanguage)
+    val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
+
     // FC88 Full-Bleed Electric Mint Menu Drawer
     ExpressiveEditorialMenuDrawer(
         isOpen = isMenuExpanded,
@@ -174,7 +177,7 @@ fun ExpressiveEditorialPosterCard(
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Text(
-                                    text = "EDIT",
+                                    text = strings.editSalary.uppercase(),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
@@ -197,7 +200,7 @@ fun ExpressiveEditorialPosterCard(
                                 .background(neonMint)
                         )
                         Text(
-                            text = "Currently tracking...",
+                            text = strings.currentlyTracking,
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -209,25 +212,25 @@ fun ExpressiveEditorialPosterCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // ── Dynamic Month Title Badge ──
-                val currentMonthLabel = remember(currentEntry) {
+                val currentMonthLabel = remember(currentEntry, isJapanese) {
                     val m = currentEntry?.month ?: 1
                     val y = currentEntry?.year ?: 2026
                     val mName = when (m) {
-                        1 -> "JANUARY"
-                        2 -> "FEBRUARY"
-                        3 -> "MARCH"
-                        4 -> "APRIL"
-                        5 -> "MAY"
-                        6 -> "JUNE"
-                        7 -> "JULY"
-                        8 -> "AUGUST"
-                        9 -> "SEPTEMBER"
-                        10 -> "OCTOBER"
-                        11 -> "NOVEMBER"
-                        12 -> "DECEMBER"
-                        else -> "THIS MONTH"
+                        1 -> strings.monthJan
+                        2 -> strings.monthFeb
+                        3 -> strings.monthMar
+                        4 -> strings.monthApr
+                        5 -> strings.monthMay
+                        6 -> strings.monthJun
+                        7 -> strings.monthJul
+                        8 -> strings.monthAug
+                        9 -> strings.monthSep
+                        10 -> strings.monthOct
+                        11 -> strings.monthNov
+                        12 -> strings.monthDec
+                        else -> strings.thisMonth
                     }
-                    "$mName $y SALARY"
+                    if (isJapanese) "${y}年${mName}の${strings.salary}" else "$mName $y SALARY"
                 }
 
                 Text(
@@ -382,7 +385,7 @@ fun ExpressiveEditorialPosterCard(
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
-                                text = "💳 TOTAL CUMULATIVE EARNINGS",
+                                text = "💳 ${strings.totalCumulativeEarnings}",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -405,7 +408,7 @@ fun ExpressiveEditorialPosterCard(
                             border = BorderStroke(1.dp, neonMint.copy(alpha = 0.5f))
                         ) {
                             Text(
-                                text = "⚡ LIFETIME",
+                                text = "⚡ ${strings.lifetime}",
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 10.sp,
@@ -433,7 +436,7 @@ fun ExpressiveEditorialPosterCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY",
+                        text = if (isJapanese) "${strings.daysTillNextPayday}\n${paydayInfo.daysRemaining}日" else "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY",
                         style = MaterialTheme.typography.headlineLarge,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Black,
@@ -454,7 +457,7 @@ fun ExpressiveEditorialPosterCard(
 
                 // ── 4. Handwritten Chalk Annotation Note ──
                 Text(
-                    text = "BUT BEFORE THE LAUNCH OF $currentMonthLabel, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
+                    text = if (isJapanese) "今月の給与支給前に、これまでの貯蓄を大切に管理しましょう。" else "BUT BEFORE THE LAUNCH OF $currentMonthLabel, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -470,7 +473,7 @@ fun ExpressiveEditorialPosterCard(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = "継続は力なり (Continuity is Power)",
+                            text = "継続は力なり (${strings.continuityIsPower})",
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
@@ -487,7 +490,7 @@ fun ExpressiveEditorialPosterCard(
                                 color = Color.Gray
                             )
                             Text(
-                                text = "Scroll to see more...",
+                                text = strings.scrollToSeeMore,
                                 style = MaterialTheme.typography.bodySmall,
                                 fontSize = 11.sp,
                                 color = Color.Gray
@@ -498,7 +501,7 @@ fun ExpressiveEditorialPosterCard(
                     Column(horizontalAlignment = Alignment.End) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "RIGHT?!",
+                                text = if (isJapanese) "ね？！" else "RIGHT?!",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Black,

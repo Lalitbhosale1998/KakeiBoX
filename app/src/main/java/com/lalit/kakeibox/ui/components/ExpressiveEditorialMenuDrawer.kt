@@ -42,6 +42,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.ui.theme.ExpressivePhysics
+import com.personal.kakeibox.ui.theme.getAppStrings
 
 /**
  * ⚡ ExpressiveEditorialMenuDrawer
@@ -59,6 +60,7 @@ fun ExpressiveEditorialMenuDrawer(
 ) {
     if (!isOpen) return
 
+    val strings = getAppStrings(themeSettings.appLanguage)
     val haptic = LocalHapticFeedback.current
 
     Dialog(
@@ -106,7 +108,7 @@ fun ExpressiveEditorialMenuDrawer(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
-                                text = "🧭 KINETIC NEXUS",
+                                text = "🧭 ${strings.kineticNexus}",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -115,7 +117,7 @@ fun ExpressiveEditorialMenuDrawer(
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "00 / PORTAL",
+                            text = strings.portalHeader,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
@@ -160,8 +162,8 @@ fun ExpressiveEditorialMenuDrawer(
                     EditorialBentoCard(
                         index = "01",
                         kanjiHero = "統括",
-                        title = "HOME & OVERVIEW",
-                        subtitle = "COMMAND DASHBOARD",
+                        title = strings.homeOverviewSub,
+                        subtitle = strings.cmdDashboardSub,
                         icon = Icons.Default.Home,
                         onClick = {
                             onNavigateTab("home")
@@ -173,8 +175,8 @@ fun ExpressiveEditorialMenuDrawer(
                         EditorialBentoCard(
                             index = "02",
                             kanjiHero = "資産",
-                            title = "SALARY & SAVINGS",
-                            subtitle = "FINANCIAL NEXUS",
+                            title = strings.salSavingsSub,
+                            subtitle = strings.finNexusSub,
                             icon = Icons.Default.AccountBalance,
                             onClick = {
                                 onNavigateTab("salary")
@@ -187,8 +189,8 @@ fun ExpressiveEditorialMenuDrawer(
                         EditorialBentoCard(
                             index = "03",
                             kanjiHero = "鍛錬",
-                            title = "WORKOUT & GYM",
-                            subtitle = "ATHLETIC FORGE",
+                            title = strings.workGymSub,
+                            subtitle = strings.athForgeSub,
                             icon = Icons.Default.FitnessCenter,
                             onClick = {
                                 onNavigateTab("exercise")
@@ -201,8 +203,8 @@ fun ExpressiveEditorialMenuDrawer(
                         EditorialBentoCard(
                             index = "04",
                             kanjiHero = "言葉",
-                            title = "JAPANESE KOTOBA",
-                            subtitle = "VOCABULARY DECK",
+                            title = strings.japKotobaSub,
+                            subtitle = strings.vocabDeckSub,
                             icon = Icons.Default.Translate,
                             onClick = {
                                 onNavigateTab("kotoba")
@@ -214,8 +216,8 @@ fun ExpressiveEditorialMenuDrawer(
                     EditorialBentoCard(
                         index = "05",
                         kanjiHero = "美学",
-                        title = "THEME STUDIO",
-                        subtitle = "AESTHETIC CUSTOMIZER",
+                        title = strings.themeStudioSub,
+                        subtitle = strings.aesCustomSub,
                         icon = Icons.Default.Palette,
                         onClick = {
                             onOpenThemeSettings()
@@ -264,7 +266,7 @@ fun ExpressiveEditorialMenuDrawer(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Text(
-                                        text = if (themeSettings.privacyModeEnabled) "PRIVACY: ON" else "PRIVACY: OFF",
+                                        text = if (themeSettings.privacyModeEnabled) strings.privacyOn else strings.privacyOff,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -296,7 +298,7 @@ fun ExpressiveEditorialMenuDrawer(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Text(
-                                        text = "DISMISS PORTAL",
+                                        text = strings.dismissPortal,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onErrorContainer
@@ -314,14 +316,14 @@ fun ExpressiveEditorialMenuDrawer(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "VITTA 2026 • M3 EXPRESSIVE",
+                                text = strings.vittaFooter,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = onSurfaceColor.copy(alpha = 0.6f)
                             )
 
                             Text(
-                                text = "🈁 EDITION",
+                                text = "🈁 ${strings.editionBadge}",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.primary

@@ -69,6 +69,7 @@ import com.personal.kakeibox.ui.vocab.VocabViewModel
 import com.personal.kakeibox.ui.theme.ExpressivePhysics
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.theme.expressiveBackground
+import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.util.CurrencyUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +82,7 @@ fun HomeScreen(
 ) {
     val haptic = LocalHapticFeedback.current
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
+    val strings = getAppStrings(themeSettings.appLanguage)
     val totalSalary by salaryViewModel.totalSalary.collectAsStateWithLifecycle()
     val allVocab by vocabViewModel.allEntries.collectAsStateWithLifecycle()
     val isPrivacyMode = themeSettings.privacyModeEnabled
@@ -249,7 +251,7 @@ fun HomeScreen(
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Text(
-                                    text = if (isSthapatyaTheme) "🛕 VITTA COMMAND LAB" else "VITTA COMMAND LAB",
+                                    text = if (isSthapatyaTheme) "🛕 ${strings.heroCommandGauge}" else strings.heroCommandGauge,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Black,
@@ -264,7 +266,7 @@ fun HomeScreen(
                                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                             ) {
                                 Text(
-                                    text = "⚡ LIVE GAUGE",
+                                    text = "⚡ ${strings.liveGauge}",
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 10.sp,
@@ -322,7 +324,7 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = "DAYS TILL PAYDAY",
+                                    text = strings.daysTillPayday,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
@@ -338,7 +340,7 @@ fun HomeScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "REMAINING COMMAND BALANCE",
+                                    text = strings.remainingCommandBalance,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
@@ -359,7 +361,7 @@ fun HomeScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "⚡ PAYDAY COUNTDOWN TIMELINE",
+                                    text = "⚡ ${strings.paydayCountdownTimeline}",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Black,
@@ -367,7 +369,7 @@ fun HomeScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    text = "${(paydayInfo.progressRatio * 100).toInt()}% ELAPSED",
+                                    text = "${(paydayInfo.progressRatio * 100).toInt()}% ${strings.elapsed}",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
@@ -589,7 +591,7 @@ fun HomeScreen(
                                         border = BorderStroke(1.dp, if (isSthapatyaTheme) Color(0xFFD4AF37).copy(alpha = 0.6f) else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
                                     ) {
                                         Text(
-                                            text = if (isWorkoutLoggedToday) "LOGGED! 🔥" else "LOG ➔",
+                                            text = if (isWorkoutLoggedToday) "LOGGED! 🔥" else strings.logAction,
                                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontSize = 10.sp,
@@ -601,7 +603,7 @@ fun HomeScreen(
 
                                 Column {
                                     Text(
-                                        text = "WORKOUT",
+                                        text = strings.workout,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
@@ -609,7 +611,7 @@ fun HomeScreen(
                                         color = if (isSthapatyaTheme) Color(0xFFD4AF37) else MaterialTheme.colorScheme.tertiary
                                     )
                                     Text(
-                                        text = "🔥 $workoutStreakCount DAYS",
+                                        text = "🔥 $workoutStreakCount ${strings.daysCount}",
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Black,
                                         color = mintText
@@ -664,7 +666,7 @@ fun HomeScreen(
 
                                 Column {
                                     Text(
-                                        text = "SALARY LAB",
+                                        text = strings.financialMatrix,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
@@ -672,8 +674,8 @@ fun HomeScreen(
                                         color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint
                                     )
                                     Text(
-                                        text = "VIEW LEDGER",
-                                        fontSize = 15.sp,
+                                        text = strings.salSavingsSub,
+                                        fontSize = 13.sp,
                                         fontWeight = FontWeight.Black,
                                         color = mintText
                                     )
@@ -690,7 +692,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "COMMAND LAUNCHPAD",
+                    text = strings.commandLaunchpad,
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
@@ -732,7 +734,7 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "SALARY",
+                                text = strings.salary.uppercase(),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
@@ -769,7 +771,7 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "KOTOBA",
+                                text = strings.kotoba.uppercase(),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
@@ -806,7 +808,7 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "SETTINGS",
+                                text = strings.settings.uppercase(),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
@@ -824,7 +826,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "DAILY SNAPSHOT & ACTIVITY",
+                    text = strings.dailySnapshotActivity,
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
@@ -872,7 +874,7 @@ fun HomeScreen(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Text(
-                                        text = "ON TRACK",
+                                        text = strings.onTrack,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Black,
@@ -881,14 +883,14 @@ fun HomeScreen(
                                 }
                                 Column {
                                     Text(
-                                        text = "MONTHLY BUDGET",
+                                        text = strings.monthlyBudget,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = textSecondary
                                     )
                                     Text(
-                                        text = "78% SAVED",
+                                        text = "78% ${strings.saved}",
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Black,
                                         color = mintText
@@ -934,7 +936,7 @@ fun HomeScreen(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Text(
-                                        text = "DUE NOW",
+                                        text = strings.dueNow,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Black,
@@ -943,14 +945,14 @@ fun HomeScreen(
                                 }
                                 Column {
                                     Text(
-                                        text = "VOCAB REVIEW",
+                                        text = strings.vocabReview,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = textSecondary
                                     )
                                     Text(
-                                        text = "12 WORDS ➔",
+                                        text = "12 ${strings.words} ➔",
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Black,
                                         color = mintText
