@@ -1015,10 +1015,34 @@ fun VocabCardItem(
 
     var isPressed by remember { mutableStateOf(false) }
     val expressiveShape = rememberExpressiveCardShape(isPressed = isPressed)
+    val density = androidx.compose.ui.platform.LocalDensity.current
+
+    val tiltRotationY by animateFloatAsState(
+        targetValue = if (isPressed) -6f else 0f,
+        animationSpec = ExpressivePhysics.fluidSnappy(),
+        label = "card_tilt_y"
+    )
+    val tiltRotationX by animateFloatAsState(
+        targetValue = if (isPressed) 4f else 0f,
+        animationSpec = ExpressivePhysics.fluidSnappy(),
+        label = "card_tilt_x"
+    )
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1.0f,
+        animationSpec = ExpressivePhysics.fluidSnappy(),
+        label = "card_3d_scale"
+    )
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                rotationY = tiltRotationY
+                rotationX = tiltRotationX
+                cameraDistance = 12 * density.density
+            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
