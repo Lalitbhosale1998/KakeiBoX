@@ -480,7 +480,7 @@ fun HomeScreen(
                     shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PancharathaCardShape else RoundedCornerShape(32.dp),
                     color = chalkBg,
                     border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
-                    shadowElevation = 10.dp
+                    shadowElevation = 4.dp
                 ) {
                     Box(
                         modifier = Modifier
@@ -626,7 +626,7 @@ fun HomeScreen(
                         shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PancharathaCardShape else RoundedCornerShape(28.dp),
                         color = chalkBg,
                         border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
-                        shadowElevation = 8.dp
+                        shadowElevation = 4.dp
                     ) {
                         Box(
                             modifier = Modifier
@@ -934,7 +934,7 @@ fun HomeScreen(
                         shape = RoundedCornerShape(24.dp),
                         color = chalkBg,
                         border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
-                        shadowElevation = 6.dp
+                        shadowElevation = 4.dp
                     ) {
                         Box(
                             modifier = Modifier
@@ -996,7 +996,7 @@ fun HomeScreen(
                         shape = RoundedCornerShape(24.dp),
                         color = chalkBg,
                         border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
-                        shadowElevation = 6.dp
+                        shadowElevation = 4.dp
                     ) {
                         Box(
                             modifier = Modifier

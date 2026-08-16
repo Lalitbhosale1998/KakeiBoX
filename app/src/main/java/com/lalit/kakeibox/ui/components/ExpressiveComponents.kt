@@ -840,7 +840,7 @@ fun BentoCard(
         contentColor = contentColor,
         shape = cardShape,
         border = cardBorder,
-        shadowElevation = 8.dp,
+        shadowElevation = 4.dp,
         tonalElevation = 4.dp
     ) {
         Column(
