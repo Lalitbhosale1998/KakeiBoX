@@ -55,13 +55,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
+import com.personal.kakeibox.ui.components.ExpressiveElasticToggle
 import com.personal.kakeibox.ui.components.RoundedPolygonShape
+import com.personal.kakeibox.ui.components.rememberExpressiveCardShape
 import com.personal.kakeibox.ui.salary.SalaryViewModel
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.vocab.VocabViewModel
+import com.personal.kakeibox.ui.theme.ExpressivePhysics
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.util.CurrencyUtils
@@ -102,7 +107,8 @@ fun HomeScreen(
         )
     }
 
-    // Interactive States
+    // Interactive Press States for Liquid Bento Matrix
+    var isHeroPressed by remember { mutableStateOf(false) }
     var isKanjiCardFlipped by remember { mutableStateOf(false) }
     var isWorkoutLoggedToday by remember { mutableStateOf(false) }
     var workoutStreakCount by remember { mutableIntStateOf(14) }
@@ -181,20 +187,44 @@ fun HomeScreen(
         ) {
             // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
             val isSthapatyaTheme = false
-            val heroCardShape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape else RoundedCornerShape(28.dp)
+            val heroCardShape = if (isSthapatyaTheme) {
+                com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape
+            } else {
+                rememberExpressiveCardShape(isHeroPressed)
+            }
+
+            val heroScale by animateFloatAsState(
+                targetValue = if (isHeroPressed) 0.97f else 1.0f,
+                animationSpec = ExpressivePhysics.fluidSnappy(),
+                label = "hero_card_scale"
+            )
 
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        scaleX = heroScale
+                        scaleY = heroScale
+                    },
                 shape = heroCardShape,
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
-                shadowElevation = 0.dp
+                shadowElevation = 4.dp
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onNavigateTab(1)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    isHeroPressed = true
+                                    tryAwaitRelease()
+                                    isHeroPressed = false
+                                },
+                                onTap = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onNavigateTab(1)
+                                }
+                            )
                         }
                         .padding(24.dp)
                 ) {
