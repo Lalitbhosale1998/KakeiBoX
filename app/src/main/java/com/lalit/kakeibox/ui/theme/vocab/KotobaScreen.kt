@@ -38,11 +38,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.ExpressiveSwitch
+import com.personal.kakeibox.ui.components.ExpressiveElasticToggle
+import com.personal.kakeibox.ui.components.rememberExpressiveCardShape
 import com.personal.kakeibox.ui.theme.ExpressiveMotion
 import com.personal.kakeibox.ui.theme.ExpressivePhysics
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
@@ -1009,21 +1013,33 @@ fun VocabCardItem(
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val cardBgColor = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
 
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onClickCard()
-                },
-            shape = RoundedCornerShape(22.dp),
-            color = cardBgColor,
-            border = BorderStroke(
-                if (entry.isStarred) 2.dp else 1.dp,
-                if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-            ),
-            shadowElevation = 4.dp
-        ) {
+    var isPressed by remember { mutableStateOf(false) }
+    val expressiveShape = rememberExpressiveCardShape(isPressed = isPressed)
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClickCard()
+                    }
+                )
+            },
+        shape = expressiveShape,
+        color = cardBgColor,
+        border = BorderStroke(
+            if (entry.isStarred) 2.dp else 1.dp,
+            if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        ),
+        shadowElevation = 4.dp
+    ) {
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1078,15 +1094,17 @@ fun VocabCardItem(
                             )
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        IconButton(onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onToggleStarred()
-                        }) {
-                            Icon(
-                                imageVector = if (entry.isStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                                contentDescription = "Star",
-                                tint = if (entry.isStarred) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        ExpressiveElasticToggle(
+                            checked = entry.isStarred,
+                            onCheckedChange = onToggleStarred
+                        ) { scale, rotation ->
+                            IconButton(onClick = { onToggleStarred() }) {
+                                Icon(
+                                    imageVector = if (entry.isStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                    contentDescription = "Star",
+                                    tint = if (entry.isStarred) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                         IconButton(onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -1191,6 +1209,18 @@ fun ExpressiveVocabDetailView(
         MaterialTheme.colorScheme.surfaceContainerLowest
     }
 
+    var isDismissing by remember { mutableStateOf(false) }
+    val predictiveScale by animateFloatAsState(
+        targetValue = if (isDismissing) 0.92f else 1.0f,
+        animationSpec = ExpressivePhysics.fluidBouncy(),
+        label = "predictive_back_scale"
+    )
+
+    androidx.activity.compose.BackHandler {
+        isDismissing = true
+        onClose()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -1200,13 +1230,20 @@ fun ExpressiveVocabDetailView(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f))
-                .clickable { onClose() }
+                .clickable {
+                    isDismissing = true
+                    onClose()
+                }
         )
 
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)
+                .graphicsLayer {
+                    scaleX = predictiveScale
+                    scaleY = predictiveScale
+                }
                 .clickable(enabled = false) {},
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             color = detailCardBgColor,

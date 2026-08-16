@@ -1519,12 +1519,115 @@ fun ContainedLoadingIndicator(
 fun ExpressivePolygonLoadingIndicator(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
-    strokeWidth: Dp = 3.dp
+    size: Dp = 48.dp,
+    strokeWidth: Dp = 3.5.dp
 ) {
-    ContainedLoadingIndicator(
-        modifier = modifier,
-        containerColor = color.copy(alpha = 0.25f),
-        indicatorColor = color
+    val infiniteTransition = rememberInfiniteTransition(label = "m3_expressive_polygon_loader")
+    val progress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "polygon_morph_progress"
+    )
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "polygon_rotation"
+    )
+
+    val shape1 = remember { RoundedPolygon(numVertices = 4, rounding = CornerRounding(0.5f)) }
+    val shape2 = remember { RoundedPolygon(numVertices = 8, rounding = CornerRounding(0.3f)) }
+    val morph = remember { Morph(shape1, shape2) }
+
+    Canvas(
+        modifier = modifier
+            .size(size)
+            .graphicsLayer { rotationZ = rotation }
+    ) {
+        val path = morph.toPath(progress).asComposePath()
+        val bounds = path.getBounds()
+        val matrix = androidx.compose.ui.graphics.Matrix()
+        matrix.translate(this.size.width / 2f - bounds.center.x, this.size.height / 2f - bounds.center.y)
+        val scaleFactor = (this.size.width / (bounds.width.takeIf { it > 0 } ?: 1f)) * 0.75f
+        matrix.scale(scaleFactor, scaleFactor)
+        path.transform(matrix)
+
+        drawPath(
+            path = path,
+            color = color,
+            style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+        )
+    }
+}
+
+@Composable
+fun ExpressiveElasticToggle(
+    checked: Boolean,
+    onCheckedChange: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (scale: Float, rotation: Float) -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+
+    val scale by animateFloatAsState(
+        targetValue = if (checked) 1.25f else 1.0f,
+        animationSpec = ExpressivePhysics.fluidBouncy(),
+        label = "elastic_toggle_scale"
+    )
+    val rotation by animateFloatAsState(
+        targetValue = if (checked) 15f else 0f,
+        animationSpec = ExpressivePhysics.fluidBouncy(),
+        label = "elastic_toggle_rotation"
+    )
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                rotationZ = rotation
+            }
+            .clickable(
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                indication = null
+            ) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onCheckedChange()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        content(scale, rotation)
+    }
+}
+
+@Composable
+fun rememberExpressiveCardShape(
+    isPressed: Boolean,
+    defaultCorner: Dp = 22.dp,
+    pressedCorner: Dp = 34.dp
+): Shape {
+    val topStart by animateDpAsState(
+        targetValue = if (isPressed) pressedCorner else defaultCorner,
+        animationSpec = ExpressivePhysics.fluidSnappy(),
+        label = "corner_top_start"
+    )
+    val bottomEnd by animateDpAsState(
+        targetValue = if (isPressed) (pressedCorner / 2) else defaultCorner,
+        animationSpec = ExpressivePhysics.fluidSnappy(),
+        label = "corner_bottom_end"
+    )
+    return RoundedCornerShape(
+        topStart = topStart,
+        topEnd = defaultCorner,
+        bottomStart = defaultCorner,
+        bottomEnd = bottomEnd
     )
 }
 
