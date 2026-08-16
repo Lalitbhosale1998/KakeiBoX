@@ -945,9 +945,10 @@ fun KotobaScreen(
                         // ── Expanded Container Detail View Overlay (Root Level) ──
                         AnimatedVisibility(
                             visible = selectedVocabEntry != null,
-                            enter = fadeIn(ExpressivePhysics.fluidBouncy()),
-                            exit = fadeOut(ExpressivePhysics.fluidBouncy())
+                            enter = fadeIn(tween(300)),
+                            exit = fadeOut(tween(200))
                         ) {
+                            val activeOverlayScope = this
                             selectedVocabEntry?.let { targetEntry ->
                                 val liveEntry = allEntries.find { it.id == targetEntry.id } ?: targetEntry
                                 ExpressiveVocabDetailView(
@@ -1225,6 +1226,7 @@ fun ExpressiveVocabDetailView(
                 modifier = Modifier
                     .fillMaxWidth(0.92f)
                     .padding(vertical = 32.dp)
+                    .clip(RoundedCornerShape(32.dp))
                     .sharedBounds(
                         sharedContentState = rememberSharedContentState(key = "vocab_card_${entry.id}"),
                         animatedVisibilityScope = animatedVisibilityScope,
