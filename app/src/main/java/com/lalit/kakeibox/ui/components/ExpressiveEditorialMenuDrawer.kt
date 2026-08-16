@@ -272,17 +272,17 @@ fun ExpressiveEditorialMenuDrawer(
                                 }
                             }
 
-                            // Quick Add Entry Pill
+                            // Dismiss Portal Pill (One-Handed Ergonomic Thumb Zone)
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(20.dp))
                                     .clickable {
-                                        onAddEntry()
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         onDismiss()
                                     },
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -290,16 +290,16 @@ fun ExpressiveEditorialMenuDrawer(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Close Menu",
+                                        tint = MaterialTheme.colorScheme.onErrorContainer,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Text(
-                                        text = "ADD RECORD",
+                                        text = "DISMISS PORTAL",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Black,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        color = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                 }
                             }
@@ -406,24 +406,15 @@ private fun EditorialBentoCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // Monumental Kanji Badge Pill
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                ) {
-                    Box(
-                        modifier = Modifier.size(46.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = kanjiHero,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
+                // Standalone Monumental Kanji Typographic Art (No Circle Enclosure)
+                Text(
+                    text = kanjiHero,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.SansSerif,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
 
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
