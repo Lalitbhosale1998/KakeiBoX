@@ -129,9 +129,11 @@ class UserPreferencesRepository @Inject constructor(
             medicationLunchTime = prefs[Keys.MEDICATION_LUNCH_TIME] ?: "13:15",
             medicationDinnerTime = prefs[Keys.MEDICATION_DINNER_TIME] ?: "20:45",
             homeWidgetOrder = run {
-                val raw = prefs[Keys.HOME_WIDGET_ORDER] ?: "hero_gauge,bento_row,medication,action_dock"
+                val raw = prefs[Keys.HOME_WIDGET_ORDER] ?: "hero_gauge,bento_grid,medication,action_dock,snapshot_row"
                 val list = raw.split(",").filter { it.isNotBlank() }
-                if (list.isEmpty()) listOf("hero_gauge", "bento_row", "medication", "action_dock") else list
+                val defaultList = listOf("hero_gauge", "bento_grid", "medication", "action_dock", "snapshot_row")
+                val sanitized = list.map { if (it == "bento_row") "bento_grid" else it }.distinct()
+                if (sanitized.size < 5) defaultList else sanitized
             }
         )
     }
@@ -255,6 +257,32 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setBackgroundCanvasStyle(style: BackgroundCanvasStyle) {
         dataStore.edit { it[Keys.BACKGROUND_CANVAS_STYLE] = style.name }
+    }
+
+    suspend fun setSetupComplete(completed: Boolean) {
+        dataStore.edit { it[Keys.IS_SETUP_COMPLETE] = completed }
+    }
+
+    suspend fun applyStylePreset(
+        themeStyle: ThemeStyle,
+        appFont: AppFont,
+        backdropPattern: BackdropPattern,
+        glowIntensity: GlowIntensity,
+        crtFilterEnabled: Boolean,
+        touchSynesthesia: TouchSynesthesia,
+        darkThemePreference: DarkThemePreference,
+        useDynamicColor: Boolean
+    ) {
+        dataStore.edit { prefs ->
+            prefs[Keys.THEME_STYLE] = themeStyle.name
+            prefs[Keys.APP_FONT] = appFont.name
+            prefs[Keys.BACKDROP_PATTERN] = backdropPattern.name
+            prefs[Keys.GLOW_INTENSITY] = glowIntensity.name
+            prefs[Keys.CRT_FILTER_ENABLED] = crtFilterEnabled
+            prefs[Keys.TOUCH_SYNESTHESIA] = touchSynesthesia.name
+            prefs[Keys.DARK_THEME] = darkThemePreference.name
+            prefs[Keys.DYNAMIC_COLOR] = useDynamicColor
+        }
     }
 
     suspend fun updateMedicationTimes(breakfast: String, lunch: String, dinner: String) {

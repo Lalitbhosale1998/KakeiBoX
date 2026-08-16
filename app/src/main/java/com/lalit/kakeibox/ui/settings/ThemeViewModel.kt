@@ -209,6 +209,12 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun setHomeWidgetOrder(order: List<String>) {
+        viewModelScope.launch {
+            preferencesRepository.setHomeWidgetOrder(order)
+        }
+    }
+
     fun toggleTabVisibility(route: String) {
         viewModelScope.launch {
             preferencesRepository.toggleTabVisibility(route)

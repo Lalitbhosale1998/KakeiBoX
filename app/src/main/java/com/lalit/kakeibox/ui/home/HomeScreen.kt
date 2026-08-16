@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,8 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.zIndex
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.ThemeStyle
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
@@ -113,6 +117,7 @@ fun HomeScreen(
     }
 
     // Interactive Press States for Liquid Bento Matrix
+    val isSthapatyaTheme = false
     var isHeroPressed by remember { mutableStateOf(false) }
     var isKanjiCardFlipped by remember { mutableStateOf(false) }
     var isWorkoutLoggedToday by remember { mutableStateOf(false) }
@@ -175,25 +180,81 @@ fun HomeScreen(
         val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
         val chalkBorder = Color.Transparent
         val cardGradientColors = listOf(chalkBg, chalkBg)
+        var draggingItemIndex by remember { mutableStateOf<Int?>(null) }
+        var dragDeltaY by remember { mutableFloatStateOf(0f) }
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primaryContainer)
         ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-                .padding(top = statusBarsPadding + 64.dp)
-                .padding(bottom = 60.dp),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = statusBarsPadding + 64.dp,
+                bottom = 60.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            themeSettings.homeWidgetOrder.forEach { widgetKey ->
-                when (widgetKey) {
-                    "hero_gauge" -> {
-                        // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
+            val homeWidgetOrder = themeSettings.homeWidgetOrder
+
+            itemsIndexed(
+                items = homeWidgetOrder,
+                key = { _, widgetKey -> widgetKey }
+            ) { index, widgetKey ->
+                val isDragging = draggingItemIndex == index
+                val cardScale by animateFloatAsState(
+                    targetValue = if (isDragging) 1.04f else 1.0f,
+                    animationSpec = spring(stiffness = Spring.StiffnessLow),
+                    label = "home_drag_scale"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
+                        .zIndex(if (isDragging) 10f else 1f)
+                        .graphicsLayer {
+                            translationY = if (isDragging) dragDeltaY else 0f
+                            scaleX = cardScale
+                            scaleY = cardScale
+                        }
+                        .pointerInput(homeWidgetOrder) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    draggingItemIndex = index
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    dragDeltaY += dragAmount.y
+                                    val itemHeightPx = 200f * density.density
+                                    val targetIndex = (index + (dragDeltaY / itemHeightPx).toInt()).coerceIn(0, homeWidgetOrder.size - 1)
+                                    if (targetIndex != index && draggingItemIndex != null) {
+                                        val newList = homeWidgetOrder.toMutableList()
+                                        java.util.Collections.swap(newList, index, targetIndex)
+                                        themeViewModel.setHomeWidgetOrder(newList)
+                                        draggingItemIndex = targetIndex
+                                        dragDeltaY = 0f
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    }
+                                },
+                                onDragEnd = {
+                                    draggingItemIndex = null
+                                    dragDeltaY = 0f
+                                },
+                                onDragCancel = {
+                                    draggingItemIndex = null
+                                    dragDeltaY = 0f
+                                }
+                            )
+                        }
+                ) {
+                    when (widgetKey) {
+                        "hero_gauge" -> {
+                            // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
             val isSthapatyaTheme = false
             val heroCardShape = if (isSthapatyaTheme) {
                 com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape
@@ -395,7 +456,7 @@ fun HomeScreen(
             }
             }
 
-            "bento_row" -> {
+            "bento_grid" -> {
                 // ── 2. ASYMMETRIC 2-COLUMN BENTO GRID ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -840,8 +901,10 @@ fun HomeScreen(
                     }
                 }
             }
+            }
 
-            // ── 4. DAILY SNAPSHOT & QUICK ACTIVITY BENTO ROW ──
+            "snapshot_row" -> {
+                // ── 5. DAILY SNAPSHOT & QUICK ACTIVITY BENTO ROW ──
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -983,10 +1046,12 @@ fun HomeScreen(
                         }
                     }
                 }
+                }
             }
             }
             }
         }
     }
+}
 }
 }

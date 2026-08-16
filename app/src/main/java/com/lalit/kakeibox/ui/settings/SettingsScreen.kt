@@ -61,6 +61,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Dock
@@ -1254,7 +1255,7 @@ fun SettingsScreen(
 
     if (showHomeWidgetOrderSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val isSpaceTerminal = themeSettings.themeStyle == ThemeStyle.SPACE_TERMINAL
+        val isSpaceTerminal = false
         val sheetBgColor = if (isSpaceTerminal) Color(0xFF0F172A) else MaterialTheme.colorScheme.surfaceContainer
         val sheetShape = if (isSpaceTerminal) MaterialTheme.shapes.small else RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
 
@@ -1318,17 +1319,19 @@ fun SettingsScreen(
 
                         val title = when (widgetKey) {
                             "hero_gauge" -> "Hero Command Gauge (Payday)"
-                            "bento_row" -> "Daily Snapshot Bento Row (Vocab & Workout)"
+                            "bento_grid" -> "Kanji Flashcard & Workout Streak Bento"
                             "medication" -> "Medication Tracker (Prescription Log)"
                             "action_dock" -> "High-Chroma Quick Action Dock"
+                            "snapshot_row" -> "Daily Snapshot & Quick Activity Cards"
                             else -> widgetKey
                         }
 
                         val icon = when (widgetKey) {
                             "hero_gauge" -> Icons.Outlined.Shield
-                            "bento_row" -> Icons.Outlined.Translate
+                            "bento_grid" -> Icons.Outlined.Translate
                             "medication" -> Icons.Outlined.LocalHospital
                             "action_dock" -> Icons.Outlined.Dock
+                            "snapshot_row" -> Icons.Outlined.Dashboard
                             else -> Icons.Outlined.Dashboard
                         }
 

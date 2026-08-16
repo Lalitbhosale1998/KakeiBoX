@@ -94,6 +94,6 @@ data class ThemeSettings(
     val medicationBreakfastTime: String = "08:30",
     val medicationLunchTime: String = "13:15",
     val medicationDinnerTime: String = "20:45",
-    val homeWidgetOrder: List<String> = listOf("hero_gauge", "bento_row", "medication", "action_dock")
+    val homeWidgetOrder: List<String> = listOf("hero_gauge", "bento_grid", "medication", "action_dock", "snapshot_row")
 )
 
