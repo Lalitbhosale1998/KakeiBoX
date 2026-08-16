@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
@@ -257,8 +258,6 @@ fun KotobaScreen(
                                         items(filteredEntries, key = { it.id }) { entry ->
                                             VocabCardItem(
                                                 entry = entry,
-                                                sharedTransitionScope = sharedTransitionScope,
-                                                animatedVisibilityScope = rootAnimatedVisibilityScope,
                                                 onClickCard = { selectedVocabEntry = entry },
                                                 onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
                                                 onToggleStarred = { viewModel.toggleStarredStatus(entry) },
@@ -341,8 +340,6 @@ fun KotobaScreen(
                                                     items(starredEntries, key = { it.id }) { entry ->
                                                         VocabCardItem(
                                                             entry = entry,
-                                                            sharedTransitionScope = sharedTransitionScope,
-                                                            animatedVisibilityScope = rootAnimatedVisibilityScope,
                                                             onClickCard = { selectedVocabEntry = entry },
                                                             onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
                                                             onToggleStarred = { viewModel.toggleStarredStatus(entry) },
@@ -924,8 +921,6 @@ fun KotobaScreen(
                                                             items(finalFilteredDayEntries, key = { it.id }) { entry ->
                                                                 VocabCardItem(
                                                                     entry = entry,
-                                                                    sharedTransitionScope = sharedTransitionScope,
-                                                                    animatedVisibilityScope = rootAnimatedVisibilityScope,
                                                                     onClickCard = { selectedVocabEntry = entry },
                                                                     onToggleMastered = { viewModel.toggleMasteredStatus(entry) },
                                                                     onToggleStarred = { viewModel.toggleStarredStatus(entry) },
@@ -942,20 +937,17 @@ fun KotobaScreen(
                             }
                         }
 
-                        // ── Expanded Container Detail View Overlay (Root Level) ──
+                        // ── Option 1: M3 Expressive Spring Bottom Sheet Overlay ──
                         AnimatedVisibility(
                             visible = selectedVocabEntry != null,
-                            enter = fadeIn(tween(300)),
-                            exit = fadeOut(tween(200))
+                            enter = slideInVertically(initialOffsetY = { it }, animationSpec = ExpressivePhysics.fluidBouncy()) + fadeIn(tween(250)),
+                            exit = slideOutVertically(targetOffsetY = { it }, animationSpec = ExpressivePhysics.fluidBouncy()) + fadeOut(tween(200))
                         ) {
-                            val activeOverlayScope = this
                             selectedVocabEntry?.let { targetEntry ->
                                 val liveEntry = allEntries.find { it.id == targetEntry.id } ?: targetEntry
                                 ExpressiveVocabDetailView(
                                     entry = liveEntry,
                                     isJapanese = isJapanese,
-                                    sharedTransitionScope = sharedTransitionScope,
-                                    animatedVisibilityScope = rootAnimatedVisibilityScope,
                                     onClose = { selectedVocabEntry = null },
                                     onToggleMastered = { viewModel.toggleMasteredStatus(liveEntry) },
                                     onToggleStarred = { viewModel.toggleStarredStatus(liveEntry) },
@@ -1003,12 +995,9 @@ fun KotobaScreen(
 }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun VocabCardItem(
     entry: VocabEntry,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onClickCard: () -> Unit,
     onToggleMastered: () -> Unit,
     onToggleStarred: () -> Unit,
@@ -1020,15 +1009,9 @@ fun VocabCardItem(
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val cardBgColor = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
 
-    with(sharedTransitionScope) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .sharedBounds(
-                    sharedContentState = rememberSharedContentState(key = "vocab_card_${entry.id}"),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ -> ExpressivePhysics.fluidBouncy() }
-                )
                 .clickable {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onClickCard()
@@ -1184,70 +1167,62 @@ fun VocabCardItem(
             }
         }
     }
-}
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ExpressiveVocabDetailView(
     entry: VocabEntry,
     isJapanese: Boolean,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onClose: () -> Unit,
     onToggleMastered: () -> Unit,
     onToggleStarred: () -> Unit,
     onDelete: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
     var showInfo by remember { mutableStateOf(false) }
 
+    val systemDark = isSystemInDarkTheme()
     val themeSettings = LocalThemeSettings.current
-    val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
-    val detailCardBgColor = if (isPrimaryContainer) {
-        androidx.compose.ui.graphics.lerp(
-            MaterialTheme.colorScheme.surfaceContainerHigh,
-            MaterialTheme.colorScheme.primaryContainer,
-            0.35f
-        )
-    } else {
+    val isDark = themeSettings.darkThemePreference.isDark(systemDark)
+    val detailCardBgColor = if (isDark) {
         MaterialTheme.colorScheme.surfaceContainerHigh
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerLowest
     }
 
-    with(sharedTransitionScope) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f))
-                .clickable { onClose() },
-            contentAlignment = Alignment.Center
+                .clickable { onClose() }
+        )
+
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .clickable(enabled = false) {},
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+            color = detailCardBgColor,
+            border = BorderStroke(
+                if (entry.isStarred) 2.dp else 1.dp,
+                if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            ),
+            shadowElevation = 24.dp
         ) {
-            Surface(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.92f)
-                    .padding(vertical = 32.dp)
-                    .clip(RoundedCornerShape(32.dp))
-                    .sharedBounds(
-                        sharedContentState = rememberSharedContentState(key = "vocab_card_${entry.id}"),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        boundsTransform = { _, _ -> ExpressivePhysics.fluidBouncy() }
-                    )
-                    .clickable(enabled = false) {},
-                shape = RoundedCornerShape(32.dp),
-                color = detailCardBgColor,
-                border = BorderStroke(
-                    if (entry.isStarred) 2.dp else 1.dp,
-                    if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                ),
-                shadowElevation = 16.dp
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(24.dp)
-                ) {
-                    // Top Action Dock
+                // Top Action Dock
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -1500,7 +1475,6 @@ fun ExpressiveVocabDetailView(
             }
         }
     }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
