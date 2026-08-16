@@ -70,7 +70,7 @@ data class ThemeSettings(
     val dateFormat: String = "MMM dd, yyyy",
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
     val biometricEnabled: Boolean = false,
-    val tabOrder: List<String> = listOf("home", "salary", "exercise", "kotoba", "settings"),
+    val tabOrder: List<String> = listOf("home", "salary", "exercise", "shlok", "kotoba", "settings"),
     val hiddenTabs: Set<String> = emptySet(),
     val restDays: List<String> = listOf("Saturday", "Sunday"),
     val privacyModeEnabled: Boolean = false,
@@ -89,6 +89,11 @@ data class ThemeSettings(
     val savingsCardShape: CardShapePreference = CardShapePreference.PILL,
     val remittanceCardShape: CardShapePreference = CardShapePreference.PILL,
     val backgroundCanvasStyle: BackgroundCanvasStyle = BackgroundCanvasStyle.MONET_PASTEL,
-    val isSetupComplete: Boolean = true
+    val isSetupComplete: Boolean = true,
+    val medicationStartDate: String = "2026-08-17",
+    val medicationBreakfastTime: String = "08:30",
+    val medicationLunchTime: String = "13:15",
+    val medicationDinnerTime: String = "20:45",
+    val homeWidgetOrder: List<String> = listOf("hero_gauge", "bento_row", "medication", "action_dock")
 )
 

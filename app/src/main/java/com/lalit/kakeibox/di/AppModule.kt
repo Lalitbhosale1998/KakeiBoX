@@ -118,4 +118,14 @@ object AppModule {
     @Singleton
     fun provideVocabRepository(vocabDao: com.personal.kakeibox.data.dao.VocabDao): com.personal.kakeibox.data.entity.repository.VocabRepository =
         com.personal.kakeibox.data.entity.repository.VocabRepository(vocabDao)
+
+    @Provides
+    @Singleton
+    fun provideMedicationDao(database: KakeiboXDatabase): com.personal.kakeibox.data.dao.MedicationDao =
+        database.medicationDao()
+
+    @Provides
+    @Singleton
+    fun provideMedicationRepository(medicationDao: com.personal.kakeibox.data.dao.MedicationDao): com.personal.kakeibox.data.entity.repository.MedicationRepository =
+        com.personal.kakeibox.data.entity.repository.MedicationRepository(medicationDao)
 }

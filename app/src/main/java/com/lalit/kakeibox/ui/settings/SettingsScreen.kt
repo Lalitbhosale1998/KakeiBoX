@@ -55,23 +55,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.outlined.AutoMode
-import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.FitnessCenter
+import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Dock
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.LocalHospital
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -246,6 +249,7 @@ fun SettingsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var activeTab by remember { mutableStateOf("visual") }
     var showTabOrderSheet by remember { mutableStateOf(false) }
+    var showHomeWidgetOrderSheet by remember { mutableStateOf(false) }
     var isMenuExpanded by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -864,6 +868,17 @@ fun SettingsScreen(
                                 accentColor = Color(0xFF06B6D4)
                             )
                         }
+                        if (shouldShow("Home Layout", keywords = listOf("home", "widgets", "bento", "reorder"))) {
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                            SettingsActionRow(
+                                title = "Reorder Home Screen Elements",
+                                description = "Arrange the vertical stack order of Home tab bento widgets.",
+                                icon = Icons.Outlined.Dashboard,
+                                actionLabel = "Manage",
+                                onClick = { showHomeWidgetOrderSheet = true },
+                                accentColor = Color(0xFF10B981)
+                            )
+                        }
                     }
                 }
 
@@ -1184,11 +1199,214 @@ fun SettingsScreen(
                                     Spacer(modifier = Modifier.width(10.dp))
                                 }
 
+                                Row(
+                                     verticalAlignment = Alignment.CenterVertically,
+                                     horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                 ) {
+                                     if (index > 0) {
+                                         IconButton(
+                                             onClick = {
+                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                 val newList = tabOrder.toMutableList()
+                                                 java.util.Collections.swap(newList, index, index - 1)
+                                                 viewModel.setTabOrder(newList)
+                                             },
+                                             modifier = Modifier.size(32.dp)
+                                         ) {
+                                             Icon(
+                                                 imageVector = Icons.Default.KeyboardArrowUp,
+                                                 contentDescription = "Move Up",
+                                                 tint = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
+                                             )
+                                         }
+                                     }
+                                     if (index < tabOrder.size - 1) {
+                                         IconButton(
+                                             onClick = {
+                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                 val newList = tabOrder.toMutableList()
+                                                 java.util.Collections.swap(newList, index, index + 1)
+                                                 viewModel.setTabOrder(newList)
+                                             },
+                                             modifier = Modifier.size(32.dp)
+                                         ) {
+                                             Icon(
+                                                 imageVector = Icons.Default.KeyboardArrowDown,
+                                                 contentDescription = "Move Down",
+                                                 tint = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
+                                             )
+                                         }
+                                     }
+                                     Spacer(modifier = Modifier.width(4.dp))
+                                     Icon(
+                                         imageVector = Icons.Outlined.DragHandle,
+                                         contentDescription = "Drag to reorder",
+                                         tint = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                     )
+                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showHomeWidgetOrderSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val isSpaceTerminal = themeSettings.themeStyle == ThemeStyle.SPACE_TERMINAL
+        val sheetBgColor = if (isSpaceTerminal) Color(0xFF0F172A) else MaterialTheme.colorScheme.surfaceContainer
+        val sheetShape = if (isSpaceTerminal) MaterialTheme.shapes.small else RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+
+        ModalBottomSheet(
+            onDismissRequest = { showHomeWidgetOrderSheet = false },
+            sheetState = sheetState,
+            containerColor = sheetBgColor,
+            shape = sheetShape,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .background(
+                            color = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant,
+                            shape = CircleShape
+                        )
+                )
+            }
+        ) {
+            val homeOrder = themeSettings.homeWidgetOrder
+            var draggingItemIndex by remember { mutableStateOf<Int?>(null) }
+            var deltaY by remember { mutableFloatStateOf(0f) }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 48.dp, top = 8.dp)
+            ) {
+                Text(
+                    text = "Reorder Home Screen Elements",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                    color = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Tap arrows or drag items to re-arrange the vertical stack of bento widgets on your Home tab.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isSpaceTerminal) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    homeOrder.forEachIndexed { index, widgetKey ->
+                        val isDragging = draggingItemIndex == index
+                        val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
+                        val scale by animateFloatAsState(if (isDragging) 1.05f else 1f)
+
+                        val itemBg = if (isDragging) {
+                            if (isSpaceTerminal) Color(0xFFFF7E6B).copy(alpha = 0.25f)
+                            else MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            if (isSpaceTerminal) Color(0xFF1E293B).copy(alpha = 0.6f)
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                        }
+
+                        val title = when (widgetKey) {
+                            "hero_gauge" -> "Hero Command Gauge (Payday)"
+                            "bento_row" -> "Daily Snapshot Bento Row (Vocab & Workout)"
+                            "medication" -> "Medication Tracker (Prescription Log)"
+                            "action_dock" -> "High-Chroma Quick Action Dock"
+                            else -> widgetKey
+                        }
+
+                        val icon = when (widgetKey) {
+                            "hero_gauge" -> Icons.Outlined.Shield
+                            "bento_row" -> Icons.Outlined.Translate
+                            "medication" -> Icons.Outlined.LocalHospital
+                            "action_dock" -> Icons.Outlined.Dock
+                            else -> Icons.Outlined.Dashboard
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .graphicsLayer {
+                                    translationY = if (isDragging) deltaY else 0f
+                                    scaleX = scale
+                                    scaleY = scale
+                                },
+                            shape = if (isSpaceTerminal) MaterialTheme.shapes.small else MaterialTheme.shapes.medium,
+                            color = itemBg,
+                            tonalElevation = elevation
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(
-                                    imageVector = Icons.Outlined.DragHandle,
-                                    contentDescription = "Drag to reorder",
-                                    tint = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
                                 )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f),
+                                    color = if (isSpaceTerminal) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    if (index > 0) {
+                                        IconButton(
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                val newList = homeOrder.toMutableList()
+                                                java.util.Collections.swap(newList, index, index - 1)
+                                                viewModel.setHomeWidgetOrder(newList)
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.KeyboardArrowUp,
+                                                contentDescription = "Move Up",
+                                                tint = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                    if (index < homeOrder.size - 1) {
+                                        IconButton(
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                val newList = homeOrder.toMutableList()
+                                                java.util.Collections.swap(newList, index, index + 1)
+                                                viewModel.setHomeWidgetOrder(newList)
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.KeyboardArrowDown,
+                                                contentDescription = "Move Down",
+                                                tint = if (isSpaceTerminal) Color(0xFF46C2B4) else MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Outlined.DragHandle,
+                                        contentDescription = "Drag to reorder",
+                                        tint = if (isSpaceTerminal) Color(0xFF46C2B4).copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                    )
+                                }
                             }
                         }
                     }

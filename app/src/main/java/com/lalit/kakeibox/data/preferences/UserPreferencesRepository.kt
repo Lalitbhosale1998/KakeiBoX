@@ -41,6 +41,11 @@ private object Keys {
     val REMITTANCE_CARD_SHAPE = stringPreferencesKey("remittance_card_shape")
     val BACKGROUND_CANVAS_STYLE = stringPreferencesKey("background_canvas_style")
     val IS_SETUP_COMPLETE = booleanPreferencesKey("is_setup_complete")
+    val MEDICATION_START_DATE = stringPreferencesKey("medication_start_date")
+    val MEDICATION_BREAKFAST_TIME = stringPreferencesKey("medication_breakfast_time")
+    val MEDICATION_LUNCH_TIME = stringPreferencesKey("medication_lunch_time")
+    val MEDICATION_DINNER_TIME = stringPreferencesKey("medication_dinner_time")
+    val HOME_WIDGET_ORDER = stringPreferencesKey("home_widget_order")
 }
 
 @Singleton
@@ -60,7 +65,7 @@ class UserPreferencesRepository @Inject constructor(
             appLanguage = AppLanguage.valueOf(prefs[Keys.APP_LANGUAGE] ?: AppLanguage.ENGLISH.name),
             biometricEnabled = prefs[Keys.BIOMETRIC_ENABLED] ?: false,
             tabOrder = run {
-                val rawOrder = prefs[Keys.TAB_ORDER] ?: "home,salary,exercise,kotoba,settings"
+                val rawOrder = prefs[Keys.TAB_ORDER] ?: "home,salary,exercise,shlok,kotoba,settings"
                 var parsed = rawOrder.split(",").map { if (it == "journeys") "kotoba" else it }.filter { it != "commute" && it != "spend" && it.isNotBlank() }
                 if (!parsed.contains("home")) {
                     parsed = listOf("home") + parsed
@@ -72,6 +77,17 @@ class UserPreferencesRepository @Inject constructor(
                         list.add(settingsIndex, "exercise")
                     } else {
                         list.add("exercise")
+                    }
+                    parsed = list
+                }
+                if (!parsed.contains("shlok")) {
+                    val list = parsed.toMutableList()
+                    val kotobaIndex = list.indexOf("kotoba")
+                    if (kotobaIndex != -1) {
+                        list.add(kotobaIndex, "shlok")
+                    } else {
+                        val settingsIndex = list.indexOf("settings")
+                        if (settingsIndex != -1) list.add(settingsIndex, "shlok") else list.add("shlok")
                     }
                     parsed = list
                 }
@@ -107,7 +123,16 @@ class UserPreferencesRepository @Inject constructor(
             savingsCardShape = CardShapePreference.fromStorage(prefs[Keys.SAVINGS_CARD_SHAPE]),
             remittanceCardShape = CardShapePreference.fromStorage(prefs[Keys.REMITTANCE_CARD_SHAPE]),
             backgroundCanvasStyle = BackgroundCanvasStyle.fromStorage(prefs[Keys.BACKGROUND_CANVAS_STYLE]),
-            isSetupComplete = prefs[Keys.IS_SETUP_COMPLETE] ?: false
+            isSetupComplete = prefs[Keys.IS_SETUP_COMPLETE] ?: false,
+            medicationStartDate = prefs[Keys.MEDICATION_START_DATE] ?: "2026-08-17",
+            medicationBreakfastTime = prefs[Keys.MEDICATION_BREAKFAST_TIME] ?: "08:30",
+            medicationLunchTime = prefs[Keys.MEDICATION_LUNCH_TIME] ?: "13:15",
+            medicationDinnerTime = prefs[Keys.MEDICATION_DINNER_TIME] ?: "20:45",
+            homeWidgetOrder = run {
+                val raw = prefs[Keys.HOME_WIDGET_ORDER] ?: "hero_gauge,bento_row,medication,action_dock"
+                val list = raw.split(",").filter { it.isNotBlank() }
+                if (list.isEmpty()) listOf("hero_gauge", "bento_row", "medication", "action_dock") else list
+            }
         )
     }
 
@@ -151,8 +176,12 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { it[Keys.TAB_ORDER] = order.joinToString(",") }
     }
 
+    suspend fun setHomeWidgetOrder(order: List<String>) {
+        dataStore.edit { it[Keys.HOME_WIDGET_ORDER] = order.joinToString(",") }
+    }
+
     suspend fun toggleTabVisibility(route: String) {
-        if (route == "settings" || route == "home") return // Settings and Home tabs can never be hidden
+        if (route == "settings" || route == "home") return
         dataStore.edit { prefs ->
             val currentHidden = (prefs[Keys.HIDDEN_TABS] ?: "").split(",").filter { it.isNotBlank() && it != "settings" }.toMutableSet()
             if (currentHidden.contains(route)) {
@@ -168,8 +197,8 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { it[Keys.PRIVACY_MODE] = enabled }
     }
 
-    suspend fun setTopAppBarBackground(background: TopAppBarBackground) {
-        dataStore.edit { it[Keys.TOP_APP_BAR_BACKGROUND] = background.name }
+    suspend fun setTopAppBarBackground(bg: TopAppBarBackground) {
+        dataStore.edit { it[Keys.TOP_APP_BAR_BACKGROUND] = bg.name }
     }
 
     suspend fun setThemeStyle(style: ThemeStyle) {
@@ -212,10 +241,6 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { it[Keys.DYNAMIC_COLOR_CHROMA_SCALE] = scale }
     }
 
-    suspend fun setSetupComplete(completed: Boolean) {
-        dataStore.edit { it[Keys.IS_SETUP_COMPLETE] = completed }
-    }
-
     suspend fun setEarningsCardShape(shape: CardShapePreference) {
         dataStore.edit { it[Keys.EARNINGS_CARD_SHAPE] = shape.name }
     }
@@ -232,25 +257,11 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { it[Keys.BACKGROUND_CANVAS_STYLE] = style.name }
     }
 
-    suspend fun applyStylePreset(
-        themeStyle: ThemeStyle,
-        appFont: AppFont,
-        backdropPattern: BackdropPattern,
-        glowIntensity: GlowIntensity,
-        crtFilterEnabled: Boolean,
-        touchSynesthesia: TouchSynesthesia,
-        darkThemePreference: DarkThemePreference,
-        useDynamicColor: Boolean
-    ) {
+    suspend fun updateMedicationTimes(breakfast: String, lunch: String, dinner: String) {
         dataStore.edit { prefs ->
-            prefs[Keys.THEME_STYLE] = themeStyle.name
-            prefs[Keys.APP_FONT] = appFont.name
-            prefs[Keys.BACKDROP_PATTERN] = backdropPattern.name
-            prefs[Keys.GLOW_INTENSITY] = glowIntensity.name
-            prefs[Keys.CRT_FILTER_ENABLED] = crtFilterEnabled
-            prefs[Keys.TOUCH_SYNESTHESIA] = touchSynesthesia.name
-            prefs[Keys.DARK_THEME] = darkThemePreference.name
-            prefs[Keys.DYNAMIC_COLOR] = useDynamicColor
+            prefs[Keys.MEDICATION_BREAKFAST_TIME] = breakfast
+            prefs[Keys.MEDICATION_LUNCH_TIME] = lunch
+            prefs[Keys.MEDICATION_DINNER_TIME] = dinner
         }
     }
 

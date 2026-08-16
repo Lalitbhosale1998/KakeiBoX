@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
@@ -61,6 +62,7 @@ fun ExpressiveEditorialMenuDrawer(
     if (!isOpen) return
 
     val strings = getAppStrings(themeSettings.appLanguage)
+    val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
     val haptic = LocalHapticFeedback.current
 
     Dialog(
@@ -199,9 +201,23 @@ fun ExpressiveEditorialMenuDrawer(
                         )
                     }
 
-                    if (!hiddenTabs.contains("kotoba")) {
+                    if (!hiddenTabs.contains("shlok")) {
                         EditorialBentoCard(
                             index = "04",
+                            kanjiHero = "神聖",
+                            title = if (isJapanese) "シュローカ" else "Situational Shloks",
+                            subtitle = if (isJapanese) "聖なる言葉 & 誓い" else "Divine Wisdom & Verses",
+                            icon = Icons.Default.AutoAwesome,
+                            onClick = {
+                                onNavigateTab("shlok")
+                                onDismiss()
+                            }
+                        )
+                    }
+
+                    if (!hiddenTabs.contains("kotoba")) {
+                        EditorialBentoCard(
+                            index = "05",
                             kanjiHero = "言葉",
                             title = strings.japKotobaSub,
                             subtitle = strings.vocabDeckSub,
@@ -214,7 +230,7 @@ fun ExpressiveEditorialMenuDrawer(
                     }
 
                     EditorialBentoCard(
-                        index = "05",
+                        index = "06",
                         kanjiHero = "美学",
                         title = strings.themeStudioSub,
                         subtitle = strings.aesCustomSub,

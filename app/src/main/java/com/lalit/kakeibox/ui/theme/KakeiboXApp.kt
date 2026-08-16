@@ -54,11 +54,13 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material.icons.filled.FlightTakeoff
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Wallet
 import androidx.compose.material.icons.outlined.FlightTakeoff
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -574,7 +576,7 @@ fun KakeiboXApp(
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 5 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 6 })
     val coroutineScope = rememberCoroutineScope()
 
     val navBarColor by animateColorAsState(
@@ -618,6 +620,12 @@ fun KakeiboXApp(
                 labelRes = R.string.tab_exercise,
                 icon = Icons.Outlined.FitnessCenter,
                 selectedIcon = Icons.Filled.FitnessCenter
+            )
+            NavRoutes.Shlok.route -> BottomNavItem(
+                route = NavRoutes.Shlok.route,
+                labelRes = R.string.tab_shlok,
+                icon = Icons.Outlined.AutoAwesome,
+                selectedIcon = Icons.Filled.AutoAwesome
             )
             NavRoutes.Settings.route -> BottomNavItem(
                 route = NavRoutes.Settings.route,
@@ -748,8 +756,12 @@ fun KakeiboXApp(
                             0 -> com.personal.kakeibox.ui.home.HomeScreen(onNavigateTab = { target -> coroutineScope.launch { pagerState.animateScrollToPage(target) } })
                             1 -> SalaryScreen()
                             2 -> ExerciseScreen()
-                            3 -> KotobaScreen()
-                            4 -> SettingsScreen()
+                            3 -> com.personal.kakeibox.ui.shlok.ShlokScreen(
+                                shlokRepository = com.personal.kakeibox.data.entity.repository.ShlokRepository(),
+                                themeSettings = themeSettings
+                            )
+                            4 -> KotobaScreen()
+                            5 -> SettingsScreen()
                         }
                     }
                 }
@@ -776,8 +788,9 @@ fun KakeiboXApp(
                         0 -> 22.dp
                         1 -> 28.dp
                         2 -> 8.dp
-                        3 -> 28.dp
-                        4 -> 12.dp
+                        3 -> 20.dp
+                        4 -> 28.dp
+                        5 -> 12.dp
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -788,8 +801,9 @@ fun KakeiboXApp(
                         0 -> 22.dp
                         1 -> 8.dp
                         2 -> 28.dp
-                        3 -> 28.dp
-                        4 -> 12.dp
+                        3 -> 20.dp
+                        4 -> 28.dp
+                        5 -> 12.dp
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -800,8 +814,9 @@ fun KakeiboXApp(
                         0 -> 22.dp
                         1 -> 28.dp
                         2 -> 8.dp
-                        3 -> 6.dp
-                        4 -> 12.dp
+                        3 -> 20.dp
+                        4 -> 6.dp
+                        5 -> 12.dp
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -812,8 +827,9 @@ fun KakeiboXApp(
                         0 -> 22.dp
                         1 -> 8.dp
                         2 -> 28.dp
-                        3 -> 6.dp
-                        4 -> 12.dp
+                        3 -> 20.dp
+                        4 -> 6.dp
+                        5 -> 12.dp
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -863,8 +879,9 @@ fun KakeiboXApp(
                                     0 -> Icons.Default.Menu
                                     1 -> Icons.Outlined.Wallet
                                     2 -> Icons.Outlined.FitnessCenter
-                                    3 -> Icons.Default.Translate
-                                    4 -> Icons.Outlined.Settings
+                                    3 -> Icons.Outlined.AutoAwesome
+                                    4 -> Icons.Default.Translate
+                                    5 -> Icons.Outlined.Settings
                                     else -> Icons.Default.Menu
                                 }
                                  val strings = com.personal.kakeibox.ui.theme.getAppStrings(themeSettings.appLanguage)
@@ -872,8 +889,9 @@ fun KakeiboXApp(
                                      0 -> strings.home.uppercase()
                                      1 -> strings.salary.uppercase()
                                      2 -> strings.exercise.uppercase()
-                                     3 -> strings.kotoba.uppercase()
-                                     4 -> strings.settings.uppercase()
+                                     3 -> strings.shlok.uppercase()
+                                     4 -> strings.kotoba.uppercase()
+                                     5 -> strings.settings.uppercase()
                                      else -> "MENU"
                                  }
                                 Row(
@@ -911,8 +929,9 @@ fun KakeiboXApp(
                                 targetTab.contains("home", ignoreCase = true) || targetTab.contains("overview", ignoreCase = true) -> 0
                                 targetTab.contains("salary", ignoreCase = true) || targetTab.contains("savings", ignoreCase = true) -> 1
                                 targetTab.contains("exercise", ignoreCase = true) || targetTab.contains("workout", ignoreCase = true) || targetTab.contains("gym", ignoreCase = true) -> 2
-                                targetTab.contains("kotoba", ignoreCase = true) || targetTab.contains("vocab", ignoreCase = true) || targetTab.contains("japanese", ignoreCase = true) -> 3
-                                targetTab.contains("settings", ignoreCase = true) || targetTab.contains("theme", ignoreCase = true) -> 4
+                                targetTab.contains("shlok", ignoreCase = true) || targetTab.contains("mantra", ignoreCase = true) -> 3
+                                targetTab.contains("kotoba", ignoreCase = true) || targetTab.contains("vocab", ignoreCase = true) || targetTab.contains("japanese", ignoreCase = true) -> 4
+                                targetTab.contains("settings", ignoreCase = true) || targetTab.contains("theme", ignoreCase = true) -> 5
                                 else -> 0
                             }
                             coroutineScope.launch {
@@ -924,7 +943,7 @@ fun KakeiboXApp(
                         onOpenThemeSettings = {
                             isScreenMenuOpen = false
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(4)
+                                pagerState.animateScrollToPage(5)
                             }
                         },
                         themeSettings = themeSettings

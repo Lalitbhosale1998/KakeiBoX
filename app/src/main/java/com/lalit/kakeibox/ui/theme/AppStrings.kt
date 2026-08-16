@@ -217,7 +217,17 @@ data class AppStrings(
     val personsName: String,
     val birthdayDate: String,
     val saveBirthday: String,
-    val done: String
+    val done: String,
+    val shlok: String,
+    val medicationTracker: String,
+    val prescriptionLog: String,
+    val breakfastDose: String,
+    val lunchDose: String,
+    val dinnerDose: String,
+    val editReminderTimes: String,
+    val saveTimes: String,
+    val situationalShloks: String,
+    val marathiMeaningLabel: String
 )
 
 val EnglishStrings = AppStrings(
@@ -435,7 +445,17 @@ val EnglishStrings = AppStrings(
     personsName = "Person's Name",
     birthdayDate = "Birthday Date",
     saveBirthday = "Save Birthday",
-    done = "Done"
+    done = "Done",
+    shlok = "Shlok",
+    medicationTracker = "Medication Tracker",
+    prescriptionLog = "60-Day Prescription Log",
+    breakfastDose = "Breakfast (Office)",
+    lunchDose = "Lunch (Office)",
+    dinnerDose = "Dinner (Home)",
+    editReminderTimes = "Edit Reminder Times",
+    saveTimes = "Save Times",
+    situationalShloks = "Situational Shloks",
+    marathiMeaningLabel = "Marathi Meaning (मराठी भावार्थ)"
 )
 
 val JapaneseStrings = AppStrings(
@@ -653,7 +673,17 @@ val JapaneseStrings = AppStrings(
     personsName = "お名前",
     birthdayDate = "生年月日",
     saveBirthday = "誕生日を保存",
-    done = "完了"
+    done = "完了",
+    shlok = "シュローカ",
+    medicationTracker = "服薬トラッカー",
+    prescriptionLog = "60日間 処方箋記録",
+    breakfastDose = "朝食後 (オフィス)",
+    lunchDose = "昼食後 (オフィス)",
+    dinnerDose = "夕食後 (自宅)",
+    editReminderTimes = "リマインダー時間を編集",
+    saveTimes = "時間を保存",
+    situationalShloks = "シチュエーション別シュローカ",
+    marathiMeaningLabel = "マラーティー語の意味 (मराठी भावार्थ)"
 )
 
 fun getAppStrings(language: AppLanguage): AppStrings {

@@ -2646,12 +2646,14 @@ fun ExpressiveAddEditSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+            .padding(top = 4.dp, bottom = 16.dp)
             .navigationBarsPadding()
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

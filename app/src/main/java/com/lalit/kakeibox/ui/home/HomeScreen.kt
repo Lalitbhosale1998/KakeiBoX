@@ -77,6 +77,7 @@ import com.personal.kakeibox.util.CurrencyUtils
 fun HomeScreen(
     salaryViewModel: SalaryViewModel = hiltViewModel(),
     vocabViewModel: VocabViewModel = hiltViewModel(),
+    medicationViewModel: MedicationViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity),
     onNavigateTab: (Int) -> Unit = {}
 ) {
@@ -85,6 +86,8 @@ fun HomeScreen(
     val strings = getAppStrings(themeSettings.appLanguage)
     val totalSalary by salaryViewModel.totalSalary.collectAsStateWithLifecycle()
     val allVocab by vocabViewModel.allEntries.collectAsStateWithLifecycle()
+    val todayMedicationLog by medicationViewModel.todayLog.collectAsStateWithLifecycle()
+    val fullyCompletedDaysCount by medicationViewModel.fullyCompletedDaysCount.collectAsStateWithLifecycle()
     val isPrivacyMode = themeSettings.privacyModeEnabled
     val isDark = isSystemInDarkTheme()
 
@@ -187,7 +190,10 @@ fun HomeScreen(
                 .padding(bottom = 60.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
+            themeSettings.homeWidgetOrder.forEach { widgetKey ->
+                when (widgetKey) {
+                    "hero_gauge" -> {
+                        // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
             val isSthapatyaTheme = false
             val heroCardShape = if (isSthapatyaTheme) {
                 com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape
@@ -387,8 +393,10 @@ fun HomeScreen(
                     }
                 }
             }
+            }
 
-            // ── 2. ASYMMETRIC 2-COLUMN BENTO GRID ──
+            "bento_row" -> {
+                // ── 2. ASYMMETRIC 2-COLUMN BENTO GRID ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -685,8 +693,21 @@ fun HomeScreen(
                     }
                 }
             }
+            }
 
-            // ── 3. HIGH-CHROMA DOCK ACTION PILLS ──
+            "medication" -> {
+                // ── 3. 💊 MEDICATION TRACKER (60-DAY PRESCRIPTION LOG) ──
+            com.personal.kakeibox.ui.components.MedicationTrackerWidget(
+                todayEntry = todayMedicationLog,
+                fullyCompletedDaysCount = fullyCompletedDaysCount,
+                themeSettings = themeSettings,
+                onToggleDose = { doseType -> medicationViewModel.toggleDose(doseType) },
+                onUpdateTimes = { bTime, lTime, dTime -> medicationViewModel.updateTimes(bTime, lTime, dTime) }
+            )
+            }
+
+            "action_dock" -> {
+                // ── 4. HIGH-CHROMA DOCK ACTION PILLS ──
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -962,6 +983,8 @@ fun HomeScreen(
                         }
                     }
                 }
+            }
+            }
             }
         }
     }
