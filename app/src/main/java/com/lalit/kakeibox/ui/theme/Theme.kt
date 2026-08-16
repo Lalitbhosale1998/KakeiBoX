@@ -373,8 +373,18 @@ fun KakeiboXTheme(
     val rawColorScheme = when {
         customFlavorScheme != null -> customFlavorScheme
         dynamicColor -> if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        darkTheme -> DarkColors
-        else -> LightColors
+        else -> {
+            val base = if (darkTheme) DarkColors else LightColors
+            val hue = (dynamicColorChromaScale * 360f).coerceIn(0f, 360f)
+            val customPrimary = Color.hsv(hue, saturation = 0.65f, value = if (darkTheme) 0.85f else 0.45f)
+            val customPrimaryContainer = Color.hsv(hue, saturation = 0.25f, value = if (darkTheme) 0.30f else 0.90f)
+            val customOnPrimaryContainer = Color.hsv(hue, saturation = 0.80f, value = if (darkTheme) 0.95f else 0.15f)
+            base.copy(
+                primary = customPrimary,
+                primaryContainer = customPrimaryContainer,
+                onPrimaryContainer = customOnPrimaryContainer
+            )
+        }
     }
     
     val colorScheme = rawColorScheme

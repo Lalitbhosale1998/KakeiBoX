@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -515,7 +516,7 @@ fun SettingsScreen(
                             "visual" -> {
                                 val strings = getAppStrings(themeSettings.appLanguage)
                                 // Theme & Color Group
-                                SettingsGroup(title = strings.themeColorSettings) {
+                                SettingsGroup(title = "01 • 美学 ── AESTHETIC SYNTHESIZER") {
 
 
                                     SettingsSelectorRow(
@@ -537,6 +538,58 @@ fun SettingsScreen(
                                         accentColor = Color(0xFFD946EF)
                                     )
 
+                                    if (!themeSettings.useDynamicColor) {
+                                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                        var currentHue by remember(themeSettings.dynamicColorChromaScale) {
+                                            mutableFloatStateOf(themeSettings.dynamicColorChromaScale * 360f)
+                                        }
+                                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.Tune,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                    Text(
+                                                        text = "Continuous Primary Hue",
+                                                        fontWeight = FontWeight.Bold,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+                                                Text(
+                                                    text = "${currentHue.toInt()}°",
+                                                    fontWeight = FontWeight.Black,
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Slider(
+                                                value = currentHue,
+                                                onValueChange = {
+                                                    currentHue = it
+                                                    val scale = (it / 360f).coerceIn(0f, 1f)
+                                                    viewModel.setDynamicColorChromaScale(scale)
+                                                },
+                                                valueRange = 0f..360f,
+                                                colors = SliderDefaults.colors(
+                                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                                    activeTrackColor = MaterialTheme.colorScheme.primary
+                                                )
+                                            )
+                                        }
+                                    }
+
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
                                         title = "Launch Setup Wizard 🪄",
@@ -549,7 +602,7 @@ fun SettingsScreen(
                                 }
 
                                 // Typography & Layout Group
-                                SettingsGroup(title = strings.typographyLayoutSettings) {
+                                SettingsGroup(title = "🔤 TYPOGRAPHY & TYPEFACE") {
                                     SettingsSelectorRow(
                                         title = strings.appFontFamily,
                                         description = strings.chooseGlobalTypeface,
@@ -580,7 +633,7 @@ fun SettingsScreen(
                             }
                             "preferences" -> {
                                 val strings = getAppStrings(themeSettings.appLanguage)
-                                SettingsGroup(title = strings.regionalLocaleOptions) {
+                                SettingsGroup(title = "04 • 地域 ── LOCALIZATION & PREFERENCES") {
                                     SettingsSelectorRow(
                                         title = strings.appLanguage,
                                         description = strings.selectLanguageDesc,
@@ -603,7 +656,7 @@ fun SettingsScreen(
                                     )
                                 }
 
-                                SettingsGroup(title = strings.appCustomization) {
+                                SettingsGroup(title = "📌 NAVIGATION MODULE MANAGER") {
                                     SettingsActionRow(
                                         title = strings.reorderNavTabs,
                                         description = strings.manageNavTabsDesc,
@@ -616,7 +669,7 @@ fun SettingsScreen(
                             }
                             "security" -> {
                                 val strings = getAppStrings(themeSettings.appLanguage)
-                                SettingsGroup(title = strings.privacyAppLock) {
+                                SettingsGroup(title = "02 • 治安 ── SECURITY & PRIVACY VAULT") {
                                     SettingsToggleRow(
                                         title = strings.privacyModeProtection,
                                         description = strings.maskSensitiveTotals,
@@ -636,7 +689,7 @@ fun SettingsScreen(
                                     )
                                 }
 
-                                SettingsGroup(title = strings.dataManagement) {
+                                SettingsGroup(title = "03 • 記憶 ── DATA LABORATORY") {
                                     SettingsActionRow(
                                         title = strings.backupDatabase,
                                         description = strings.exportLocalDbCopy,
@@ -2105,37 +2158,51 @@ fun SettingsGroup(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
-    val cardShape = if (isSpaceTerminal) MaterialTheme.shapes.medium else MaterialTheme.shapes.large
-    val cardBg = if (isSpaceTerminal) Color(0xFF0F172A).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerLow
-    val cardBorder = if (isSpaceTerminal) {
-        BorderStroke(1.dp, Color(0xFF46C2B4).copy(alpha = 0.3f))
-    } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-    }
+    var isPressed by remember { mutableStateOf(false) }
+    val expressiveShape = com.personal.kakeibox.ui.components.rememberExpressiveCardShape(isPressed = isPressed)
+    val cardScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1.0f,
+        animationSpec = com.personal.kakeibox.ui.theme.ExpressivePhysics.fluidSnappy(),
+        label = "group_card_scale"
+    )
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 6.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.5.sp,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
         )
         Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = cardBg,
-            shape = cardShape,
-            border = cardBorder,
-            shadowElevation = 8.dp,
-            tonalElevation = 4.dp
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = cardScale
+                    scaleY = cardScale
+                }
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = {
+                            isPressed = true
+                            tryAwaitRelease()
+                            isPressed = false
+                        }
+                    )
+                },
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = expressiveShape,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            shadowElevation = 6.dp,
+            tonalElevation = 3.dp
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                 content = content
             )
         }
