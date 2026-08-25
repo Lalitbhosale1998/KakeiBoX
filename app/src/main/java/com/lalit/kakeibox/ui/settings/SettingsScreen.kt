@@ -2090,6 +2090,43 @@ private fun BentoNavTile(
         label = "bento_tile_icon_rot_${tab.key}"
     )
 
+    // Baseline shape when unselected is uniform 22.dp.
+    // When CLICKED/SELECTED, each category morphs into a COMPLETELY DISTINCT M3 shape archetype!
+    val targetTopStart = when {
+        !isSelected -> 22.dp
+        tab.key == "visual" -> if (isPressed) 36.dp else 32.dp       // Top Canopy Arch
+        tab.key == "security" -> if (isPressed) 36.dp else 32.dp     // Shield Diagonal
+        tab.key == "preferences" -> if (isPressed) 12.dp else 8.dp   // Right Bullet
+        else -> 32.dp                                                // Smooth Capsule
+    }
+    val targetTopEnd = when {
+        !isSelected -> 22.dp
+        tab.key == "visual" -> if (isPressed) 36.dp else 32.dp       // Top Canopy Arch
+        tab.key == "security" -> if (isPressed) 12.dp else 8.dp      // Shield Diagonal
+        tab.key == "preferences" -> if (isPressed) 36.dp else 32.dp  // Right Bullet
+        else -> 32.dp                                                // Smooth Capsule
+    }
+    val targetBottomStart = when {
+        !isSelected -> 22.dp
+        tab.key == "visual" -> if (isPressed) 12.dp else 8.dp        // Top Canopy Arch
+        tab.key == "security" -> if (isPressed) 12.dp else 8.dp      // Shield Diagonal
+        tab.key == "preferences" -> if (isPressed) 12.dp else 8.dp   // Right Bullet
+        else -> 32.dp                                                // Smooth Capsule
+    }
+    val targetBottomEnd = when {
+        !isSelected -> 22.dp
+        tab.key == "visual" -> if (isPressed) 12.dp else 8.dp        // Top Canopy Arch
+        tab.key == "security" -> if (isPressed) 36.dp else 32.dp     // Shield Diagonal
+        tab.key == "preferences" -> if (isPressed) 36.dp else 32.dp  // Right Bullet
+        else -> 32.dp                                                // Smooth Capsule
+    }
+
+    val tileTS by animateDpAsState(targetValue = targetTopStart, animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow), label = "tile_ts_${tab.key}")
+    val tileTE by animateDpAsState(targetValue = targetTopEnd, animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow), label = "tile_te_${tab.key}")
+    val tileBS by animateDpAsState(targetValue = targetBottomStart, animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow), label = "tile_bs_${tab.key}")
+    val tileBE by animateDpAsState(targetValue = targetBottomEnd, animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow), label = "tile_be_${tab.key}")
+    val tileShape = RoundedCornerShape(topStart = tileTS, topEnd = tileTE, bottomStart = tileBS, bottomEnd = tileBE)
+
     Surface(
         modifier = modifier
             .graphicsLayer {
@@ -2103,7 +2140,7 @@ private fun BentoNavTile(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onClick()
             },
-        shape = RoundedCornerShape(22.dp),
+        shape = tileShape,
         color = containerColor,
         border = BorderStroke(if (isSelected) 1.5.dp else 1.dp, borderColor),
         shadowElevation = if (isSelected) 6.dp else 2.dp,
