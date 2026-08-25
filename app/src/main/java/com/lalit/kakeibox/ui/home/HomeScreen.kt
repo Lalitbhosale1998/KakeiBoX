@@ -342,7 +342,7 @@ fun HomeScreen(
                                 Text(
                                     text = strings.remainingCommandBalance,
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
