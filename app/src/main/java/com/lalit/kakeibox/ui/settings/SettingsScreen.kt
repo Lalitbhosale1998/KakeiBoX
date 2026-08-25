@@ -608,6 +608,7 @@ fun SettingsScreen(
                                         description = strings.chooseGlobalTypeface,
                                         icon = Icons.Outlined.Code,
                                         selectedValueLabel = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        selectedOption = themeSettings.appFont,
                                         options = listOf(
                                              AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded 🌟",
                                              AppFont.NUNITO to "Nunito Modern ✒️",
@@ -2452,14 +2453,21 @@ fun <T> SettingsSelectorRow(
 
                         if (options.size > 8) {
                             // ── HYBRID 2-TAB 2-COLUMN BENTO GRID FOR FONTS ──
-                            var selectedTab by remember { mutableStateOf(0) } // 0 = Global/Latin, 1 = Japanese
-
                             val globalOptions = remember(options) {
                                 options.filter { !it.second.contains("JAPANESE") && !it.second.contains("⛩️") && !it.second.contains("🌸") && !it.second.contains("🍡") && !it.second.contains("🍵") && !it.second.contains("🏯") && !it.second.contains("🎌") }
                             }
                             val japaneseOptions = remember(options) {
                                 options.filter { it.second.contains("JAPANESE") || it.second.contains("⛩️") || it.second.contains("🌸") || it.second.contains("🍡") || it.second.contains("🍵") || it.second.contains("🏯") || it.second.contains("🎌") }
                             }
+
+                            val initialTab = remember(selectedOption, selectedValueLabel, japaneseOptions) {
+                                if (japaneseOptions.any { (value, label) ->
+                                    (selectedOption != null && value == selectedOption) ||
+                                    selectedValueLabel.equals(value.toString(), ignoreCase = true) ||
+                                    (selectedValueLabel.isNotEmpty() && label.contains(selectedValueLabel.trim().replace("_", " "), ignoreCase = true))
+                                }) 1 else 0
+                            }
+                            var selectedTab by remember { mutableStateOf(initialTab) }
 
                             // 1. M3 Expressive Sliding Fluid Indicator Segmented Control
                             BoxWithConstraints(
@@ -2566,6 +2574,8 @@ fun <T> SettingsSelectorRow(
                                                     selectedOption != null && value == selectedOption -> true
                                                     selectedValueLabel == label -> true
                                                     normSelected == normLabel -> true
+                                                    value.toString().equals(selectedValueLabel, ignoreCase = true) -> true
+                                                    normSelected.isNotEmpty() && normLabel.contains(normSelected) -> true
                                                     else -> false
                                                 }
                                                 val optionBg = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.45f)
