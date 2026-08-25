@@ -260,10 +260,22 @@ fun HomeScreen(
                                 )
                             }
 
+                            var isLiveGaugePressed by remember { mutableStateOf(false) }
+                            val liveGaugeShape = rememberExpressiveCardShape(isLiveGaugePressed, defaultCorner = 18.dp, pressedCorner = 30.dp)
+
                             Surface(
-                                shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else CircleShape,
+                                shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else liveGaugeShape,
                                 color = MaterialTheme.colorScheme.primaryContainer,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                                modifier = Modifier.pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onPress = {
+                                            isLiveGaugePressed = true
+                                            tryAwaitRelease()
+                                            isLiveGaugePressed = false
+                                        }
+                                    )
+                                }
                             ) {
                                 Text(
                                     text = "⚡ ${strings.liveGauge}",
@@ -284,11 +296,24 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(18.dp)
                         ) {
                             // Left: Massive Hero Numeral 14 with Flame Accent
+                            var isPaydayBadgePressed by remember { mutableStateOf(false) }
+                            val paydayBadgeShape = rememberExpressiveCardShape(isPaydayBadgePressed, defaultCorner = 24.dp, pressedCorner = 36.dp)
+
                             Surface(
-                                shape = RoundedCornerShape(24.dp),
+                                shape = paydayBadgeShape,
                                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                                 border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-                                modifier = Modifier.padding(2.dp)
+                                modifier = Modifier
+                                    .padding(2.dp)
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onPress = {
+                                                isPaydayBadgePressed = true
+                                                tryAwaitRelease()
+                                                isPaydayBadgePressed = false
+                                            }
+                                        )
+                                    }
                             ) {
                                 Box(
                                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
@@ -707,16 +732,28 @@ fun HomeScreen(
                     val pillShape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else RoundedCornerShape(20.dp)
                     val pillBorder = if (isSthapatyaTheme) BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.8f)) else null
 
+                    var isSalPillPressed by remember { mutableStateOf(false) }
+                    val salPillShape = rememberExpressiveCardShape(isSalPillPressed, defaultCorner = 20.dp, pressedCorner = 32.dp)
+
                     // Salary Pill Button
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(pillShape)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onNavigateTab(1)
+                            .clip(salPillShape)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isSalPillPressed = true
+                                        tryAwaitRelease()
+                                        isSalPillPressed = false
+                                    },
+                                    onTap = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(1)
+                                    }
+                                )
                             },
-                        shape = pillShape,
+                        shape = salPillShape,
                         color = if (isSthapatyaTheme) Color(0xFF5E2B13) else MaterialTheme.colorScheme.secondaryContainer,
                         border = pillBorder,
                         shadowElevation = 4.dp
@@ -744,16 +781,28 @@ fun HomeScreen(
                         }
                     }
 
+                    var isKotobaPillPressed by remember { mutableStateOf(false) }
+                    val kotobaPillShape = rememberExpressiveCardShape(isKotobaPillPressed, defaultCorner = 20.dp, pressedCorner = 32.dp)
+
                     // Kotoba Pill Button
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(pillShape)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onNavigateTab(3)
+                            .clip(kotobaPillShape)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isKotobaPillPressed = true
+                                        tryAwaitRelease()
+                                        isKotobaPillPressed = false
+                                    },
+                                    onTap = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(3)
+                                    }
+                                )
                             },
-                        shape = pillShape,
+                        shape = kotobaPillShape,
                         color = if (isSthapatyaTheme) Color(0xFF5E2B13) else MaterialTheme.colorScheme.secondaryContainer,
                         border = pillBorder,
                         shadowElevation = 4.dp
@@ -781,16 +830,28 @@ fun HomeScreen(
                         }
                     }
 
+                    var isSettingsPillPressed by remember { mutableStateOf(false) }
+                    val settingsPillShape = rememberExpressiveCardShape(isSettingsPillPressed, defaultCorner = 20.dp, pressedCorner = 32.dp)
+
                     // Settings Pill Button
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(pillShape)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onNavigateTab(4)
+                            .clip(settingsPillShape)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isSettingsPillPressed = true
+                                        tryAwaitRelease()
+                                        isSettingsPillPressed = false
+                                    },
+                                    onTap = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(4)
+                                    }
+                                )
                             },
-                        shape = pillShape,
+                        shape = settingsPillShape,
                         color = if (isSthapatyaTheme) Color(0xFFD4AF37) else neonMint,
                         border = pillBorder,
                         shadowElevation = 4.dp
@@ -838,16 +899,28 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    var isBudgetCardPressed by remember { mutableStateOf(false) }
+                    val budgetCardShape = rememberExpressiveCardShape(isBudgetCardPressed, defaultCorner = 24.dp, pressedCorner = 36.dp)
+
                     // Card 1: Today's Budget Status
                     Surface(
                         modifier = Modifier
                             .weight(1f)
                             .height(130.dp)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onNavigateTab(1)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isBudgetCardPressed = true
+                                        tryAwaitRelease()
+                                        isBudgetCardPressed = false
+                                    },
+                                    onTap = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(1)
+                                    }
+                                )
                             },
-                        shape = RoundedCornerShape(24.dp),
+                        shape = budgetCardShape,
                         color = chalkBg,
                         border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
                         shadowElevation = 6.dp
@@ -900,16 +973,28 @@ fun HomeScreen(
                         }
                     }
 
+                    var isVocabQueuePressed by remember { mutableStateOf(false) }
+                    val vocabQueueShape = rememberExpressiveCardShape(isVocabQueuePressed, defaultCorner = 24.dp, pressedCorner = 36.dp)
+
                     // Card 2: Kotoba Mastery Queue
                     Surface(
                         modifier = Modifier
                             .weight(1f)
                             .height(130.dp)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onNavigateTab(3)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isVocabQueuePressed = true
+                                        tryAwaitRelease()
+                                        isVocabQueuePressed = false
+                                    },
+                                    onTap = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(3)
+                                    }
+                                )
                             },
-                        shape = RoundedCornerShape(24.dp),
+                        shape = vocabQueueShape,
                         color = chalkBg,
                         border = BorderStroke(1.5.dp, if (isSthapatyaTheme) Color(0xFFD4AF37) else chalkBorder),
                         shadowElevation = 6.dp
