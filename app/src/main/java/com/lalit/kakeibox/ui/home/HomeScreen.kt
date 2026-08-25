@@ -36,6 +36,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -187,7 +188,7 @@ fun HomeScreen(
                 .padding(bottom = 60.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Financial Pulse Wheel) ──
+            // ── 1. MONUMENTAL HERO GAUGE CARD (Payday + Peeking Overhanging Typography) ──
             val isSthapatyaTheme = false
             val heroCardShape = if (isSthapatyaTheme) {
                 com.personal.kakeibox.ui.theme.SthapatyaShapes.ToranaArchShape
@@ -201,45 +202,86 @@ fun HomeScreen(
                 label = "hero_card_scale"
             )
 
-            Surface(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer {
-                        scaleX = heroScale
-                        scaleY = heroScale
-                    },
-                shape = heroCardShape,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                shadowElevation = 4.dp
+                    .padding(top = 12.dp)
             ) {
-                Box(
+                // ── Overhanging Floating Header Badge (Peeking 14.dp outside top of card) ──
+                var isLiveGaugePressed by remember { mutableStateOf(false) }
+                val liveGaugeShape = rememberExpressiveCardShape(isLiveGaugePressed, defaultCorner = 18.dp, pressedCorner = 30.dp)
+
+                Surface(
+                    shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else liveGaugeShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shadowElevation = 6.dp,
+                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer),
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-16).dp, y = (-14).dp)
+                        .zIndex(2f)
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onPress = {
-                                    isHeroPressed = true
+                                    isLiveGaugePressed = true
                                     tryAwaitRelease()
-                                    isHeroPressed = false
-                                },
-                                onTap = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onNavigateTab(1)
+                                    isLiveGaugePressed = false
                                 }
                             )
                         }
-                        .padding(24.dp)
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(18.dp)
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        // ── Editorial Top Header Row ──
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Text(
+                            text = "⚡ ${strings.liveGauge}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+
+                // ── Main Hero Card Surface ──
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            scaleX = heroScale
+                            scaleY = heroScale
+                        },
+                    shape = heroCardShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    shadowElevation = 4.dp
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isHeroPressed = true
+                                        tryAwaitRelease()
+                                        isHeroPressed = false
+                                    },
+                                    onTap = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(1)
+                                    }
+                                )
+                            }
+                            .padding(horizontal = 20.dp, vertical = 22.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
+                            // ── Top Title Row ──
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -260,154 +302,128 @@ fun HomeScreen(
                                 )
                             }
 
-                            var isLiveGaugePressed by remember { mutableStateOf(false) }
-                            val liveGaugeShape = rememberExpressiveCardShape(isLiveGaugePressed, defaultCorner = 18.dp, pressedCorner = 30.dp)
-
-                            Surface(
-                                shape = if (isSthapatyaTheme) com.personal.kakeibox.ui.theme.SthapatyaShapes.PadmaChipShape else liveGaugeShape,
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                                modifier = Modifier.pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onPress = {
-                                            isLiveGaugePressed = true
-                                            tryAwaitRelease()
-                                            isLiveGaugePressed = false
-                                        }
-                                    )
-                                }
-                            ) {
-                                Text(
-                                    text = "⚡ ${strings.liveGauge}",
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.sp,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-
-                        // ── Editorial Zine Hero Content (Giant Numeral + Stacked Text) ──
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(18.dp)
-                        ) {
-                            // Left: Massive Hero Numeral 14 with Flame Accent
-                            var isPaydayBadgePressed by remember { mutableStateOf(false) }
-                            val paydayBadgeShape = rememberExpressiveCardShape(isPaydayBadgePressed, defaultCorner = 24.dp, pressedCorner = 36.dp)
-
-                            Surface(
-                                shape = paydayBadgeShape,
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-                                modifier = Modifier
-                                    .padding(2.dp)
-                                    .pointerInput(Unit) {
-                                        detectTapGestures(
-                                            onPress = {
-                                                isPaydayBadgePressed = true
-                                                tryAwaitRelease()
-                                                isPaydayBadgePressed = false
-                                            }
-                                        )
-                                    }
-                            ) {
-                                Box(
-                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.LocalFireDepartment,
-                                            contentDescription = "Flame",
-                                            tint = MaterialTheme.colorScheme.tertiary,
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .graphicsLayer {
-                                                    scaleX = flameScale
-                                                    scaleY = flameScale
-                                                }
-                                        )
-                                        Text(
-                                            text = "${paydayInfo.daysRemaining}",
-                                            fontSize = 64.sp,
-                                            fontWeight = FontWeight.Black,
-                                            lineHeight = 64.sp,
-                                            letterSpacing = (-2).sp,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-
-                            // Right: Asymmetric Editorial Typography Stack
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = strings.daysTillPayday,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.5.sp,
-                                    color = MaterialTheme.colorScheme.tertiary
-                                )
-                                Text(
-                                    text = formattedTotalEarnings,
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = (-1).sp,
-                                    lineHeight = 32.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = strings.remainingCommandBalance,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        // ── Bottom: Full-Width Wavy Payday Timeline Track ──
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
+                            // ── Editorial Zine Hero Content (Peeking Numeral Badge + Typography Stack) ──
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Text(
-                                    text = "⚡ ${strings.paydayCountdownTimeline}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.sp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "${(paydayInfo.progressRatio * 100).toInt()}% ${strings.elapsed}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                // Left: Peeking Hero Flame Numeral Badge (Overhanging 10.dp outside left edge)
+                                var isPaydayBadgePressed by remember { mutableStateOf(false) }
+                                val paydayBadgeShape = rememberExpressiveCardShape(isPaydayBadgePressed, defaultCorner = 24.dp, pressedCorner = 36.dp)
+
+                                Surface(
+                                    shape = paydayBadgeShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                                    shadowElevation = 8.dp,
+                                    modifier = Modifier
+                                        .offset(x = (-10).dp)
+                                        .zIndex(2f)
+                                        .pointerInput(Unit) {
+                                            detectTapGestures(
+                                                onPress = {
+                                                    isPaydayBadgePressed = true
+                                                    tryAwaitRelease()
+                                                    isPaydayBadgePressed = false
+                                                }
+                                            )
+                                        }
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.LocalFireDepartment,
+                                                contentDescription = "Flame",
+                                                tint = MaterialTheme.colorScheme.tertiary,
+                                                modifier = Modifier
+                                                    .size(26.dp)
+                                                    .graphicsLayer {
+                                                        scaleX = flameScale
+                                                        scaleY = flameScale
+                                                    }
+                                            )
+                                            Text(
+                                                text = "${paydayInfo.daysRemaining}",
+                                                fontSize = 60.sp,
+                                                fontWeight = FontWeight.Black,
+                                                lineHeight = 60.sp,
+                                                letterSpacing = (-2).sp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Right: Asymmetric Editorial Typography Stack
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = strings.daysTillPayday,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 1.5.sp,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                    Text(
+                                        text = formattedTotalEarnings,
+                                        fontSize = 28.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = (-1).sp,
+                                        lineHeight = 32.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = strings.remainingCommandBalance,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            // ── Bottom: Full-Width Wavy Payday Timeline Track ──
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "⚡ ${strings.paydayCountdownTimeline}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 1.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "${(paydayInfo.progressRatio * 100).toInt()}% ${strings.elapsed}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                com.personal.kakeibox.ui.components.ExpressiveWavyProgressIndicator(
+                                    progress = paydayInfo.progressRatio,
+                                    strokeWidth = 8.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
-                            com.personal.kakeibox.ui.components.ExpressiveWavyProgressIndicator(
-                                progress = paydayInfo.progressRatio,
-                                strokeWidth = 8.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                modifier = Modifier.fillMaxWidth()
-                            )
                         }
                     }
                 }
