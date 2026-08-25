@@ -118,8 +118,6 @@ import com.personal.kakeibox.ui.settings.SettingsScreen
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.exercise.ExerciseScreen
 import com.personal.kakeibox.ui.components.ExpressiveAnimatedIcon
-import com.personal.kakeibox.ui.spend.SpendScreen
-import com.personal.kakeibox.ui.theme.spend.TransactionDetailScreen
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Offset

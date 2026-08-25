@@ -97,14 +97,9 @@ fun KakeiboXAppRoot() {
                     themeViewModel = themeViewModel,
                     onSetupComplete = { themeViewModel.setSetupComplete(true) }
                 )
-            } else if (!themeSettings.biometricEnabled || isAuthenticated) {
+            } else {
                 val windowSizeClass = calculateWindowSizeClass(context as Activity)
                 KakeiboXApp(windowSizeClass = windowSizeClass)
-            } else {
-                KakeiboXLockScreen(
-                    themeSettings = themeSettings,
-                    themeViewModel = themeViewModel
-                )
             }
         }
     }
