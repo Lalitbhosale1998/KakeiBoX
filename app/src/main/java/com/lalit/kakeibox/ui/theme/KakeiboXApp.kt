@@ -133,310 +133,7 @@ import kotlin.math.roundToInt
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.animation.SharedTransitionLayout
-@Composable
-fun TopNavSplitButton(
-    currentPage: Int,
-    onPageSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val haptic = LocalHapticFeedback.current
-    var isExpanded by remember { mutableStateOf(false) }
 
-    val themeSettings = LocalThemeSettings.current
-    val strings = getAppStrings(themeSettings.appLanguage)
-
-    val tabs = remember(strings) {
-        listOf(
-            Triple(0, strings.salary, Icons.Filled.Wallet),
-            Triple(1, strings.exercise, Icons.Filled.FitnessCenter),
-            Triple(2, strings.kotoba, Icons.Filled.Translate),
-            Triple(3, strings.settings, Icons.Filled.Settings)
-        )
-    }
-
-    val activeTab = tabs.find { it.first == currentPage } ?: tabs[0]
-    val remainingTabs = tabs.filter { it.first != currentPage }
-
-    // ── M3 Expressive Tab-Specific Shape Morphing ──────────────────────────
-    // Salary (0) = Classic Capsule | Exercise (1) = Ghost-ish 👻 | Kotoba (2) = Cookie/Torii ⛩️ | Settings (3) = Arch 🏛️
-    val targetTopStart = when (currentPage) {
-        0 -> 24.dp
-        1 -> 28.dp
-        2 -> 28.dp
-        else -> 28.dp
-    }
-    val targetTopEnd = when (currentPage) {
-        0 -> 24.dp
-        1 -> 28.dp
-        2 -> 8.dp
-        else -> 28.dp
-    }
-    val targetBottomStart = when (currentPage) {
-        0 -> 24.dp
-        1 -> 8.dp
-        2 -> 28.dp
-        else -> 6.dp
-    }
-    val targetBottomEnd = when (currentPage) {
-        0 -> 24.dp
-        1 -> 16.dp
-        2 -> 8.dp
-        else -> 6.dp
-    }
-
-    val fabTopStartAnim by animateDpAsState(targetValue = targetTopStart, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_ts")
-    val fabTopEndAnim by animateDpAsState(targetValue = targetTopEnd, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_te")
-    val fabBottomStartAnim by animateDpAsState(targetValue = targetBottomStart, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_bs")
-    val fabBottomEndAnim by animateDpAsState(targetValue = targetBottomEnd, animationSpec = spring(dampingRatio = 0.68f, stiffness = Spring.StiffnessLow), label = "fab_be")
-
-    // Continuous 360° rotation animation for Morphing FAB
-    val fabRotation by animateFloatAsState(
-        targetValue = currentPage * 360f + (if (isExpanded) 180f else 0f),
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "nav_fab_spin"
-    )
-
-    // Dynamic Corner Morphing: 32.dp when collapsed, 10.dp when expanded
-    val activeEndCorner by animateDpAsState(
-        targetValue = if (isExpanded) 10.dp else targetTopEnd,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "active_end_corner"
-    )
-
-    val rotationChevron by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessLow),
-        label = "top_nav_chevron_rot"
-    )
-
-    if (themeSettings.navBarStyle == NavBarStyle.EXPANDED_SEGMENTED) {
-        // 📱 Option B: Expanded M3 Segmented Bar (All 3 tabs visible at once)
-        Surface(
-            modifier = modifier
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(start = 16.dp, end = 16.dp, top = 10.dp),
-            shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
-            shadowElevation = 8.dp,
-            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                tabs.forEach { (index, title, icon) ->
-                    val isSelected = index == currentPage
-                    val tabScale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.03f else 1.0f,
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                        label = "tab_seg_s_$index"
-                    )
-
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .graphicsLayer {
-                                scaleX = tabScale
-                                scaleY = tabScale
-                            }
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onPageSelected(index)
-                            },
-                        shape = RoundedCornerShape(24.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                        border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)) else null
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = title,
-                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        // 🛸 Option A: Floating Capsule Dock with Morphing FAB
-        Surface(
-            modifier = modifier
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(start = 20.dp, end = 20.dp, top = 10.dp),
-            shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shadowElevation = 6.dp,
-            tonalElevation = 0.dp,
-            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(6.dp)
-            ) {
-                // ── Primary Action Button (Active Tab Display) ──
-                val activeShape = RoundedCornerShape(
-                    topStart = 32.dp,
-                    bottomStart = 32.dp,
-                    topEnd = activeEndCorner,
-                    bottomEnd = activeEndCorner
-                )
-
-                Surface(
-                    shape = activeShape,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-                    modifier = Modifier
-                        .clip(activeShape)
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            isExpanded = !isExpanded
-                        }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Icon(
-                            imageVector = activeTab.third,
-                            contentDescription = activeTab.second,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Toggle remaining tabs",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .graphicsLayer {
-                                    rotationZ = rotationChevron
-                                }
-                        )
-                    }
-                }
-
-                // ── Secondary Action Buttons (Remaining Tabs) ──
-                AnimatedVisibility(
-                    visible = isExpanded,
-                    enter = fadeIn() + expandHorizontally(
-                        expandFrom = Alignment.Start,
-                        clip = false,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    ),
-                    exit = fadeOut() + shrinkHorizontally(
-                        shrinkTowards = Alignment.Start,
-                        clip = false,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMedium
-                        )
-                    )
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.horizontalScroll(rememberScrollState())
-                    ) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        remainingTabs.forEachIndexed { index, tab ->
-                            val isLast = index == remainingTabs.size - 1
-                            val tabShape = RoundedCornerShape(
-                                topStart = 10.dp,
-                                bottomStart = 10.dp,
-                                topEnd = if (isLast) 32.dp else 10.dp,
-                                bottomEnd = if (isLast) 32.dp else 10.dp
-                            )
-
-                            Surface(
-                                shape = tabShape,
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                modifier = Modifier
-                                    .clip(tabShape)
-                                    .clickable {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        isExpanded = false
-                                        onPageSelected(tab.first)
-                                    }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = tab.third,
-                                        contentDescription = tab.second,
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                }
-                            }
-                            if (!isLast) {
-                                Spacer(modifier = Modifier.width(6.dp))
-                            }
-                        }
-                    }
-                }
-
-                // ── 🌀 Right Side 360° Counter-Rotating Morphing FAB ──
-                Spacer(modifier = Modifier.weight(1f))
-                Surface(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .rotate(fabRotation)
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            isExpanded = !isExpanded
-                        },
-                    shape = RoundedCornerShape(
-                        topStart = fabTopStartAnim,
-                        topEnd = fabTopEndAnim,
-                        bottomStart = fabBottomStartAnim,
-                        bottomEnd = fabBottomEndAnim
-                    ),
-                    color = MaterialTheme.colorScheme.primary,
-                    shadowElevation = 4.dp
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .rotate(-fabRotation),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isExpanded) Icons.Default.Close else Icons.Default.Menu,
-                            contentDescription = "Action FAB",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun ExpressiveActionLoadingFab(
@@ -728,189 +425,160 @@ fun KakeiboXApp(
             }
 
             // ── Top Left Screen Navigation Menu Pill ──
-            if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE) {
-                var isScreenMenuOpen by remember { mutableStateOf(false) }
+            var isScreenMenuOpen by remember { mutableStateOf(false) }
 
-                val spinAnim = remember { Animatable(0f) }
-                LaunchedEffect(pagerState.currentPage) {
-                    spinAnim.snapTo(0f)
-                    spinAnim.animateTo(
-                        targetValue = 360f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
+            val spinAnim = remember { Animatable(0f) }
+            LaunchedEffect(pagerState.currentPage) {
+                spinAnim.snapTo(0f)
+                spinAnim.animateTo(
+                    targetValue = 360f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
                     )
-                }
+                )
+            }
 
-                val targetTopStart by animateDpAsState(
-                    targetValue = when (pagerState.currentPage) {
-                        0 -> 22.dp
-                        1 -> 28.dp  // Salary: Clamshell
-                        2 -> 28.dp  // Exercise: Slanted
-                        3 -> 28.dp  // Kotoba: Arch
-                        4 -> 12.dp  // Settings: Rounded Box
-                        else -> 22.dp
-                    },
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-                    label = "menu_top_start"
-                )
-                val targetTopEnd by animateDpAsState(
-                    targetValue = when (pagerState.currentPage) {
-                        0 -> 22.dp
-                        1 -> 28.dp  // Salary: Clamshell
-                        2 -> 8.dp   // Exercise: Slanted
-                        3 -> 28.dp  // Kotoba: Arch
-                        4 -> 12.dp  // Settings: Rounded Box
-                        else -> 22.dp
-                    },
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-                    label = "menu_top_end"
-                )
-                val targetBottomEnd by animateDpAsState(
-                    targetValue = when (pagerState.currentPage) {
-                        0 -> 22.dp
-                        1 -> 28.dp  // Salary: Clamshell
-                        2 -> 28.dp  // Exercise: Slanted
-                        3 -> 6.dp   // Kotoba: Arch
-                        4 -> 12.dp  // Settings: Rounded Box
-                        else -> 22.dp
-                    },
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-                    label = "menu_bottom_end"
-                )
-                val targetBottomStart by animateDpAsState(
-                    targetValue = when (pagerState.currentPage) {
-                        0 -> 22.dp
-                        1 -> 8.dp   // Salary: Clamshell
-                        2 -> 8.dp   // Exercise: Slanted
-                        3 -> 6.dp   // Kotoba: Arch
-                        4 -> 12.dp  // Settings: Rounded Box
-                        else -> 22.dp
-                    },
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-                    label = "menu_bottom_start"
-                )
+            val targetTopStart by animateDpAsState(
+                targetValue = when (pagerState.currentPage) {
+                    0 -> 22.dp
+                    1 -> 28.dp  // Salary: Clamshell
+                    2 -> 28.dp  // Exercise: Slanted
+                    3 -> 28.dp  // Kotoba: Arch
+                    4 -> 12.dp  // Settings: Rounded Box
+                    else -> 22.dp
+                },
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                label = "menu_top_start"
+            )
+            val targetTopEnd by animateDpAsState(
+                targetValue = when (pagerState.currentPage) {
+                    0 -> 22.dp
+                    1 -> 28.dp  // Salary: Clamshell
+                    2 -> 8.dp   // Exercise: Slanted
+                    3 -> 28.dp  // Kotoba: Arch
+                    4 -> 12.dp  // Settings: Rounded Box
+                    else -> 22.dp
+                },
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                label = "menu_top_end"
+            )
+            val targetBottomEnd by animateDpAsState(
+                targetValue = when (pagerState.currentPage) {
+                    0 -> 22.dp
+                    1 -> 28.dp  // Salary: Clamshell
+                    2 -> 28.dp  // Exercise: Slanted
+                    3 -> 6.dp   // Kotoba: Arch
+                    4 -> 12.dp  // Settings: Rounded Box
+                    else -> 22.dp
+                },
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                label = "menu_bottom_end"
+            )
+            val targetBottomStart by animateDpAsState(
+                targetValue = when (pagerState.currentPage) {
+                    0 -> 22.dp
+                    1 -> 8.dp   // Salary: Clamshell
+                    2 -> 8.dp   // Exercise: Slanted
+                    3 -> 6.dp   // Kotoba: Arch
+                    4 -> 12.dp  // Settings: Rounded Box
+                    else -> 22.dp
+                },
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                label = "menu_bottom_start"
+            )
 
-                val menuShape = RoundedCornerShape(
-                    topStart = targetTopStart,
-                    topEnd = targetTopEnd,
-                    bottomEnd = targetBottomEnd,
-                    bottomStart = targetBottomStart
-                )
+            val menuShape = RoundedCornerShape(
+                topStart = targetTopStart,
+                topEnd = targetTopEnd,
+                bottomEnd = targetBottomEnd,
+                bottomStart = targetBottomStart
+            )
 
-                Row(
+            Row(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(top = 14.dp, start = 20.dp)
+                    .align(Alignment.TopStart),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
                     modifier = Modifier
-                        .statusBarsPadding()
-                        .padding(top = 14.dp, start = 20.dp)
-                        .align(Alignment.TopStart),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
+                        .rotate(spinAnim.value)
+                        .clip(menuShape)
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            isScreenMenuOpen = true
+                        },
+                    shape = menuShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    shadowElevation = 10.dp
                 ) {
-                    Surface(
-                        modifier = Modifier
-                            .rotate(spinAnim.value)
-                            .clip(menuShape)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                isScreenMenuOpen = true
-                            },
-                        shape = menuShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        shadowElevation = 10.dp
+                    Box(
+                        modifier = Modifier.rotate(-spinAnim.value),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier.rotate(-spinAnim.value),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            AnimatedContent(
-                                targetState = pagerState.currentPage,
-                                transitionSpec = {
-                                    (fadeIn(spring(stiffness = Spring.StiffnessMedium)) + scaleIn(initialScale = 0.6f))
-                                        .togetherWith(fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(targetScale = 0.6f))
-                                },
-                                label = "pill_content_morph"
-                            ) { page ->
-                                val icon = when (page) {
-                                    0 -> Icons.Default.Menu
-                                    1 -> Icons.Outlined.Wallet
-                                    2 -> Icons.Outlined.FitnessCenter
-                                    3 -> Icons.Default.Translate
-                                    4 -> Icons.Outlined.Settings
-                                    else -> Icons.Default.Menu
-                                }
-                                 val strings = com.personal.kakeibox.ui.theme.getAppStrings(themeSettings.appLanguage)
-                                 val labelText = when (page) {
-                                     0 -> strings.home.uppercase()
-                                     1 -> strings.salary.uppercase()
-                                     2 -> strings.exercise.uppercase()
-                                     3 -> strings.kotoba.uppercase()
-                                     4 -> strings.settings.uppercase()
-                                     else -> "MENU"
-                                 }
-                                Box(
-                                    modifier = Modifier.padding(12.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = "Open Navigation Menu",
-                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
+                        AnimatedContent(
+                            targetState = pagerState.currentPage,
+                            transitionSpec = {
+                                (fadeIn(spring(stiffness = Spring.StiffnessMedium)) + scaleIn(initialScale = 0.6f))
+                                    .togetherWith(fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(targetScale = 0.6f))
+                            },
+                            label = "pill_content_morph"
+                        ) { page ->
+                            val icon = when (page) {
+                                0 -> Icons.Default.Menu
+                                1 -> Icons.Outlined.Wallet
+                                2 -> Icons.Outlined.FitnessCenter
+                                3 -> Icons.Default.Translate
+                                4 -> Icons.Outlined.Settings
+                                else -> Icons.Default.Menu
+                            }
+                            Box(
+                                modifier = Modifier.padding(12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = "Open Navigation Menu",
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
                     }
                 }
+            }
 
-                if (isScreenMenuOpen) {
-                    com.personal.kakeibox.ui.components.ExpressiveEditorialMenuDrawer(
-                        isOpen = isScreenMenuOpen,
-                        onDismiss = { isScreenMenuOpen = false },
-                        onNavigateTab = { targetTab ->
-                            isScreenMenuOpen = false
-                            val pageIndex = when {
-                                targetTab.contains("home", ignoreCase = true) || targetTab.contains("overview", ignoreCase = true) -> 0
-                                targetTab.contains("salary", ignoreCase = true) || targetTab.contains("savings", ignoreCase = true) -> 1
-                                targetTab.contains("exercise", ignoreCase = true) || targetTab.contains("workout", ignoreCase = true) || targetTab.contains("gym", ignoreCase = true) -> 2
-                                targetTab.contains("kotoba", ignoreCase = true) || targetTab.contains("vocab", ignoreCase = true) || targetTab.contains("japanese", ignoreCase = true) -> 3
-                                targetTab.contains("settings", ignoreCase = true) || targetTab.contains("theme", ignoreCase = true) -> 4
-                                else -> 0
-                            }
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(pageIndex)
-                            }
-                        },
-                        onTogglePrivacyMode = { viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) },
-                        onAddEntry = {},
-                        onOpenThemeSettings = {
-                            isScreenMenuOpen = false
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(4)
-                            }
-                        },
-                        themeSettings = themeSettings
-                    )
-                }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .statusBarsPadding()
-                        .padding(top = 12.dp, start = 20.dp, end = 20.dp)
-                        .align(Alignment.TopStart),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TopNavSplitButton(
-                        currentPage = pagerState.currentPage,
-                        onPageSelected = { targetPage ->
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(targetPage)
-                            }
+            if (isScreenMenuOpen) {
+                com.personal.kakeibox.ui.components.ExpressiveEditorialMenuDrawer(
+                    isOpen = isScreenMenuOpen,
+                    onDismiss = { isScreenMenuOpen = false },
+                    onNavigateTab = { targetTab ->
+                        isScreenMenuOpen = false
+                        val pageIndex = when {
+                            targetTab.contains("home", ignoreCase = true) || targetTab.contains("overview", ignoreCase = true) -> 0
+                            targetTab.contains("salary", ignoreCase = true) || targetTab.contains("savings", ignoreCase = true) -> 1
+                            targetTab.contains("exercise", ignoreCase = true) || targetTab.contains("workout", ignoreCase = true) || targetTab.contains("gym", ignoreCase = true) -> 2
+                            targetTab.contains("kotoba", ignoreCase = true) || targetTab.contains("vocab", ignoreCase = true) || targetTab.contains("japanese", ignoreCase = true) -> 3
+                            targetTab.contains("settings", ignoreCase = true) || targetTab.contains("theme", ignoreCase = true) -> 4
+                            else -> 0
                         }
-                    )
-                }
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(pageIndex)
+                        }
+                    },
+                    onTogglePrivacyMode = { viewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) },
+                    onAddEntry = {},
+                    onOpenThemeSettings = {
+                        isScreenMenuOpen = false
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(4)
+                        }
+                    },
+                    themeSettings = themeSettings
+                )
             }
         }
     }
