@@ -236,7 +236,7 @@ fun SalaryFilterTabRow(
         shape = RoundedCornerShape(32.dp),
         color = containerBg,
         border = containerBorder,
-        shadowElevation = 6.dp,
+        shadowElevation = 0.dp,
         tonalElevation = 0.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -515,7 +515,7 @@ fun SalaryScreen(
                 // Header top spacing
                 item {
                     val isExpressive = themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE
-                    Spacer(modifier = Modifier.height(statusBarPadding + if (isExpressive) 14.dp else 76.dp))
+                    Spacer(modifier = Modifier.height(statusBarPadding + 64.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
@@ -602,239 +602,247 @@ fun SalaryScreen(
                     }
                 }
 
-                // ── Hero Section (M3 Expressive Carousel Peek) ──────────────
+                // ── SINGLE MONUMENTAL SALARY CANVAS SLATE (Unified Hero + Stats + Analytics) ──
                 item {
-                    AnimatedVisibility(
-                        visible = showHero,
-                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                        shadowElevation = 0.dp
                     ) {
-                        val currentCal = remember { java.util.Calendar.getInstance() }
-                        val currentYearVal = remember(currentCal) { currentCal.get(java.util.Calendar.YEAR) }
-                        val currentMonthVal = remember(currentCal) { currentCal.get(java.util.Calendar.MONTH) + 1 }
-
-                        val monthEntries = remember(allEntries, currentEntry, currentYearVal, currentMonthVal) {
-                            if (allEntries.isEmpty()) {
-                                listOf(
-                                    currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
-                                        id = -currentMonthVal,
-                                        year = currentYearVal,
-                                        month = currentMonthVal,
-                                        salaryAmount = 0L,
-                                        savingsAmount = 0L,
-                                        remittanceAmount = 0L,
-                                        remainingAmount = 0L,
-                                        note = ""
-                                    )
-                                )
-                            } else {
-                                val sortedReal = allEntries.sortedByDescending { it.year * 100 + it.month }
-                                val containsCurrent = sortedReal.any { it.month == currentMonthVal && it.year == currentYearVal }
-                                if (containsCurrent) {
-                                    sortedReal
-                                } else {
-                                    val currentPlaceholder = currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
-                                        id = -currentMonthVal,
-                                        year = currentYearVal,
-                                        month = currentMonthVal,
-                                        salaryAmount = 0L,
-                                        savingsAmount = 0L,
-                                        remittanceAmount = 0L,
-                                        remainingAmount = 0L,
-                                        note = ""
-                                    )
-                                    (listOf(currentPlaceholder) + sortedReal).sortedByDescending { it.year * 100 + it.month }
-                                }
-                            }
-                        }
-
-                        val initialPage = remember(monthEntries, currentMonthVal, currentYearVal) {
-                            val idx = monthEntries.indexOfFirst { it.month == currentMonthVal && it.year == currentYearVal }
-                            if (idx >= 0) idx else 0
-                        }
-
-                        val pagerState = rememberPagerState(
-                            initialPage = initialPage,
-                            pageCount = { monthEntries.size }
-                        )
-
-                        HorizontalPager(
-                            state = pagerState,
-                            contentPadding = PaddingValues(horizontal = 14.dp),
-                            pageSpacing = 10.dp,
-                            userScrollEnabled = monthEntries.size > 1,
-                            modifier = Modifier.fillMaxWidth()
-                        ) { page ->
-                            val entry = monthEntries[page]
-                            val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                            val absPageOffset = kotlin.math.abs(pageOffset)
-                            val cardScale = 1f - (absPageOffset * 0.12f).coerceAtMost(0.18f)
-                            val cardAlpha = 1f - (absPageOffset * 0.35f).coerceAtMost(0.5f)
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .graphicsLayer {
-                                        scaleX = cardScale
-                                        scaleY = cardScale
-                                        alpha = cardAlpha
-                                    }
-                            ) {
-                                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE) {
-                                    com.personal.kakeibox.ui.components.ExpressiveEditorialPosterCard(
-                                        totalSalary = totalSalary ?: 0L,
-                                        thisMonthSalary = entry.salaryAmount,
-                                        currentEntry = entry,
-                                        isPrivacyMode = themeSettings.privacyModeEnabled,
-                                        onEdit = {
-                                            if (entry.id > 0) viewModel.openEditDialog(entry)
-                                            else viewModel.openAddDialog()
-                                        },
-                                        themeSettings = themeSettings,
-                                        onTogglePrivacyMode = { themeViewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) }
-                                    )
-                                } else {
-                                    AuraExpressiveHeroCard(
-                                        totalSalary = totalSalary ?: 0L,
-                                        thisMonthSalary = entry.salaryAmount,
-                                        currentEntry = entry,
-                                        isPrivacyMode = themeSettings.privacyModeEnabled,
-                                        onEdit = {
-                                            if (entry.id > 0) viewModel.openEditDialog(entry)
-                                            else viewModel.openAddDialog()
-                                        },
-                                        isPrimaryContainer = isPrimaryContainer,
-                                        themeSettings = themeSettings
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // ── Detailed Stats ───────────
-                item {
-                    AnimatedVisibility(
-                        visible = showStats,
-                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
-                    ) {
-                        ExpressiveStatsGrid(
-                            totalSavings = totalSavings ?: 0L,
-                            totalRemittance = totalRemittance ?: 0L,
-                            isPrivacyMode = themeSettings.privacyModeEnabled,
-                            onRemittanceClick = { viewModel.openAddDialog() },
-                            bentoIdleColor = bentoIdleColor,
-                            themeSettings = themeSettings
-                        )
-                    }
-                }
-
-                // ── Interactive Analytics (Bar Chart Selector) ──
-                item {
-                    AnimatedVisibility(
-                        visible = showStats,
-                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
-                    ) {
-                        InteractiveAnalyticsChart(
-                            entries = allEntries,
-                            isPrivacyMode = themeSettings.privacyModeEnabled,
-                            themeSettings = themeSettings,
-                            onMonthSelected = { entry ->
-                                viewModel.openEditDialog(entry)
-                            }
-                        )
-                    }
-                }
-
-                // ── Salary Projection Sandbox ──
-                item {
-                    val averageSalary = remember(allEntries) {
-                        if (allEntries.isNotEmpty()) allEntries.map { it.salaryAmount }.average().toLong() else 0L
-                    }
-                    if (averageSalary > 0) {
-                        AnimatedVisibility(
-                            visible = showStats,
-                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
-                            SalaryProjectionSandbox(
-                                averageSalary = averageSalary,
-                                themeSettings = themeSettings
-                            )
+                            // ── MODULE 1: HERO POSTER CAROUSEL ──
+                            AnimatedVisibility(
+                                visible = showHero,
+                                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                            ) {
+                                val currentCal = remember { java.util.Calendar.getInstance() }
+                                val currentYearVal = remember(currentCal) { currentCal.get(java.util.Calendar.YEAR) }
+                                val currentMonthVal = remember(currentCal) { currentCal.get(java.util.Calendar.MONTH) + 1 }
+
+                                val monthEntries = remember(allEntries, currentEntry, currentYearVal, currentMonthVal) {
+                                    if (allEntries.isEmpty()) {
+                                        listOf(
+                                            currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
+                                                id = -currentMonthVal,
+                                                year = currentYearVal,
+                                                month = currentMonthVal,
+                                                salaryAmount = 0L,
+                                                savingsAmount = 0L,
+                                                remittanceAmount = 0L,
+                                                remainingAmount = 0L,
+                                                note = ""
+                                            )
+                                        )
+                                    } else {
+                                        val sortedReal = allEntries.sortedByDescending { it.year * 100 + it.month }
+                                        val containsCurrent = sortedReal.any { it.month == currentMonthVal && it.year == currentYearVal }
+                                        if (containsCurrent) {
+                                            sortedReal
+                                        } else {
+                                            val currentPlaceholder = currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
+                                                id = -currentMonthVal,
+                                                year = currentYearVal,
+                                                month = currentMonthVal,
+                                                salaryAmount = 0L,
+                                                savingsAmount = 0L,
+                                                remittanceAmount = 0L,
+                                                remainingAmount = 0L,
+                                                note = ""
+                                            )
+                                            (listOf(currentPlaceholder) + sortedReal).sortedByDescending { it.year * 100 + it.month }
+                                        }
+                                    }
+                                }
+
+                                val initialPage = remember(monthEntries, currentMonthVal, currentYearVal) {
+                                    val idx = monthEntries.indexOfFirst { it.month == currentMonthVal && it.year == currentYearVal }
+                                    if (idx >= 0) idx else 0
+                                }
+
+                                val pagerState = rememberPagerState(
+                                    initialPage = initialPage,
+                                    pageCount = { monthEntries.size }
+                                )
+
+                                HorizontalPager(
+                                    state = pagerState,
+                                    contentPadding = PaddingValues(horizontal = 4.dp),
+                                    pageSpacing = 10.dp,
+                                    userScrollEnabled = monthEntries.size > 1,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { page ->
+                                    val entry = monthEntries[page]
+                                    val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                                    val absPageOffset = kotlin.math.abs(pageOffset)
+                                    val cardScale = 1f - (absPageOffset * 0.12f).coerceAtMost(0.18f)
+                                    val cardAlpha = 1f - (absPageOffset * 0.35f).coerceAtMost(0.5f)
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .graphicsLayer {
+                                                scaleX = cardScale
+                                                scaleY = cardScale
+                                                alpha = cardAlpha
+                                            }
+                                    ) {
+                                        if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE) {
+                                            com.personal.kakeibox.ui.components.ExpressiveEditorialPosterCard(
+                                                totalSalary = totalSalary ?: 0L,
+                                                thisMonthSalary = entry.salaryAmount,
+                                                currentEntry = entry,
+                                                isPrivacyMode = themeSettings.privacyModeEnabled,
+                                                onEdit = {
+                                                    if (entry.id > 0) viewModel.openEditDialog(entry)
+                                                    else viewModel.openAddDialog()
+                                                },
+                                                themeSettings = themeSettings,
+                                                onTogglePrivacyMode = { themeViewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) }
+                                            )
+                                        } else {
+                                            AuraExpressiveHeroCard(
+                                                totalSalary = totalSalary ?: 0L,
+                                                thisMonthSalary = entry.salaryAmount,
+                                                currentEntry = entry,
+                                                isPrivacyMode = themeSettings.privacyModeEnabled,
+                                                onEdit = {
+                                                    if (entry.id > 0) viewModel.openEditDialog(entry)
+                                                    else viewModel.openAddDialog()
+                                                },
+                                                isPrimaryContainer = isPrimaryContainer,
+                                                themeSettings = themeSettings
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // ── MODULE 2: STATS OVERVIEW GRID ──
+                            AnimatedVisibility(
+                                visible = showStats,
+                                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                            ) {
+                                ExpressiveStatsGrid(
+                                    totalSavings = totalSavings ?: 0L,
+                                    totalRemittance = totalRemittance ?: 0L,
+                                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                                    onRemittanceClick = { viewModel.openAddDialog() },
+                                    bentoIdleColor = bentoIdleColor,
+                                    themeSettings = themeSettings
+                                )
+                            }
+
+                            // ── MODULE 3: INTERACTIVE ANALYTICS BAR CHART ──
+                            AnimatedVisibility(
+                                visible = showStats,
+                                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                            ) {
+                                InteractiveAnalyticsChart(
+                                    entries = allEntries,
+                                    isPrivacyMode = themeSettings.privacyModeEnabled,
+                                    themeSettings = themeSettings,
+                                    onMonthSelected = { entry ->
+                                        viewModel.openEditDialog(entry)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
 
-                // ── History Header & Filters ──
+
+
+                // ── SINGLE BANK PASSBOOK LEDGER SLATE CONTAINER (通帳 Style) ──
                 item {
+                    val filteredEntries = when (uiState.currentFilter) {
+                        SalaryFilter.ALL -> allEntries
+                        SalaryFilter.THIS_YEAR -> allEntries.filter { it.year == DateUtils.getCurrentYear() }
+                        SalaryFilter.HIGH_SAVINGS -> allEntries.filter { 
+                            it.salaryAmount > 0 && (it.savingsAmount.toFloat() / it.salaryAmount) >= 0.25f 
+                        }
+                    }
+
                     AnimatedVisibility(
                         visible = showHistory,
                         enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
                                 slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = strings.history,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Black
-                                )
-                                TextButton(onClick = { viewModel.toggleHistorySheet() }) {
-                                    Text(strings.seeAll)
-                                }
-                            }
-                            
-                            SalaryFilterTabRow(
-                                selectedFilter = uiState.currentFilter,
-                                onFilterSelected = { viewModel.setFilter(it) },
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
-                            )
-                        }
-                    }
-                }
-
-                // ── History List (Animate Item Transitions) ──
-                val filteredEntries = when (uiState.currentFilter) {
-                    SalaryFilter.ALL -> allEntries
-                    SalaryFilter.THIS_YEAR -> allEntries.filter { it.year == DateUtils.getCurrentYear() }
-                    SalaryFilter.HIGH_SAVINGS -> allEntries.filter { 
-                        it.salaryAmount > 0 && (it.savingsAmount.toFloat() / it.salaryAmount) >= 0.25f 
-                    }
-                }
-
-                if (filteredEntries.isEmpty()) {
-                    item {
-                        ExpressiveEmptyState(
-                            message = "No records found",
-                            icon = "🔍",
-                            color = onContainerColor
-                        )
-                    }
-                } else {
-                    items(
-                        items = filteredEntries.take(6),
-                        key = { it.id }
-                    ) { entry ->
-                        ExpressiveHistoryBentoBox(
-                            entry = entry,
-                            isPrivacyMode = themeSettings.privacyModeEnabled,
-                            onEdit = { viewModel.openEditDialog(entry) },
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .animateItem(
-                                    placementSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
+                                .padding(horizontal = 4.dp, vertical = 4.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                            shadowElevation = 0.dp
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(18.dp)
+                            ) {
+                                // Header inside Slate: Passbook Ledger Title + See All Button
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = strings.history,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Black
                                     )
-                                ),
-                            themeSettings = themeSettings
-                        )
+                                    TextButton(onClick = { viewModel.toggleHistorySheet() }) {
+                                        Text(strings.seeAll, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+
+                                SalaryFilterTabRow(
+                                    selectedFilter = uiState.currentFilter,
+                                    onFilterSelected = { viewModel.setFilter(it) },
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                if (filteredEntries.isEmpty()) {
+                                    ExpressiveEmptyState(
+                                        message = "No records found",
+                                        icon = "🔍",
+                                        color = onContainerColor
+                                    )
+                                } else {
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        filteredEntries.take(6).forEach { entry ->
+                                            ExpressiveHistoryBentoBox(
+                                                entry = entry,
+                                                isPrivacyMode = themeSettings.privacyModeEnabled,
+                                                onEdit = { viewModel.openEditDialog(entry) },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                themeSettings = themeSettings
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2145,12 +2153,12 @@ fun ExpressiveHistoryBentoBox(
     )
 
     val shadowElevationAnimated by animateDpAsState(
-        targetValue = if (isExpanded) 16.dp else 8.dp,
+        targetValue = 0.dp,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
         label = "shadow_elevation_anim"
     )
     val tonalElevationAnimated by animateDpAsState(
-        targetValue = if (isExpanded) 8.dp else 4.dp,
+        targetValue = 0.dp,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
         label = "tonal_elevation_anim"
     )
@@ -2168,10 +2176,10 @@ fun ExpressiveHistoryBentoBox(
                         animatedVisibilityScope = this@AnimatedContent
                     ),
                 shape = cardShape,
-                tonalElevation = tonalElevationAnimated,
-                shadowElevation = shadowElevationAnimated,
-                color = if (expanded) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+                color = if (expanded) MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.35f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (expanded) 0.3f else 0.2f)),
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     isExpanded = !isExpanded
@@ -2240,8 +2248,6 @@ fun ExpressiveHistoryBentoBox(
                                 .padding(bottom = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 val strings = getAppStrings(themeSettings.appLanguage)
                                 Row(
@@ -2708,7 +2714,7 @@ fun ExpressiveAddEditSheet(
         Surface(
             color = if (isSalaryFocused) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = RoundedCornerShape(28.dp),
-            shadowElevation = salaryElevation,
+            shadowElevation = 0.dp,
             tonalElevation = 0.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -3339,11 +3345,11 @@ fun InteractiveAnalyticsChart(
     }
 
     Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        shadowElevation = 8.dp,
-        tonalElevation = 4.dp,
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -3505,175 +3511,7 @@ fun InteractiveAnalyticsChart(
     }
 }
 
-@Composable
-fun SalaryProjectionSandbox(averageSalary: Long, themeSettings: ThemeSettings) {
-    val haptic = LocalHapticFeedback.current
-    val strings = getAppStrings(themeSettings.appLanguage)
-    val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
-    var savingsRate by remember { mutableStateOf(20f) }
 
-    val annualSavings = (averageSalary * (savingsRate / 100f) * 12).toLong()
-    val monthlyRemaining = (averageSalary * (1f - savingsRate / 100f)).toLong()
-
-    val motivationText = when {
-        savingsRate < 10f -> if (isJapanese) "シミュレーション: 予算制限モード 📉" else "Simulation: Budget constraints 📉"
-        savingsRate < 25f -> strings.balancedSplit
-        savingsRate < 40f -> if (isJapanese) "シミュレーション: 資産ビルドモード 🚀" else "Simulation: Wealth builder mode 🚀"
-        else -> if (isJapanese) "シミュレーション: 高貯蓄チャンピオン 🏆" else "Simulation: Hyper-savings champion 🏆"
-    }
-
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        shadowElevation = 8.dp,
-        tonalElevation = 4.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = strings.salaryAllocationPlayground,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
-                letterSpacing = 2.0.sp,
-                modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
-            )
-
-            Text(
-                text = strings.allocationDesc,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
-            )
-
-            // Slider Row
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "${savingsRate.toInt()}%",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.width(48.dp)
-                )
-
-                Slider(
-                    value = savingsRate,
-                    onValueChange = { newValue -> 
-                        val newInt = newValue.toInt()
-                        val oldInt = savingsRate.toInt()
-                        if (newInt != oldInt) {
-                            if (newInt % 5 == 0) {
-                                if (newInt == 50 || newInt == 100) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                } else {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                }
-                            }
-                        }
-                        savingsRate = newValue
-                    },
-                    valueRange = 0f..100f,
-                    modifier = Modifier.weight(1f),
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Projections grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Annual accumulation block
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = strings.projectedAnnualSavings,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 8.sp,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = CurrencyUtils.formatAmount(annualSavings, themeSettings.currencySymbol, false),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                // Remaining monthly block
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = strings.estDisposableIncome,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 8.sp,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = CurrencyUtils.formatAmount(monthlyRemaining, themeSettings.currencySymbol, false),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Advice Pill
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Lightbulb,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = motivationText,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
-        }
-    }
-}
 
 fun Color.harmonizeWith(primary: Color): Color {
     val resultColorInt = com.google.android.material.color.MaterialColors.harmonize(this.toArgb(), primary.toArgb())

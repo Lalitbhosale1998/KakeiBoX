@@ -298,7 +298,7 @@ fun HomeScreen(
                         shape = liveGaugeShape,
                         color = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
-                        shadowElevation = 6.dp,
+                        shadowElevation = 0.dp,
                         border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer),
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -395,7 +395,7 @@ fun HomeScreen(
                                         shape = paydayBadgeShape,
                                         color = MaterialTheme.colorScheme.primaryContainer,
                                         border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
-                                        shadowElevation = 4.dp,
+                                        shadowElevation = 0.dp,
                                         modifier = Modifier
                                             .offset(x = (-10).dp)
                                             .zIndex(2f)
@@ -779,7 +779,7 @@ fun HomeScreen(
                                                 },
                                             shape = TicketNotchShape,
                                             color = MaterialTheme.colorScheme.secondaryContainer,
-                                            shadowElevation = 4.dp
+                                            shadowElevation = 0.dp
                                         ) {
                                             Row(
                                                 modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
@@ -813,7 +813,7 @@ fun HomeScreen(
                                                 },
                                             shape = TicketNotchShape,
                                             color = MaterialTheme.colorScheme.secondaryContainer,
-                                            shadowElevation = 4.dp
+                                            shadowElevation = 0.dp
                                         ) {
                                             Row(
                                                 modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
@@ -847,7 +847,7 @@ fun HomeScreen(
                                                 },
                                             shape = TicketNotchShape,
                                             color = neonMint,
-                                            shadowElevation = 4.dp
+                                            shadowElevation = 0.dp
                                         ) {
                                             Row(
                                                 modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),

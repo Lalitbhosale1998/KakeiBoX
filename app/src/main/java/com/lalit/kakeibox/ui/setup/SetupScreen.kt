@@ -189,7 +189,7 @@ fun SetupScreen(
                     shape = RoundedCornerShape(50),
                     color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.94f),
                     border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-                    shadowElevation = 14.dp
+                    shadowElevation = 0.dp
                 ) {
                     Row(
                         modifier = Modifier
@@ -242,7 +242,7 @@ fun SetupScreen(
                                 bottomEnd = bottomEndAnim
                             ),
                             color = MaterialTheme.colorScheme.primary,
-                            shadowElevation = 6.dp
+                            shadowElevation = 0.dp
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),

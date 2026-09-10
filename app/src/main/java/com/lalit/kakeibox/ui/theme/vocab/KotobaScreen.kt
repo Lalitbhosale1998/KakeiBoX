@@ -1062,7 +1062,7 @@ fun VocabCardItem(
             if (entry.isStarred) 2.dp else 1.dp,
             if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
         ),
-        shadowElevation = 4.dp
+        shadowElevation = 0.dp
     ) {
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
@@ -1275,7 +1275,7 @@ fun ExpressiveVocabDetailView(
                 if (entry.isStarred) 2.dp else 1.dp,
                 if (entry.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
             ),
-            shadowElevation = 24.dp
+            shadowElevation = 0.dp
         ) {
             Column(
                 modifier = Modifier

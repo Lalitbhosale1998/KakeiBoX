@@ -382,8 +382,8 @@ fun SettingsScreen(
             Surface(
                 shape = RoundedCornerShape(percent = 50),
                 color = bentoIdleColor,
-                tonalElevation = 4.dp,
-                shadowElevation = 6.dp,
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
                 border = BorderStroke(1.dp, searchBorderColor),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -528,7 +528,6 @@ fun SettingsScreen(
                                         onOptionSelected = { viewModel.setDarkThemePreference(it) },
                                         accentColor = Color(0xFF3B82F6)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsToggleRow(
                                         title = strings.dynamicColorTint,
                                         description = strings.extractAccentWallpaper,
@@ -539,7 +538,6 @@ fun SettingsScreen(
                                     )
 
                                     if (!themeSettings.useDynamicColor) {
-                                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                         var currentHue by remember(themeSettings.dynamicColorChromaScale) {
                                             mutableFloatStateOf(themeSettings.dynamicColorChromaScale * 360f)
                                         }
@@ -590,7 +588,6 @@ fun SettingsScreen(
                                         }
                                     }
 
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
                                         title = "Launch Setup Wizard 🪄",
                                         description = "Re-run the M3 Expressive onboarding flow",
@@ -645,7 +642,6 @@ fun SettingsScreen(
                                         selectedOption = themeSettings.appLanguage,
                                         accentColor = Color(0xFF10B981)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsSelectorRow(
                                         title = strings.currencySymbol,
                                         description = strings.defineCurrencyDesc,
@@ -679,7 +675,6 @@ fun SettingsScreen(
                                         onCheckedChange = { viewModel.setPrivacyModeEnabled(it) },
                                         accentColor = Color(0xFF64748B)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsToggleRow(
                                         title = strings.biometricLockGuard,
                                         description = strings.protectAccountBiometrics,
@@ -702,7 +697,6 @@ fun SettingsScreen(
                                         },
                                         accentColor = Color(0xFF4F46E5)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
                                         title = strings.restoreDatabase,
                                         description = strings.importBackupDbFile,
@@ -714,7 +708,6 @@ fun SettingsScreen(
                                         },
                                         accentColor = Color(0xFF7C3AED)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
                                         title = strings.exportFinancialHistory,
                                         description = strings.downloadCsvHistory,
@@ -746,7 +739,6 @@ fun SettingsScreen(
                                         onClick = {},
                                         accentColor = Color(0xFF475569)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
                                         title = strings.aboutDeveloper,
                                         description = strings.aboutDeveloperDesc,
@@ -754,7 +746,6 @@ fun SettingsScreen(
                                         onClick = {},
                                         accentColor = Color(0xFFF59E0B)
                                     )
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                                     SettingsActionRow(
                                         title = strings.aboutGithub,
                                         description = strings.aboutGithubDesc,
@@ -964,9 +955,6 @@ fun SettingsScreen(
                             )
                         }
                         if (shouldShow("GitHub")) {
-                            if (shouldShow("Version") || shouldShow("Developer")) {
-                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-                            }
                             SettingsActionRow(
                                 title = stringResource(R.string.about_github),
                                 description = stringResource(R.string.about_github_desc),
@@ -1262,8 +1250,8 @@ fun SettingsCategoryCard(
         contentColor = contentColor,
         shape = cardShape,
         border = cardBorder,
-        shadowElevation = 8.dp,
-        tonalElevation = 4.dp
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -2144,8 +2132,8 @@ private fun BentoNavTile(
         shape = tileShape,
         color = containerColor,
         border = BorderStroke(if (isSelected) 1.5.dp else 1.dp, borderColor),
-        shadowElevation = if (isSelected) 6.dp else 2.dp,
-        tonalElevation = if (isSelected) 4.dp else 1.dp
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
@@ -2202,9 +2190,8 @@ fun SettingsGroup(
     content: @Composable ColumnScope.() -> Unit
 ) {
     var isPressed by remember { mutableStateOf(false) }
-    val expressiveShape = com.personal.kakeibox.ui.components.rememberExpressiveCardShape(isPressed = isPressed)
     val cardScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1.0f,
+        targetValue = if (isPressed) 0.985f else 1.0f,
         animationSpec = com.personal.kakeibox.ui.theme.ExpressivePhysics.fluidSnappy(),
         label = "group_card_scale"
     )
@@ -2239,10 +2226,10 @@ fun SettingsGroup(
                     )
                 },
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            shape = expressiveShape,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-            shadowElevation = 6.dp,
-            tonalElevation = 3.dp
+            shape = RoundedCornerShape(28.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+            shadowElevation = 0.dp,
+            tonalElevation = 0.dp
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),

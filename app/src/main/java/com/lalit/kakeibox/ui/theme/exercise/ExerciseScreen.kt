@@ -645,7 +645,7 @@ fun RestDayDashboard(
                                 scaleY = s
                             }
                             .size(90.dp),
-                        shadowElevation = 8.dp
+                        shadowElevation = 0.dp
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -1250,8 +1250,6 @@ fun WorkoutItemCard(
 
             // Expanded section
             if (isExpanded) {
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
                 Spacer(modifier = Modifier.height(12.dp))
 
                 if (exercise.description.isNotBlank()) {

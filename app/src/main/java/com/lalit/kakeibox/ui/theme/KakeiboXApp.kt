@@ -263,15 +263,7 @@ fun TopNavSplitButton(
                                 imageVector = icon,
                                 contentDescription = title,
                                 tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     }
@@ -315,7 +307,7 @@ fun TopNavSplitButton(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -330,18 +322,7 @@ fun TopNavSplitButton(
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = activeTab.second,
-                            maxLines = 1,
-                            softWrap = false,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.ExtraBold
-                            ),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Toggle remaining tabs",
@@ -402,20 +383,13 @@ fun TopNavSplitButton(
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                                 ) {
                                     Icon(
                                         imageVector = tab.third,
                                         contentDescription = tab.second,
                                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                         modifier = Modifier.size(22.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = tab.second,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 }
                             }
@@ -772,10 +746,10 @@ fun KakeiboXApp(
                 val targetTopStart by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
                         0 -> 22.dp
-                        1 -> 28.dp
-                        2 -> 8.dp
-                        3 -> 28.dp
-                        4 -> 12.dp
+                        1 -> 28.dp  // Salary: Clamshell
+                        2 -> 28.dp  // Exercise: Slanted
+                        3 -> 28.dp  // Kotoba: Arch
+                        4 -> 12.dp  // Settings: Rounded Box
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -784,10 +758,10 @@ fun KakeiboXApp(
                 val targetTopEnd by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
                         0 -> 22.dp
-                        1 -> 8.dp
-                        2 -> 28.dp
-                        3 -> 28.dp
-                        4 -> 12.dp
+                        1 -> 28.dp  // Salary: Clamshell
+                        2 -> 8.dp   // Exercise: Slanted
+                        3 -> 28.dp  // Kotoba: Arch
+                        4 -> 12.dp  // Settings: Rounded Box
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -796,10 +770,10 @@ fun KakeiboXApp(
                 val targetBottomEnd by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
                         0 -> 22.dp
-                        1 -> 28.dp
-                        2 -> 8.dp
-                        3 -> 6.dp
-                        4 -> 12.dp
+                        1 -> 28.dp  // Salary: Clamshell
+                        2 -> 28.dp  // Exercise: Slanted
+                        3 -> 6.dp   // Kotoba: Arch
+                        4 -> 12.dp  // Settings: Rounded Box
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -808,10 +782,10 @@ fun KakeiboXApp(
                 val targetBottomStart by animateDpAsState(
                     targetValue = when (pagerState.currentPage) {
                         0 -> 22.dp
-                        1 -> 8.dp
-                        2 -> 28.dp
-                        3 -> 6.dp
-                        4 -> 12.dp
+                        1 -> 8.dp   // Salary: Clamshell
+                        2 -> 8.dp   // Exercise: Slanted
+                        3 -> 6.dp   // Kotoba: Arch
+                        4 -> 12.dp  // Settings: Rounded Box
                         else -> 22.dp
                     },
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
@@ -874,24 +848,15 @@ fun KakeiboXApp(
                                      4 -> strings.settings.uppercase()
                                      else -> "MENU"
                                  }
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                Box(
+                                    modifier = Modifier.padding(12.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = icon,
-                                        contentDescription = labelText,
+                                        contentDescription = "Open Navigation Menu",
                                         tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Text(
-                                        text = labelText,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Black,
-                                        letterSpacing = 1.5.sp,
-                                        color = MaterialTheme.colorScheme.onPrimary
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                             }

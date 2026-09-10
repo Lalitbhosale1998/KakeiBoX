@@ -102,28 +102,13 @@ fun ExpressiveEditorialMenuDrawer(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Text(
-                                text = "🧭 ${strings.kineticNexus}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = strings.portalHeader,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp,
-                            color = onSurfaceColor.copy(alpha = 0.6f)
-                        )
-                    }
+                    Text(
+                        text = strings.portalHeader,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = onSurfaceColor.copy(alpha = 0.6f)
+                    )
 
                     Surface(
                         modifier = Modifier
@@ -149,185 +134,278 @@ fun ExpressiveEditorialMenuDrawer(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ── 2. Monumental Dual-Language Bento Navigation Cards ──
-                Column(
+                // ── 2. Master Monolithic Navigation Slate Container (Snug Wrap Content, 0.dp Shadow) ──
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                        .wrapContentHeight(),
+                    shape = RoundedCornerShape(28.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                    shadowElevation = 0.dp,
+                    tonalElevation = 0.dp
                 ) {
-                    val hiddenTabs = themeSettings.hiddenTabs
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        val hiddenTabs = themeSettings.hiddenTabs
 
-                    EditorialBentoCard(
-                        index = "01",
-                        kanjiHero = "統括",
-                        title = strings.homeOverviewSub,
-                        subtitle = strings.cmdDashboardSub,
-                        icon = Icons.Default.Home,
-                        onClick = {
-                            onNavigateTab("home")
-                            onDismiss()
+                        EditorialBentoCard(
+                            index = "01",
+                            kanjiHero = "統括",
+                            title = strings.homeOverviewSub,
+                            subtitle = strings.cmdDashboardSub,
+                            icon = Icons.Default.Home,
+                            onClick = {
+                                onNavigateTab("home")
+                                onDismiss()
+                            }
+                        )
+
+                        if (!hiddenTabs.contains("salary")) {
+                            EditorialBentoCard(
+                                index = "02",
+                                kanjiHero = "資産",
+                                title = strings.salSavingsSub,
+                                subtitle = strings.finNexusSub,
+                                icon = Icons.Default.AccountBalance,
+                                onClick = {
+                                    onNavigateTab("salary")
+                                    onDismiss()
+                                }
+                            )
                         }
-                    )
 
-                    if (!hiddenTabs.contains("salary")) {
-                        EditorialBentoCard(
-                            index = "02",
-                            kanjiHero = "資産",
-                            title = strings.salSavingsSub,
-                            subtitle = strings.finNexusSub,
-                            icon = Icons.Default.AccountBalance,
-                            onClick = {
-                                onNavigateTab("salary")
-                                onDismiss()
-                            }
-                        )
-                    }
-
-                    if (!hiddenTabs.contains("exercise")) {
-                        EditorialBentoCard(
-                            index = "03",
-                            kanjiHero = "鍛錬",
-                            title = strings.workGymSub,
-                            subtitle = strings.athForgeSub,
-                            icon = Icons.Default.FitnessCenter,
-                            onClick = {
-                                onNavigateTab("exercise")
-                                onDismiss()
-                            }
-                        )
-                    }
-
-                    if (!hiddenTabs.contains("kotoba")) {
-                        EditorialBentoCard(
-                            index = "04",
-                            kanjiHero = "言葉",
-                            title = strings.japKotobaSub,
-                            subtitle = strings.vocabDeckSub,
-                            icon = Icons.Default.Translate,
-                            onClick = {
-                                onNavigateTab("kotoba")
-                                onDismiss()
-                            }
-                        )
-                    }
-
-                    EditorialBentoCard(
-                        index = "05",
-                        kanjiHero = "美学",
-                        title = strings.themeStudioSub,
-                        subtitle = strings.aesCustomSub,
-                        icon = Icons.Default.Palette,
-                        onClick = {
-                            onOpenThemeSettings()
-                            onDismiss()
+                        if (!hiddenTabs.contains("exercise")) {
+                            EditorialBentoCard(
+                                index = "03",
+                                kanjiHero = "鍛錬",
+                                title = strings.workGymSub,
+                                subtitle = strings.athForgeSub,
+                                icon = Icons.Default.FitnessCenter,
+                                onClick = {
+                                    onNavigateTab("exercise")
+                                    onDismiss()
+                                }
+                            )
                         }
-                    )
+
+                        if (!hiddenTabs.contains("kotoba")) {
+                            EditorialBentoCard(
+                                index = "04",
+                                kanjiHero = "言葉",
+                                title = strings.japKotobaSub,
+                                subtitle = strings.vocabDeckSub,
+                                icon = Icons.Default.Translate,
+                                onClick = {
+                                    onNavigateTab("kotoba")
+                                    onDismiss()
+                                }
+                            )
+                        }
+
+                        EditorialBentoCard(
+                            index = "05",
+                            kanjiHero = "美学",
+                            title = strings.themeStudioSub,
+                            subtitle = strings.aesCustomSub,
+                            icon = Icons.Default.Palette,
+                            onClick = {
+                                onOpenThemeSettings()
+                                onDismiss()
+                            }
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ── 3. Floating Dynamic Control Capsule Dock ──
+                // ── 3. Japandi Flat Control Slate with Dynamic Shape Morphing (0.dp Shadow) ──
+                var isPrivacyPressed by remember { mutableStateOf(false) }
+                var isClosePressed by remember { mutableStateOf(false) }
+
+                val privacyTopStart by animateDpAsState(
+                    targetValue = when {
+                        isPrivacyPressed -> 28.dp
+                        themeSettings.privacyModeEnabled -> 26.dp
+                        else -> 18.dp
+                    },
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "privacy_top_start"
+                )
+                val privacyTopEnd by animateDpAsState(
+                    targetValue = when {
+                        isPrivacyPressed -> 10.dp
+                        themeSettings.privacyModeEnabled -> 10.dp
+                        else -> 18.dp
+                    },
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "privacy_top_end"
+                )
+                val privacyBottomStart by animateDpAsState(
+                    targetValue = when {
+                        isPrivacyPressed -> 10.dp
+                        themeSettings.privacyModeEnabled -> 10.dp
+                        else -> 18.dp
+                    },
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "privacy_bottom_start"
+                )
+                val privacyBottomEnd by animateDpAsState(
+                    targetValue = when {
+                        isPrivacyPressed -> 28.dp
+                        themeSettings.privacyModeEnabled -> 26.dp
+                        else -> 18.dp
+                    },
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "privacy_bottom_end"
+                )
+
+                val privacyScale by animateFloatAsState(
+                    targetValue = if (isPrivacyPressed) 0.96f else 1.0f,
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "privacy_scale"
+                )
+
+                val privacyShape = RoundedCornerShape(
+                    topStart = privacyTopStart,
+                    topEnd = privacyTopEnd,
+                    bottomStart = privacyBottomStart,
+                    bottomEnd = privacyBottomEnd
+                )
+
+                val closeTopStart by animateDpAsState(
+                    targetValue = if (isClosePressed) 26.dp else 18.dp,
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "close_top_start"
+                )
+                val closeBottomEnd by animateDpAsState(
+                    targetValue = if (isClosePressed) 8.dp else 18.dp,
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "close_bottom_end"
+                )
+
+                val closeScale by animateFloatAsState(
+                    targetValue = if (isClosePressed) 0.95f else 1.0f,
+                    animationSpec = ExpressivePhysics.fluidSnappy(),
+                    label = "close_scale"
+                )
+
+                val closeShape = RoundedCornerShape(
+                    topStart = closeTopStart,
+                    topEnd = 18.dp,
+                    bottomStart = 18.dp,
+                    bottomEnd = closeBottomEnd
+                )
+
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(32.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
-                    shadowElevation = 12.dp
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                    shadowElevation = 0.dp,
+                    tonalElevation = 0.dp
                 ) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Quick Action Buttons Row
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        // Privacy Mode Switch Button with Shape Morphing
+                        Surface(
+                            shape = privacyShape,
+                            color = if (themeSettings.privacyModeEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            border = BorderStroke(1.dp, if (themeSettings.privacyModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .graphicsLayer {
+                                    scaleX = privacyScale
+                                    scaleY = privacyScale
+                                }
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onPress = {
+                                            isPrivacyPressed = true
+                                            tryAwaitRelease()
+                                            isPrivacyPressed = false
+                                        },
+                                        onTap = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onTogglePrivacyMode()
+                                        }
+                                    )
+                                }
                         ) {
-                            // Privacy Mode Toggle Pill
-                            Surface(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .clickable { onTogglePrivacyMode() },
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (themeSettings.privacyModeEnabled) Icons.Default.Lock else Icons.Default.LockOpen,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(
-                                        text = if (themeSettings.privacyModeEnabled) strings.privacyOn else strings.privacyOff,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                            }
-
-                            // Dismiss Portal Pill (One-Handed Ergonomic Thumb Zone)
-                            Surface(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .clickable {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        onDismiss()
-                                    },
-                                color = MaterialTheme.colorScheme.errorContainer,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Close Menu",
-                                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(
-                                        text = strings.dismissPortal,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = MaterialTheme.colorScheme.onErrorContainer
-                                    )
-                                }
+                                Icon(
+                                    imageVector = if (themeSettings.privacyModeEnabled) Icons.Default.Lock else Icons.Default.LockOpen,
+                                    contentDescription = null,
+                                    tint = if (themeSettings.privacyModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = if (themeSettings.privacyModeEnabled) "🔒 匿名 (Privacy: ON)" else "🔓 匿名 (Privacy: OFF)",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeSettings.privacyModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
 
-                        // Bottom Brand Footer Stamp
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 6.dp, end = 6.dp, top = 2.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = strings.vittaFooter,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = onSurfaceColor.copy(alpha = 0.6f)
-                            )
+                        Spacer(modifier = Modifier.width(12.dp))
 
-                            Text(
-                                text = "🈁 ${strings.editionBadge}",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                        // Close Portal Pill with Kinetic Morphing
+                        Surface(
+                            shape = closeShape,
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    scaleX = closeScale
+                                    scaleY = closeScale
+                                }
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onPress = {
+                                            isClosePressed = true
+                                            tryAwaitRelease()
+                                            isClosePressed = false
+                                        },
+                                        onTap = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onDismiss()
+                                        }
+                                    )
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "閉じる",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -395,7 +473,8 @@ private fun EditorialBentoCard(
         shape = cardShape,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
-        shadowElevation = 4.dp
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
