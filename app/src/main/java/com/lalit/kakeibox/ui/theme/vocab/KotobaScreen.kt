@@ -973,8 +973,7 @@ fun KotobaScreen(
         ModalBottomSheet(
             onDismissRequest = { showAddSheet = false },
             sheetState = sheetState,
-            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             dragHandle = {
                 Surface(

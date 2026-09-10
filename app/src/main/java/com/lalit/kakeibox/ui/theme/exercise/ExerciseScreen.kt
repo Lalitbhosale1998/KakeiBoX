@@ -304,8 +304,7 @@ fun ExerciseScreen(
                     Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
                 }
             },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
-            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 ExerciseAddEditSheet(

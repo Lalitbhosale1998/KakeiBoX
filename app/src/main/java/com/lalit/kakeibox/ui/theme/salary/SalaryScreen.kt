@@ -867,8 +867,7 @@ fun SalaryScreen(
                     Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
                 }
             },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
-            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 ExpressiveAddEditSheet(
@@ -909,8 +908,7 @@ fun SalaryScreen(
                     Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
                 }
             },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
-            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             MaterialTheme(colorScheme = sheetColorScheme) {
                 HistoryBottomSheet(
@@ -933,8 +931,7 @@ fun SalaryScreen(
             onDismissRequest = { themeViewModel.toggleBirthdaySheet(false) },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 12.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
-            modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             dragHandle = {
                 Surface(
                     modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
@@ -2652,6 +2649,7 @@ fun ExpressiveAddEditSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 12.dp)
             .navigationBarsPadding()
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
