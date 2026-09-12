@@ -127,8 +127,6 @@ import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.ui.components.toShape
 import com.personal.kakeibox.util.CurrencyUtils
 import com.personal.kakeibox.util.DateUtils
-import com.personal.kakeibox.data.preferences.ThemeStyle
-import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.LocalGlowIntensity
 import com.personal.kakeibox.ui.theme.glow
 import com.personal.kakeibox.ui.theme.OutfitFontFamily
@@ -168,7 +166,7 @@ fun SalaryFilterTabRow(
     onFilterSelected: (SalaryFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
+    val isSpaceTerminal = false
     val haptic = LocalHapticFeedback.current
     val glowIntensity = LocalGlowIntensity.current
 
@@ -484,7 +482,7 @@ fun SalaryScreen(
                 isDark = isSystemInDarkTheme(),
                 isPrimaryContainer = isPrimaryContainer,
                 primaryColor = MaterialTheme.colorScheme.primary,
-                containerColor = topAppBarContainerColor,
+                containerColor = Color.Unspecified,
                 pattern = themeSettings.backdropPattern,
                 backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
             )
@@ -514,7 +512,7 @@ fun SalaryScreen(
             ) {
                 // Header top spacing
                 item {
-                    val isExpressive = themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE
+                    val isExpressive = true
                     Spacer(modifier = Modifier.height(statusBarPadding + 64.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -602,162 +600,137 @@ fun SalaryScreen(
                     }
                 }
 
-                // ── SINGLE MONUMENTAL SALARY CANVAS SLATE (Unified Hero + Stats + Analytics) ──
+                // ── MODULE 1: HERO POSTER CAROUSEL SLATE ──
                 item {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 4.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-                        shadowElevation = 0.dp
+                    AnimatedVisibility(
+                        visible = showHero,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(18.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp)
-                        ) {
-                            // ── MODULE 1: HERO POSTER CAROUSEL ──
-                            AnimatedVisibility(
-                                visible = showHero,
-                                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
-                            ) {
-                                val currentDate = remember { java.time.LocalDate.now() }
-                                val currentYearVal = remember(currentDate) { currentDate.year }
-                                val currentMonthVal = remember(currentDate) { currentDate.monthValue }
+                        val currentDate = remember { java.time.LocalDate.now() }
+                        val currentYearVal = remember(currentDate) { currentDate.year }
+                        val currentMonthVal = remember(currentDate) { currentDate.monthValue }
 
-                                val monthEntries = remember(allEntries, currentEntry, currentYearVal, currentMonthVal) {
-                                    if (allEntries.isEmpty()) {
-                                        listOf(
-                                            currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
-                                                id = -currentMonthVal,
-                                                year = currentYearVal,
-                                                month = currentMonthVal,
-                                                salaryAmount = 0L,
-                                                savingsAmount = 0L,
-                                                remittanceAmount = 0L,
-                                                remainingAmount = 0L,
-                                                note = ""
-                                            )
-                                        )
-                                    } else {
-                                        val sortedReal = allEntries.sortedByDescending { it.year * 100 + it.month }
-                                        val containsCurrent = sortedReal.any { it.month == currentMonthVal && it.year == currentYearVal }
-                                        if (containsCurrent) {
-                                            sortedReal
-                                        } else {
-                                            val currentPlaceholder = currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
-                                                id = -currentMonthVal,
-                                                year = currentYearVal,
-                                                month = currentMonthVal,
-                                                salaryAmount = 0L,
-                                                savingsAmount = 0L,
-                                                remittanceAmount = 0L,
-                                                remainingAmount = 0L,
-                                                note = ""
-                                            )
-                                            (listOf(currentPlaceholder) + sortedReal).sortedByDescending { it.year * 100 + it.month }
-                                        }
-                                    }
-                                }
-
-                                val initialPage = remember(monthEntries, currentMonthVal, currentYearVal) {
-                                    val idx = monthEntries.indexOfFirst { it.month == currentMonthVal && it.year == currentYearVal }
-                                    if (idx >= 0) idx else 0
-                                }
-
-                                val pagerState = rememberPagerState(
-                                    initialPage = initialPage,
-                                    pageCount = { monthEntries.size }
+                        val monthEntries = remember(allEntries, currentEntry, currentYearVal, currentMonthVal) {
+                            if (allEntries.isEmpty()) {
+                                listOf(
+                                    currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
+                                        id = -currentMonthVal,
+                                        year = currentYearVal,
+                                        month = currentMonthVal,
+                                        salaryAmount = 0L,
+                                        savingsAmount = 0L,
+                                        remittanceAmount = 0L,
+                                        remainingAmount = 0L,
+                                        note = ""
+                                    )
                                 )
-
-                                HorizontalPager(
-                                    state = pagerState,
-                                    contentPadding = PaddingValues(horizontal = 4.dp),
-                                    pageSpacing = 10.dp,
-                                    userScrollEnabled = monthEntries.size > 1,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) { page ->
-                                    val entry = monthEntries[page]
-                                    val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                                    val absPageOffset = kotlin.math.abs(pageOffset)
-                                    val cardScale = 1f - (absPageOffset * 0.12f).coerceAtMost(0.18f)
-                                    val cardAlpha = 1f - (absPageOffset * 0.35f).coerceAtMost(0.5f)
-
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .graphicsLayer {
-                                                scaleX = cardScale
-                                                scaleY = cardScale
-                                                alpha = cardAlpha
-                                            }
-                                    ) {
-                                        if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.M3_EXPRESSIVE) {
-                                            com.personal.kakeibox.ui.components.ExpressiveEditorialPosterCard(
-                                                totalSalary = totalSalary ?: 0L,
-                                                thisMonthSalary = entry.salaryAmount,
-                                                currentEntry = entry,
-                                                isPrivacyMode = themeSettings.privacyModeEnabled,
-                                                onEdit = {
-                                                    if (entry.id > 0) viewModel.openEditDialog(entry)
-                                                    else viewModel.openAddDialog()
-                                                },
-                                                themeSettings = themeSettings,
-                                                onTogglePrivacyMode = { themeViewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) }
-                                            )
-                                        } else {
-                                            AuraExpressiveHeroCard(
-                                                totalSalary = totalSalary ?: 0L,
-                                                thisMonthSalary = entry.salaryAmount,
-                                                currentEntry = entry,
-                                                isPrivacyMode = themeSettings.privacyModeEnabled,
-                                                onEdit = {
-                                                    if (entry.id > 0) viewModel.openEditDialog(entry)
-                                                    else viewModel.openAddDialog()
-                                                },
-                                                isPrimaryContainer = isPrimaryContainer,
-                                                themeSettings = themeSettings
-                                            )
-                                        }
-                                    }
+                            } else {
+                                val sortedReal = allEntries.sortedByDescending { it.year * 100 + it.month }
+                                val containsCurrent = sortedReal.any { it.month == currentMonthVal && it.year == currentYearVal }
+                                if (containsCurrent) {
+                                    sortedReal
+                                } else {
+                                    val currentPlaceholder = currentEntry ?: com.personal.kakeibox.data.entity.SalaryEntry(
+                                        id = -currentMonthVal,
+                                        year = currentYearVal,
+                                        month = currentMonthVal,
+                                        salaryAmount = 0L,
+                                        savingsAmount = 0L,
+                                        remittanceAmount = 0L,
+                                        remainingAmount = 0L,
+                                        note = ""
+                                    )
+                                    (listOf(currentPlaceholder) + sortedReal).sortedByDescending { it.year * 100 + it.month }
                                 }
                             }
+                        }
 
-                            // ── MODULE 2: STATS OVERVIEW GRID ──
-                            AnimatedVisibility(
-                                visible = showStats,
-                                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
-                            ) {
-                                ExpressiveStatsGrid(
-                                    totalSavings = totalSavings ?: 0L,
-                                    totalRemittance = totalRemittance ?: 0L,
-                                    isPrivacyMode = themeSettings.privacyModeEnabled,
-                                    onRemittanceClick = { viewModel.openAddDialog() },
-                                    bentoIdleColor = bentoIdleColor,
-                                    themeSettings = themeSettings
-                                )
-                            }
+                        val initialPage = remember(monthEntries, currentMonthVal, currentYearVal) {
+                            val idx = monthEntries.indexOfFirst { it.month == currentMonthVal && it.year == currentYearVal }
+                            if (idx >= 0) idx else 0
+                        }
 
-                            // ── MODULE 3: INTERACTIVE ANALYTICS BAR CHART ──
-                            AnimatedVisibility(
-                                visible = showStats,
-                                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        val pagerState = rememberPagerState(
+                            initialPage = initialPage,
+                            pageCount = { monthEntries.size }
+                        )
+
+                        HorizontalPager(
+                            state = pagerState,
+                            contentPadding = PaddingValues(horizontal = 0.dp),
+                            pageSpacing = 10.dp,
+                            userScrollEnabled = monthEntries.size > 1,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { page ->
+                            val entry = monthEntries[page]
+                            val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                            val absPageOffset = kotlin.math.abs(pageOffset)
+                            val cardScale = 1f - (absPageOffset * 0.12f).coerceAtMost(0.18f)
+                            val cardAlpha = 1f - (absPageOffset * 0.35f).coerceAtMost(0.5f)
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .graphicsLayer {
+                                        scaleX = cardScale
+                                        scaleY = cardScale
+                                        alpha = cardAlpha
+                                    }
                             ) {
-                                InteractiveAnalyticsChart(
-                                    entries = allEntries,
+                                com.personal.kakeibox.ui.components.ExpressiveEditorialPosterCard(
+                                    totalSalary = totalSalary ?: 0L,
+                                    thisMonthSalary = entry.salaryAmount,
+                                    currentEntry = entry,
                                     isPrivacyMode = themeSettings.privacyModeEnabled,
+                                    onEdit = {
+                                        if (entry.id > 0) viewModel.openEditDialog(entry)
+                                        else viewModel.openAddDialog()
+                                    },
                                     themeSettings = themeSettings,
-                                    onMonthSelected = { entry ->
-                                        viewModel.openEditDialog(entry)
-                                    }
+                                    onTogglePrivacyMode = { themeViewModel.setPrivacyModeEnabled(!themeSettings.privacyModeEnabled) }
                                 )
                             }
+                        }
+                    }
+                }
+
+                // ── STATS & ANALYTICS CANVAS SLATE ──
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        // MODULE 2: STATS OVERVIEW GRID
+                        AnimatedVisibility(
+                            visible = showStats,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            ExpressiveStatsGrid(
+                                totalSavings = totalSavings ?: 0L,
+                                totalRemittance = totalRemittance ?: 0L,
+                                isPrivacyMode = themeSettings.privacyModeEnabled,
+                                onRemittanceClick = { viewModel.openAddDialog() },
+                                bentoIdleColor = bentoIdleColor,
+                                themeSettings = themeSettings
+                            )
+                        }
+
+                        // MODULE 3: INTERACTIVE ANALYTICS BAR CHART
+                        AnimatedVisibility(
+                            visible = showStats,
+                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                                    slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                        ) {
+                            InteractiveAnalyticsChart(
+                                entries = allEntries,
+                                isPrivacyMode = themeSettings.privacyModeEnabled,
+                                themeSettings = themeSettings,
+                                onMonthSelected = { entry ->
+                                    viewModel.openEditDialog(entry)
+                                }
+                            )
                         }
                     }
                 }

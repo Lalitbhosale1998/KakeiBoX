@@ -115,7 +115,6 @@ private val DarkColors = darkColorScheme(
     surfaceContainerHighest = Color(0xFF36343B),
 )
 
-val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle.M3_EXPRESSIVE }
 val LocalTouchSynesthesia = staticCompositionLocalOf { TouchSynesthesia.SUBTLE }
 val LocalGlowIntensity = staticCompositionLocalOf { GlowIntensity.SUBTLE }
 val LocalThemeSettings = staticCompositionLocalOf { ThemeSettings() }
@@ -280,7 +279,7 @@ fun ColorScheme.scaleChroma(factor: Float): ColorScheme = this
 fun KakeiboXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
+    themeStyle: ThemeStyle = ThemeStyle.DEFAULT,
     themeFlavor: ThemeFlavor = ThemeFlavor.DYNAMIC_MATERIAL,
     dynamicColorChromaScale: Float = 1.0f,
     appFont: AppFont = AppFont.NUNITO,
@@ -311,7 +310,43 @@ fun KakeiboXTheme(
         }
     }
     
-    val colorScheme = rawColorScheme
+    val colorScheme = if (!darkTheme) {
+        val blendedSurface = androidx.compose.ui.graphics.lerp(
+            rawColorScheme.surface,
+            rawColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
+            rawColorScheme.surfaceContainerHigh,
+            rawColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
+            rawColorScheme.surfaceContainerLow,
+            rawColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
+            rawColorScheme.surfaceContainerLowest,
+            rawColorScheme.primaryContainer,
+            0.35f
+        )
+        val blendedBackground = androidx.compose.ui.graphics.lerp(
+            rawColorScheme.background,
+            rawColorScheme.primaryContainer,
+            0.35f
+        )
+        rawColorScheme.copy(
+            background = blendedBackground,
+            surface = blendedSurface,
+            surfaceContainer = blendedSurface,
+            surfaceContainerHigh = blendedSurfaceHigh,
+            surfaceContainerLow = blendedSurfaceLow,
+            surfaceContainerLowest = blendedSurfaceLowest
+        )
+    } else {
+        rawColorScheme
+    }
 
     // Per-flavor shape tokens: architectural (Shu-Nuri), pillow-round (O-Miki), default (all others)
     val shapes = KakeiboXShapes
@@ -319,7 +354,6 @@ fun KakeiboXTheme(
     val typography = getTypography(selectedFont)
 
     CompositionLocalProvider(
-        LocalThemeStyle provides themeStyle,
         LocalTouchSynesthesia provides touchSynesthesia,
         LocalGlowIntensity provides glowIntensity,
         LocalThemeSettings provides themeSettings

@@ -66,8 +66,6 @@ import com.personal.kakeibox.data.entity.ExerciseEntry
 import com.personal.kakeibox.data.preferences.NavBarStyle
 import com.personal.kakeibox.data.preferences.ThemeSettings
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
-import com.personal.kakeibox.data.preferences.ThemeStyle
-import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.data.preferences.BackdropPattern
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -188,7 +186,7 @@ fun ExerciseScreen(
                 isDark = isSystemInDarkTheme(),
                 isPrimaryContainer = isPrimaryContainer,
                 primaryColor = MaterialTheme.colorScheme.primary,
-                containerColor = topAppBarContainerColor,
+                containerColor = Color.Unspecified,
                 pattern = themeSettings.backdropPattern,
                 backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
             )

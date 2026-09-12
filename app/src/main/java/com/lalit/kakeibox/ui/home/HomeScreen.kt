@@ -203,37 +203,7 @@ fun HomeScreen(
     )
 
     val currentColorScheme = MaterialTheme.colorScheme
-    val sheetColorScheme = if (!isDark) {
-        val blendedSurface = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surface,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surfaceContainerHigh,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surfaceContainerLow,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surfaceContainerLowest,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        currentColorScheme.copy(
-            surface = blendedSurface,
-            surfaceContainer = blendedSurface,
-            surfaceContainerHigh = blendedSurfaceHigh,
-            surfaceContainerLow = blendedSurfaceLow,
-            surfaceContainerLowest = blendedSurfaceLowest
-        )
-    } else {
-        currentColorScheme
-    }
+    val sheetColorScheme = currentColorScheme
 
     MaterialTheme(colorScheme = sheetColorScheme) {
         val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
@@ -246,7 +216,7 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // 🎌 Vertical Japanese Margin Watermark (縦書き - Tate-gaki)
             Column(

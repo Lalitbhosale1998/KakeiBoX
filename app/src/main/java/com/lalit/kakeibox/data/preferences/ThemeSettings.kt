@@ -75,7 +75,7 @@ data class ThemeSettings(
     val restDays: List<String> = listOf("Saturday", "Sunday"),
     val privacyModeEnabled: Boolean = false,
     val topAppBarBackground: TopAppBarBackground = TopAppBarBackground.PRIMARY_CONTAINER,
-    val themeStyle: ThemeStyle = ThemeStyle.M3_EXPRESSIVE,
+    val themeStyle: ThemeStyle = ThemeStyle.DEFAULT,
     val appFont: AppFont = AppFont.NUNITO,
     val backdropPattern: BackdropPattern = BackdropPattern.NONE,
     val glowIntensity: GlowIntensity = GlowIntensity.SUBTLE,

@@ -115,6 +115,7 @@ fun ExpressiveEditorialPosterCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(28.dp)),
         color = chalkBg,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         shadowElevation = 0.dp
     ) {
         Box(
@@ -431,97 +432,113 @@ fun ExpressiveEditorialPosterCard(
                     label = "flame_scale"
                 )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = if (isJapanese) "${strings.daysTillNextPayday}\n${paydayInfo.daysRemaining}日" else "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Black,
-                        lineHeight = 28.sp,
-                        letterSpacing = (-0.5).sp,
-                        color = neonMint
-                    )
-                    Text(
-                        text = "🔥",
-                        fontSize = 32.sp,
-                        modifier = Modifier.graphicsLayer {
-                            val scale = flameScaleState.value
-                            scaleX = scale
-                            scaleY = scale
-                        }
-                    )
-                }
-
-                // ── 4. Handwritten Chalk Annotation Note ──
-                Text(
-                    text = if (isJapanese) "今月の給与支給前に、これまでの貯蓄を大切に管理しましょう。" else "BUT BEFORE THE LAUNCH OF $currentMonthLabel, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    lineHeight = 17.sp,
-                    color = mintText
-                )
-
-                // ── 5. Handwritten Chalk Accent & Japanese Proverb Annotation (四字熟語) ──
-                Row(
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+                    shadowElevation = 0.dp
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = "継続は力なり (${strings.continuityIsPower})",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = neonMint.copy(alpha = 0.85f)
-                        )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        // ── 3. Editorial Subtitle Stack with Pulsing Payday Flame ──
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "↓",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Gray
-                            )
-                            Text(
-                                text = strings.scrollToSeeMore,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontSize = 11.sp,
-                                color = Color.Gray
-                            )
-                        }
-                    }
-
-                    Column(horizontalAlignment = Alignment.End) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = if (isJapanese) "ね？！" else "RIGHT?!",
-                                style = MaterialTheme.typography.headlineMedium,
+                                text = if (isJapanese) "${strings.daysTillNextPayday}\n${paydayInfo.daysRemaining}日" else "${paydayInfo.daysRemaining} DAYS TILL THE\nNEXT PAYDAY",
+                                style = MaterialTheme.typography.headlineLarge,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp,
+                                lineHeight = 28.sp,
+                                letterSpacing = (-0.5).sp,
                                 color = neonMint
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "♡♡",
-                                fontSize = 14.sp,
-                                color = flameRed
+                                text = "🔥",
+                                fontSize = 32.sp,
+                                modifier = Modifier.graphicsLayer {
+                                    val scale = flameScaleState.value
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
                             )
                         }
-                        // Underline Doodle
-                        Box(
-                            modifier = Modifier
-                                .width(90.dp)
-                                .height(3.dp)
-                                .background(neonMint, RoundedCornerShape(2.dp))
+
+                        // ── 4. Handwritten Chalk Annotation Note ──
+                        Text(
+                            text = if (isJapanese) "今月の給与支給前に、これまでの貯蓄を大切に管理しましょう。" else "BUT BEFORE THE LAUNCH OF $currentMonthLabel, LET'S TAKE GOOD CARE OF YOUR SOON-TO-BE 'OLD' SAVINGS,",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 17.sp,
+                            color = mintText
                         )
+
+                        // ── 5. Handwritten Chalk Accent & Japanese Proverb Annotation (四字熟語) ──
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "継続は力なり (${strings.continuityIsPower})",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = neonMint.copy(alpha = 0.85f)
+                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = "↓",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Gray
+                                    )
+                                    Text(
+                                        text = strings.scrollToSeeMore,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 11.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = if (isJapanese) "ね？！" else "RIGHT?!",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        fontSize = 28.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 1.sp,
+                                        color = neonMint
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "♡♡",
+                                        fontSize = 14.sp,
+                                        color = flameRed
+                                    )
+                                }
+                                // Underline Doodle
+                                Box(
+                                    modifier = Modifier
+                                        .width(90.dp)
+                                        .height(3.dp)
+                                        .background(neonMint, RoundedCornerShape(2.dp))
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -117,35 +117,7 @@ fun KotobaScreen(
     val isDark = themeSettings.darkThemePreference.isDark(systemDark)
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
     val currentColorScheme = MaterialTheme.colorScheme
-    val sheetColorScheme = remember(currentColorScheme) {
-        val blendedSurface = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surface,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        val blendedSurfaceHigh = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surfaceContainerHigh,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        val blendedSurfaceLow = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surfaceContainerLow,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        val blendedSurfaceLowest = androidx.compose.ui.graphics.lerp(
-            currentColorScheme.surfaceContainerLowest,
-            currentColorScheme.primaryContainer,
-            0.35f
-        )
-        currentColorScheme.copy(
-            surface = blendedSurface,
-            surfaceContainer = blendedSurface,
-            surfaceContainerHigh = blendedSurfaceHigh,
-            surfaceContainerLow = blendedSurfaceLow,
-            surfaceContainerLowest = blendedSurfaceLowest
-        )
-    }
+    val sheetColorScheme = currentColorScheme
     val topAppBarContainerColor = sheetColorScheme.primaryContainer
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -161,7 +133,7 @@ fun KotobaScreen(
                     isDark = isDark,
                     isPrimaryContainer = isPrimaryContainer,
                     primaryColor = MaterialTheme.colorScheme.primary,
-                    containerColor = topAppBarContainerColor,
+                    containerColor = Color.Unspecified,
                     pattern = themeSettings.backdropPattern,
                     backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
                 )

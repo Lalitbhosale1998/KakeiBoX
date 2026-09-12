@@ -191,7 +191,7 @@ fun SettingsScreen(
                 isDark = systemDark,
                 isPrimaryContainer = isPrimaryContainer,
                 primaryColor = MaterialTheme.colorScheme.primary,
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = Color.Unspecified,
                 pattern = themeSettings.backdropPattern,
                 backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
             ),

@@ -95,8 +95,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.personal.kakeibox.util.DateUtils
-import com.personal.kakeibox.data.preferences.ThemeStyle
-import com.personal.kakeibox.ui.theme.LocalThemeStyle
 import com.personal.kakeibox.ui.theme.terminalScanlines
 import com.personal.kakeibox.ui.theme.terminalButton
 import androidx.compose.material3.Button
@@ -401,7 +399,7 @@ fun ExpressiveTab(
         label = "scale"
     )
 
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
+    val isSpaceTerminal = false
     val targetRadius = if (isSpaceTerminal) {
         if (isSelected) 12 else 8
     } else {
@@ -796,7 +794,7 @@ fun BentoCard(
         label = "icon_scale"
     )
 
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
+    val isSpaceTerminal = false
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -995,7 +993,7 @@ fun ExpressiveChip(
     leadingIcon: ImageVector? = null
 ) {
     val haptic = LocalHapticFeedback.current
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
+    val isSpaceTerminal = false
     val glowIntensity = LocalGlowIntensity.current
     
     val resolvedUnselectedColor = if (unselectedColor == Color.Transparent || unselectedColor == Color.Unspecified) {
@@ -1132,7 +1130,7 @@ fun ExpressiveButton(
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
     content: @Composable RowScope.() -> Unit
 ) {
-    val isSpaceTerminal = LocalThemeStyle.current == ThemeStyle.M3_EXPRESSIVE && false
+    val isSpaceTerminal = false
     if (isSpaceTerminal) {
         Surface(
             modifier = modifier

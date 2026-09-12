@@ -60,24 +60,10 @@ fun KakeiboXAppRoot() {
         intensityPreset = themeSettings.intensityPreset,
         themeSettings = themeSettings
     ) {
-        val infiniteTransition = rememberInfiniteTransition(label = "ambient_bg")
-        val baseColor = MaterialTheme.colorScheme.background
-        val pulseColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        
-        val ambientColor by infiniteTransition.animateColor(
-            initialValue = baseColor,
-            targetValue = pulseColor,
-            animationSpec = infiniteRepeatable(
-                animation = androidx.compose.animation.core.tween(4000, easing = androidx.compose.animation.core.LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "ambient_color"
-        )
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(ambientColor)
+                .background(MaterialTheme.colorScheme.background)
                 .backdropPattern(themeSettings.backdropPattern)
         ) {
             if (!themeSettings.isSetupComplete) {
