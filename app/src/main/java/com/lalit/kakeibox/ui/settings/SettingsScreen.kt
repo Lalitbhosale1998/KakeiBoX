@@ -40,6 +40,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
@@ -544,15 +548,23 @@ private fun ExpressiveCategoryCarousel(
         Triple("about", "About App", Icons.Outlined.Info)
     )
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+    val listState = rememberLazyListState()
+    val selectedIndex = categories.indexOfFirst { it.first == activeTab }.coerceAtLeast(0)
+
+    LaunchedEffect(activeTab) {
+        if (selectedIndex >= 0) {
+            listState.animateScrollToItem(selectedIndex)
+        }
+    }
+
+    LazyRow(
+        state = listState,
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        categories.forEach { (id, label, icon) ->
+        items(categories, key = { it.first }) { (id, label, icon) ->
             val isSelected = activeTab == id
             val containerColor by animateColorAsState(
                 targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -563,13 +575,26 @@ private fun ExpressiveCategoryCarousel(
                 targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                 label = "cat_content_color"
             )
+            val itemScale by animateFloatAsState(
+                targetValue = if (isSelected) 1.05f else 1.0f,
+                animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
+                label = "cat_scale"
+            )
 
             Surface(
                 modifier = Modifier
+                    .graphicsLayer {
+                        scaleX = itemScale
+                        scaleY = itemScale
+                    }
                     .clip(CircleShape)
                     .elasticClick { onTabSelected(id) },
                 shape = CircleShape,
-                color = containerColor
+                color = containerColor,
+                border = BorderStroke(
+                    1.dp,
+                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
