@@ -43,9 +43,12 @@ import androidx.compose.foundation.Canvas
 import com.personal.kakeibox.data.preferences.CardShapePreference
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -1879,55 +1882,129 @@ fun <T> ExpressiveSegmentedControl(
     onOptionSelected: (T) -> Unit,
     labelProvider: (T) -> String,
     modifier: Modifier = Modifier,
-    activeColor: Color = MaterialTheme.colorScheme.primary,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+    activeColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    onActiveColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    shape: Shape = CircleShape,
+    height: Dp = 48.dp
 ) {
-    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val haptic = LocalHapticFeedback.current
     val selectedIndex = options.indexOf(selectedOption).coerceAtLeast(0)
 
     Surface(
-        modifier = modifier.height(44.dp),
-        shape = androidx.compose.foundation.shape.CircleShape,
-        color = containerColor
+        modifier = modifier.height(height),
+        shape = shape,
+        color = containerColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
     ) {
-        Row(
-            modifier = Modifier.padding(4.dp).fillMaxHeight(),
-            verticalAlignment = Alignment.CenterVertically
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp)
         ) {
-            options.forEachIndexed { index, option ->
-                val isSelected = index == selectedIndex
-                val pillBg by animateColorAsState(
-                    targetValue = if (isSelected) activeColor else Color.Transparent,
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
-                    label = "segmented_pill_bg"
-                )
-                val textColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
-                    label = "segmented_text_color"
-                )
+            val totalWidth = maxWidth
+            val count = options.size.coerceAtLeast(1)
+            val itemWidth = totalWidth / count
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(pillBg)
-                        .clickable {
-                            ExpressiveHaptics.cardExpand(haptic)
-                            onOptionSelected(option)
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    androidx.compose.material3.Text(
-                        text = labelProvider(option),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
-                        color = textColor,
-                        maxLines = 1
+            val animatedOffset by animateDpAsState(
+                targetValue = itemWidth * selectedIndex,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                ),
+                label = "segmented_pill_offset"
+            )
+
+            // 1. Sliding Spring Indicator Pill
+            Box(
+                modifier = Modifier
+                    .offset(x = animatedOffset)
+                    .width(itemWidth)
+                    .fillMaxHeight()
+                    .clip(shape)
+                    .background(activeColor)
+            )
+
+            // 2. Interactive Text / Icon Option Row
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                options.forEachIndexed { index, option ->
+                    val isSelected = index == selectedIndex
+
+                    val textColor by animateColorAsState(
+                        targetValue = if (isSelected) onActiveColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                        label = "segmented_text_color"
                     )
+
+                    val itemScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.04f else 1.0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "segmented_item_scale"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .graphicsLayer {
+                                scaleX = itemScale
+                                scaleY = itemScale
+                            }
+                            .clip(shape)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                if (!isSelected) {
+                                    ExpressiveHaptics.cardExpand(haptic)
+                                    onOptionSelected(option)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = labelProvider(option),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = textColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun <T> ExpressiveSegmentedControl(
+    options: List<Pair<T, String>>,
+    selectedOption: T,
+    onOptionSelected: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    activeColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    onActiveColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    shape: Shape = CircleShape,
+    height: Dp = 48.dp
+) {
+    ExpressiveSegmentedControl(
+        options = options.map { it.first },
+        selectedOption = selectedOption,
+        onOptionSelected = onOptionSelected,
+        labelProvider = { opt -> options.firstOrNull { it.first == opt }?.second ?: "" },
+        modifier = modifier,
+        activeColor = activeColor,
+        onActiveColor = onActiveColor,
+        containerColor = containerColor,
+        shape = shape,
+        height = height
+    )
 }

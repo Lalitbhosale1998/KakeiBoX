@@ -13,6 +13,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -111,6 +114,7 @@ import com.personal.kakeibox.data.preferences.AppLanguage
 import com.personal.kakeibox.data.preferences.DarkThemePreference
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.ExpressiveSwitch
+import com.personal.kakeibox.ui.components.ExpressiveSegmentedControl
 import com.personal.kakeibox.ui.components.elasticClick
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.theme.expressiveBackground
@@ -126,6 +130,22 @@ fun SettingsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var activeTab by remember { mutableStateOf("visual") }
     var showTabOrderSheet by remember { mutableStateOf(false) }
+
+    // Staggered Entrance Animation States
+    var showHero by remember { mutableStateOf(false) }
+    var showSearch by remember { mutableStateOf(false) }
+    var showCategories by remember { mutableStateOf(false) }
+    var showContent by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        showHero = true
+        kotlinx.coroutines.delay(60)
+        showSearch = true
+        kotlinx.coroutines.delay(60)
+        showCategories = true
+        kotlinx.coroutines.delay(60)
+        showContent = true
+    }
 
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -210,70 +230,98 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 68.dp))
 
             // 1. Hero Expressive System Banner
-            ExpressiveSettingsHeroBanner(
-                themeSettings = themeSettings,
-                onReorderTabsClick = { showTabOrderSheet = true }
-            )
+            AnimatedVisibility(
+                visible = showHero,
+                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+            ) {
+                ExpressiveSettingsHeroBanner(
+                    themeSettings = themeSettings,
+                    onReorderTabsClick = { showTabOrderSheet = true }
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // 2. Expressive Floating Search Bar
-            ExpressiveSettingsSearchBar(
-                searchQuery = searchQuery,
-                onQueryChange = { searchQuery = it }
-            )
+            AnimatedVisibility(
+                visible = showSearch,
+                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+            ) {
+                ExpressiveSettingsSearchBar(
+                    searchQuery = searchQuery,
+                    onQueryChange = { searchQuery = it }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // 3. Asymmetric Category Selector Carousel (Hidden when searching)
             if (searchQuery.isBlank()) {
-                ExpressiveCategoryCarousel(
-                    activeTab = activeTab,
-                    onTabSelected = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        activeTab = it
-                    }
-                )
+                AnimatedVisibility(
+                    visible = showCategories,
+                    enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                            slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
+                ) {
+                    ExpressiveCategoryCarousel(
+                        activeTab = activeTab,
+                        onTabSelected = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            activeTab = it
+                        }
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             // 4. Content Area
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+            AnimatedVisibility(
+                visible = showContent,
+                enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
+                        slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
             ) {
-                if (searchQuery.isNotBlank()) {
-                    SettingsSearchResultsContent(
-                        query = searchQuery,
-                        themeSettings = themeSettings,
-                        viewModel = viewModel,
-                        backupLauncher = backupLauncher,
-                        restoreLauncher = restoreLauncher,
-                        onReorderNav = { showTabOrderSheet = true }
-                    )
-                } else {
-                    AnimatedContent(
-                        targetState = activeTab,
-                        transitionSpec = {
-                            (fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) +
-                                    slideInVertically(spring(stiffness = Spring.StiffnessLow)) { it / 8 })
-                                .togetherWith(fadeOut(animationSpec = spring(stiffness = Spring.StiffnessLow)))
-                        },
-                        label = "settings_tab_switch"
-                    ) { tab ->
-                        when (tab) {
-                            "visual" -> VisualSettingsSection(themeSettings = themeSettings, viewModel = viewModel)
-                            "typography" -> TypographySection(themeSettings = themeSettings, viewModel = viewModel)
-                            "security" -> SecuritySection(themeSettings = themeSettings, viewModel = viewModel)
-                            "data" -> DataSection(
-                                themeSettings = themeSettings,
-                                viewModel = viewModel,
-                                backupLauncher = backupLauncher,
-                                restoreLauncher = restoreLauncher,
-                                onReorderNav = { showTabOrderSheet = true }
-                            )
-                            "about" -> AboutSection(themeSettings = themeSettings)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                ) {
+                    if (searchQuery.isNotBlank()) {
+                        SettingsSearchResultsContent(
+                            query = searchQuery,
+                            themeSettings = themeSettings,
+                            viewModel = viewModel,
+                            backupLauncher = backupLauncher,
+                            restoreLauncher = restoreLauncher,
+                            onReorderNav = { showTabOrderSheet = true }
+                        )
+                    } else {
+                        AnimatedContent(
+                            targetState = activeTab,
+                            transitionSpec = {
+                                (fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) +
+                                        slideInHorizontally(spring(stiffness = Spring.StiffnessLow)) { it / 6 } +
+                                        scaleIn(initialScale = 0.96f, animationSpec = spring(stiffness = Spring.StiffnessLow)))
+                                    .togetherWith(
+                                        fadeOut(animationSpec = spring(stiffness = Spring.StiffnessLow)) +
+                                        scaleOut(targetScale = 0.96f, animationSpec = spring(stiffness = Spring.StiffnessLow))
+                                    )
+                            },
+                            label = "settings_tab_switch"
+                        ) { tab ->
+                            when (tab) {
+                                "visual" -> VisualSettingsSection(themeSettings = themeSettings, viewModel = viewModel)
+                                "typography" -> TypographySection(themeSettings = themeSettings, viewModel = viewModel)
+                                "security" -> SecuritySection(themeSettings = themeSettings, viewModel = viewModel)
+                                "data" -> DataSection(
+                                    themeSettings = themeSettings,
+                                    viewModel = viewModel,
+                                    backupLauncher = backupLauncher,
+                                    restoreLauncher = restoreLauncher,
+                                    onReorderNav = { showTabOrderSheet = true }
+                                )
+                                "about" -> AboutSection(themeSettings = themeSettings)
+                            }
                         }
                     }
                 }
@@ -560,54 +608,20 @@ private fun VisualSettingsSection(
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // Theme Mode Segmented Card
         ExpressiveSettingsCard(title = "App Theme Mode", icon = Icons.Outlined.DarkMode) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf(
+            ExpressiveSegmentedControl(
+                options = listOf(
                     DarkThemePreference.SYSTEM to "System",
                     DarkThemePreference.LIGHT to "Light",
                     DarkThemePreference.DARK to "Dark"
-                ).forEach { (pref, title) ->
-                    val isSelected = themeSettings.darkThemePreference == pref
-                    val bgColor by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-                        label = "theme_seg_bg"
-                    )
-                    val textCol by animateColorAsState(
-                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "theme_seg_txt"
-                    )
-
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .elasticClick {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setDarkThemePreference(pref)
-                            },
-                        shape = RoundedCornerShape(16.dp),
-                        color = bgColor,
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = textCol
-                            )
-                        }
-                    }
-                }
-            }
+                ),
+                selectedOption = themeSettings.darkThemePreference,
+                onOptionSelected = { viewModel.setDarkThemePreference(it) },
+                activeColor = MaterialTheme.colorScheme.primaryContainer,
+                onActiveColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(16.dp),
+                height = 48.dp
+            )
         }
 
         // Dynamic Monet Tint Switch Card
@@ -664,43 +678,19 @@ private fun VisualSettingsSection(
 
         // Top App Bar Style Card
         ExpressiveSettingsCard(title = "Top Navigation Bar Surface", icon = Icons.Outlined.Tune) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                listOf(
+            ExpressiveSegmentedControl(
+                options = listOf(
                     TopAppBarBackground.SURFACE to "Surface Flat",
                     TopAppBarBackground.PRIMARY_CONTAINER to "Primary Overlay"
-                ).forEach { (bgPref, label) ->
-                    val isSelected = themeSettings.topAppBarBackground == bgPref
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .elasticClick { viewModel.setTopAppBarBackground(bgPref) },
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
-            }
+                ),
+                selectedOption = themeSettings.topAppBarBackground,
+                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
+                activeColor = MaterialTheme.colorScheme.secondaryContainer,
+                onActiveColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(16.dp),
+                height = 48.dp
+            )
         }
     }
 }
@@ -715,85 +705,38 @@ private fun TypographySection(
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // App Language Card
         ExpressiveSettingsCard(title = "App Language / 言語", icon = Icons.Outlined.Language) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                listOf(
+            ExpressiveSegmentedControl(
+                options = listOf(
                     AppLanguage.ENGLISH to "English",
                     AppLanguage.JAPANESE to "日本語 (Japanese)"
-                ).forEach { (lang, label) ->
-                    val isSelected = themeSettings.appLanguage == lang
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .elasticClick {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setAppLanguage(lang)
-                            },
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 14.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
+                ),
+                selectedOption = themeSettings.appLanguage,
+                onOptionSelected = { viewModel.setAppLanguage(it) },
+                activeColor = MaterialTheme.colorScheme.primaryContainer,
+                onActiveColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(16.dp),
+                height = 50.dp
+            )
         }
 
         // Currency Symbol Card
         ExpressiveSettingsCard(title = "Financial Currency Symbol", icon = Icons.Outlined.Payments) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf(
-                    "₹" to "₹ (Rupee)",
-                    "¥" to "¥ (Yen)",
-                    "$" to "$ (Dollar)",
-                    "€" to "€ (Euro)"
-                ).forEach { (sym, label) ->
-                    val isSelected = themeSettings.currencySymbol == sym
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(CircleShape)
-                            .elasticClick { viewModel.setCurrencySymbol(sym) },
-                        shape = CircleShape,
-                        color = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceContainer,
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 10.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = sym,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                                color = if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
+            ExpressiveSegmentedControl(
+                options = listOf(
+                    "₹" to "₹",
+                    "¥" to "¥",
+                    "$" to "$",
+                    "€" to "€"
+                ),
+                selectedOption = themeSettings.currencySymbol,
+                onOptionSelected = { viewModel.setCurrencySymbol(it) },
+                activeColor = MaterialTheme.colorScheme.tertiaryContainer,
+                onActiveColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                shape = CircleShape,
+                height = 48.dp
+            )
         }
 
         // Font Face Visual Selector & Live Preview
