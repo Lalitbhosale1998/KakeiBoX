@@ -2,9 +2,7 @@ package com.personal.kakeibox.ui.theme
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
-import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,40 +33,28 @@ object SynthClickGenerator {
                     generatedSnd[idx++] = ((valShort.toInt() and 0xff00) ushr 8).toByte()
                 }
 
-                val audioTrack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    AudioTrack.Builder()
-                        .setAudioAttributes(
-                            AudioAttributes.Builder()
-                                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                                .build()
-                        )
-                        .setAudioFormat(
-                            AudioFormat.Builder()
-                                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                                .setSampleRate(sampleRate)
-                                .build()
-                        )
-                        .setBufferSizeInBytes(generatedSnd.size)
-                        .setTransferMode(AudioTrack.MODE_STATIC)
-                        .build()
-                } else {
-                    @Suppress("DEPRECATION")
-                    AudioTrack(
-                        AudioManager.STREAM_MUSIC,
-                        sampleRate,
-                        AudioFormat.CHANNEL_OUT_MONO,
-                        AudioFormat.ENCODING_PCM_16BIT,
-                        generatedSnd.size,
-                        AudioTrack.MODE_STATIC
+                val audioTrack = AudioTrack.Builder()
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
                     )
-                }
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(sampleRate)
+                            .build()
+                    )
+                    .setBufferSizeInBytes(generatedSnd.size)
+                    .setTransferMode(AudioTrack.MODE_STATIC)
+                    .build()
                 
                 audioTrack.write(generatedSnd, 0, generatedSnd.size)
                 audioTrack.play()
 
-                Thread.sleep(durationMs.toLong() + 50)
+                kotlinx.coroutines.delay(durationMs.toLong() + 50)
                 audioTrack.release()
             } catch (e: Exception) {
                 e.printStackTrace()

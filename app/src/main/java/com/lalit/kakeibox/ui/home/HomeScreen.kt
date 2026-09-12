@@ -80,10 +80,10 @@ fun JapaneseRedHankoStamp(
     modifier: Modifier = Modifier,
     rotation: Float = -10f
 ) {
-    val stampRed = Color(0xFFD32F2F)
+    val stampRed = MaterialTheme.colorScheme.error
     Surface(
         modifier = modifier.graphicsLayer { rotationZ = rotation },
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.small,
         color = stampRed.copy(alpha = 0.12f),
         border = BorderStroke(1.8.dp, stampRed.copy(alpha = 0.85f))
     ) {

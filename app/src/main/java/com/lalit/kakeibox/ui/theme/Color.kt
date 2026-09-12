@@ -1,9 +1,24 @@
 package com.personal.kakeibox.ui.theme
 
+import androidx.compose.material3.ColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Primary seed — deep financial blue, generates full M3 Expressive tonal palette
-val PrimaryBlue = Color(0xFF1565C0)
-val SavingsGreen = Color(0xFF2E7D32)
-val SpendAmber = Color(0xFFE65100)
-val CommuteIndigo = Color(0xFF283593)
+/**
+ * Dynamic Monet color extensions mapping UI domains directly to Material3 Expressive color roles.
+ * Never hardcodes static hex values, enabling full Monet dynamic extraction on Android 17.
+ */
+val ColorScheme.spendColor: Color
+    @Composable get() = tertiary
+
+val ColorScheme.savingsColor: Color
+    @Composable get() = secondary
+
+val ColorScheme.commuteColor: Color
+    @Composable get() = primary
+
+val ColorScheme.badgeColor: Color
+    @Composable get() = errorContainer
+
+val ColorScheme.onBadgeColor: Color
+    @Composable get() = onErrorContainer

@@ -1,7 +1,6 @@
 package com.personal.kakeibox.ui.theme
 
 import com.personal.kakeibox.data.preferences.ThemeSettings
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
@@ -10,12 +9,6 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import com.google.android.material.color.utilities.Hct
-import com.google.android.material.color.utilities.SchemeNeutral
-import com.google.android.material.color.utilities.SchemeTonalSpot
-import com.google.android.material.color.utilities.SchemeFidelity
-import com.google.android.material.color.utilities.SchemeExpressive
-import com.google.android.material.color.utilities.SchemeVibrant
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
@@ -281,76 +274,7 @@ fun Modifier.backdropPattern(pattern: BackdropPattern): Modifier = this
 
 fun Modifier.crtScreenFilter(enabled: Boolean): Modifier = this
 
-private fun com.google.android.material.color.utilities.DynamicScheme.toComposeColorScheme(): ColorScheme {
-    val colors = com.google.android.material.color.utilities.MaterialDynamicColors()
-    return ColorScheme(
-        primary = Color(colors.primary().getArgb(this)),
-        onPrimary = Color(colors.onPrimary().getArgb(this)),
-        primaryContainer = Color(colors.primaryContainer().getArgb(this)),
-        onPrimaryContainer = Color(colors.onPrimaryContainer().getArgb(this)),
-        inversePrimary = Color(colors.inversePrimary().getArgb(this)),
-        secondary = Color(colors.secondary().getArgb(this)),
-        onSecondary = Color(colors.onSecondary().getArgb(this)),
-        secondaryContainer = Color(colors.secondaryContainer().getArgb(this)),
-        onSecondaryContainer = Color(colors.onSecondaryContainer().getArgb(this)),
-        tertiary = Color(colors.tertiary().getArgb(this)),
-        onTertiary = Color(colors.onTertiary().getArgb(this)),
-        tertiaryContainer = Color(colors.tertiaryContainer().getArgb(this)),
-        onTertiaryContainer = Color(colors.onTertiaryContainer().getArgb(this)),
-        background = Color(colors.background().getArgb(this)),
-        onBackground = Color(colors.onBackground().getArgb(this)),
-        surface = Color(colors.surface().getArgb(this)),
-        onSurface = Color(colors.onSurface().getArgb(this)),
-        surfaceVariant = Color(colors.surfaceVariant().getArgb(this)),
-        onSurfaceVariant = Color(colors.onSurfaceVariant().getArgb(this)),
-        surfaceTint = Color(colors.primary().getArgb(this)),
-        outline = Color(colors.outline().getArgb(this)),
-        outlineVariant = Color(colors.outlineVariant().getArgb(this)),
-        scrim = Color(colors.scrim().getArgb(this)),
-        error = Color(colors.error().getArgb(this)),
-        onError = Color(colors.onError().getArgb(this)),
-        errorContainer = Color(colors.errorContainer().getArgb(this)),
-        onErrorContainer = Color(colors.onErrorContainer().getArgb(this)),
-        inverseSurface = Color(colors.inverseSurface().getArgb(this)),
-        inverseOnSurface = Color(colors.inverseOnSurface().getArgb(this)),
-        surfaceBright = Color(colors.surfaceBright().getArgb(this)),
-        surfaceDim = Color(colors.surfaceDim().getArgb(this)),
-        surfaceContainerLowest = Color(colors.surfaceContainerLowest().getArgb(this)),
-        surfaceContainerLow = Color(colors.surfaceContainerLow().getArgb(this)),
-        surfaceContainer = Color(colors.surfaceContainer().getArgb(this)),
-        surfaceContainerHigh = Color(colors.surfaceContainerHigh().getArgb(this)),
-        surfaceContainerHighest = Color(colors.surfaceContainerHighest().getArgb(this)),
-        primaryFixed = Color(colors.primaryFixed().getArgb(this)),
-        primaryFixedDim = Color(colors.primaryFixedDim().getArgb(this)),
-        onPrimaryFixed = Color(colors.onPrimaryFixed().getArgb(this)),
-        onPrimaryFixedVariant = Color(colors.onPrimaryFixedVariant().getArgb(this)),
-        secondaryFixed = Color(colors.secondaryFixed().getArgb(this)),
-        secondaryFixedDim = Color(colors.secondaryFixedDim().getArgb(this)),
-        onSecondaryFixed = Color(colors.onSecondaryFixed().getArgb(this)),
-        onSecondaryFixedVariant = Color(colors.onSecondaryFixedVariant().getArgb(this)),
-        tertiaryFixed = Color(colors.tertiaryFixed().getArgb(this)),
-        tertiaryFixedDim = Color(colors.tertiaryFixedDim().getArgb(this)),
-        onTertiaryFixed = Color(colors.onTertiaryFixed().getArgb(this)),
-        onTertiaryFixedVariant = Color(colors.onTertiaryFixedVariant().getArgb(this))
-    )
-}
-
-fun ColorScheme.scaleChroma(factor: Float): ColorScheme {
-    if (factor == 1.0f) return this
-    fun adjustColor(color: Color): Color {
-        val hct = Hct.fromInt(color.toArgb())
-        val newChroma = (hct.chroma * factor).coerceIn(0.0, 130.0)
-        return Color(Hct.from(hct.hue, newChroma, hct.tone).toInt())
-    }
-    return copy(
-        primary = adjustColor(primary),
-        secondary = adjustColor(secondary),
-        tertiary = adjustColor(tertiary),
-        primaryContainer = adjustColor(primaryContainer),
-        secondaryContainer = adjustColor(secondaryContainer),
-        tertiaryContainer = adjustColor(tertiaryContainer)
-    )
-}
+fun ColorScheme.scaleChroma(factor: Float): ColorScheme = this
 
 @Composable
 fun KakeiboXTheme(

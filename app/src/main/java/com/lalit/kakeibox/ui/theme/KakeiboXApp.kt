@@ -149,7 +149,7 @@ fun ExpressiveActionLoadingFab(
     val fabColor by animateColorAsState(
         targetValue = when (currentPage) {
             0 -> MaterialTheme.colorScheme.primary
-            1 -> Color(0xFFE11D48)
+            1 -> MaterialTheme.colorScheme.secondary
             else -> MaterialTheme.colorScheme.tertiary
         },
         animationSpec = spring(stiffness = Spring.StiffnessLow),
@@ -323,11 +323,10 @@ fun KakeiboXApp(
 
     val actionColorStart by animateColorAsState(
         targetValue = when (currentRoute) {
-            NavRoutes.Salary.route -> Color(0xFF8B5CF6)
-            NavRoutes.Exercise.route -> Color(0xFF8B5CF6)
-            NavRoutes.Spend.route -> Color(0xFF0D9488)
-
-            "commute" -> Color(0xFF0284C7)
+            NavRoutes.Salary.route -> MaterialTheme.colorScheme.secondary
+            NavRoutes.Exercise.route -> MaterialTheme.colorScheme.secondary
+            NavRoutes.Spend.route -> MaterialTheme.colorScheme.tertiary
+            "commute" -> MaterialTheme.colorScheme.primaryContainer
             else -> MaterialTheme.colorScheme.primary
         },
         label = "action_color_start"
@@ -335,11 +334,10 @@ fun KakeiboXApp(
 
     val actionColorEnd by animateColorAsState(
         targetValue = when (currentRoute) {
-            NavRoutes.Salary.route -> Color(0xFF7C3AED)
-            NavRoutes.Exercise.route -> Color(0xFF7C3AED)
-            NavRoutes.Spend.route -> Color(0xFF0F766E)
-
-            "commute" -> Color(0xFF0369A1)
+            NavRoutes.Salary.route -> MaterialTheme.colorScheme.tertiary
+            NavRoutes.Exercise.route -> MaterialTheme.colorScheme.tertiary
+            NavRoutes.Spend.route -> MaterialTheme.colorScheme.secondary
+            "commute" -> MaterialTheme.colorScheme.primary
             else -> MaterialTheme.colorScheme.secondary
         },
         label = "action_color_end"
@@ -671,11 +669,7 @@ fun CentralActionButton(
                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                     tryAwaitRelease()
                                     isPressed.value = false
-                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                                        view.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)
-                                    } else {
-                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    }
+                                    view.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)
                                 },
                                 onTap = {
                                     currentRoute?.let { themeViewModel.triggerAddActionButton(it) }

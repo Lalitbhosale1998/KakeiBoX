@@ -443,7 +443,7 @@ fun ExpressiveTab(
     val border = if (isSpaceTerminal) {
         BorderStroke(
             width = 1.5.dp,
-            color = if (isSelected) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.5f)
+            color = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         )
     } else {
         null
@@ -814,7 +814,7 @@ fun BentoCard(
 
     val cardShape = cardShapePreference.toShape(isPressed = isPressed)
     val cardBorder = if (isSpaceTerminal) {
-        BorderStroke(1.5.dp, if (isActive) Color(0xFFFF7E6B) else Color(0xFF46C2B4).copy(alpha = 0.4f))
+        BorderStroke(1.5.dp, if (isActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
     } else {
         BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     }
@@ -825,7 +825,7 @@ fun BentoCard(
     Surface(
         modifier = modifier
             .glow(
-                color = if (isSpaceTerminal) Color(0xFFFF7E6B) else MaterialTheme.colorScheme.primary,
+                color = if (isSpaceTerminal) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                 intensity = if (isActive) glowIntensity else GlowIntensity.OFF,
                 shape = cardShape
             )
@@ -1000,7 +1000,7 @@ fun ExpressiveChip(
     
     val resolvedUnselectedColor = if (unselectedColor == Color.Transparent || unselectedColor == Color.Unspecified) {
         if (isSpaceTerminal) {
-            Color(0xFF0F1424).copy(alpha = 0.5f)
+            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
         } else {
             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
         }
@@ -1152,7 +1152,7 @@ fun ExpressiveButton(
                 horizontalArrangement = Arrangement.Center
             ) {
                 CompositionLocalProvider(
-                    LocalContentColor provides if (enabled) Color(0xFF0C1020) else Color(0xFF0C1020).copy(alpha = 0.4f)
+                    LocalContentColor provides if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
                 ) {
                     content()
                 }
@@ -1503,12 +1503,12 @@ fun ContainedLoadingIndicator(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF262626)),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = badgeText,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )

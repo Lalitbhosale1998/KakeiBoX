@@ -11,7 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // Android 16 edge-to-edge is default — this enables it properly
+        enableEdgeToEdge()
         setContent {
             KakeiboXAppRoot()
         }

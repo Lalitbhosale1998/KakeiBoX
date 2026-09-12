@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-import java.util.Calendar
-
 enum class SalaryFilter {
     ALL, THIS_YEAR, HIGH_SAVINGS
 }

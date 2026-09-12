@@ -625,9 +625,9 @@ fun SalaryScreen(
                                 enter = fadeIn(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) +
                                         slideInVertically(spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 4 }
                             ) {
-                                val currentCal = remember { java.util.Calendar.getInstance() }
-                                val currentYearVal = remember(currentCal) { currentCal.get(java.util.Calendar.YEAR) }
-                                val currentMonthVal = remember(currentCal) { currentCal.get(java.util.Calendar.MONTH) + 1 }
+                                val currentDate = remember { java.time.LocalDate.now() }
+                                val currentYearVal = remember(currentDate) { currentDate.year }
+                                val currentMonthVal = remember(currentDate) { currentDate.monthValue }
 
                                 val monthEntries = remember(allEntries, currentEntry, currentYearVal, currentMonthVal) {
                                     if (allEntries.isEmpty()) {
@@ -1028,40 +1028,30 @@ fun AuraExpressiveHeroCard(
         label = "uTime"
     )
 
-    val isAgslSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
     val primaryColor = MaterialTheme.colorScheme.primary
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
     val secondaryColor = MaterialTheme.colorScheme.secondary
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
 
-    val agslBrush = remember(timeState, isAgslSupported, primaryColor, tertiaryColor) {
-        if (isAgslSupported) {
-            val shaderCode = """
-                uniform float2 uSize;
-                uniform float uTime;
-                uniform float3 uColor1;
-                uniform float3 uColor2;
-                half4 main(float2 fragCoord) {
-                    float2 uv = fragCoord / uSize;
-                    float wave = sin(uv.x * 5.0 + uTime * 1.2) * cos(uv.y * 5.0 + uTime * 0.9) * 0.5 + 0.5;
-                    float3 color = mix(uColor1, uColor2, wave);
-                    return half4(color, 0.04);
-                }
-            """.trimIndent()
-            AgslShaderHelper.createShaderBrush(
-                shaderCode,
-                timeState,
-                floatArrayOf(primaryColor.red, primaryColor.green, primaryColor.blue),
-                floatArrayOf(tertiaryColor.red, tertiaryColor.green, tertiaryColor.blue)
-            )
-        } else {
-            Brush.linearGradient(
-                colors = listOf(
-                    primaryColor.copy(alpha = 0.05f),
-                    tertiaryColor.copy(alpha = 0.05f)
-                )
-            )
-        }
+    val agslBrush = remember(timeState, primaryColor, tertiaryColor) {
+        val shaderCode = """
+            uniform float2 uSize;
+            uniform float uTime;
+            uniform float3 uColor1;
+            uniform float3 uColor2;
+            half4 main(float2 fragCoord) {
+                float2 uv = fragCoord / uSize;
+                float wave = sin(uv.x * 5.0 + uTime * 1.2) * cos(uv.y * 5.0 + uTime * 0.9) * 0.5 + 0.5;
+                float3 color = mix(uColor1, uColor2, wave);
+                return half4(color, 0.04);
+            }
+        """.trimIndent()
+        AgslShaderHelper.createShaderBrush(
+            shaderCode,
+            timeState,
+            floatArrayOf(primaryColor.red, primaryColor.green, primaryColor.blue),
+            floatArrayOf(tertiaryColor.red, tertiaryColor.green, tertiaryColor.blue)
+        )
     }
 
     // 💎 Approved Feature 3: Holographic Chromatic Prism Foil Sheen
@@ -1249,9 +1239,9 @@ fun AuraExpressiveHeroCard(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 
-                                val nowCal = remember { java.util.Calendar.getInstance() }
-                                val nowYear = remember(nowCal) { nowCal.get(java.util.Calendar.YEAR) }
-                                val nowMonth = remember(nowCal) { nowCal.get(java.util.Calendar.MONTH) + 1 }
+                                val nowDate = remember { java.time.LocalDate.now() }
+                                val nowYear = remember(nowDate) { nowDate.year }
+                                val nowMonth = remember(nowDate) { nowDate.monthValue }
                                 val isCurrentMonth = currentEntry?.let { it.month == nowMonth && it.year == nowYear } ?: true
                                 val monthName = remember(currentEntry) {
                                     val m = currentEntry?.month ?: nowMonth
@@ -2579,8 +2569,8 @@ fun ExpressiveTotalEarningsTicker(
                                 .togetherWith(slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessLow)) { -it } + fadeOut())
                         } else {
                             // Standard fade for symbols and separators
-                            fadeIn(animationSpec = tween(150))
-                                .togetherWith(fadeOut(animationSpec = tween(150)))
+                            fadeIn(animationSpec = com.personal.kakeibox.ui.theme.ExpressiveMotion.standardSpec())
+                                .togetherWith(fadeOut(animationSpec = com.personal.kakeibox.ui.theme.ExpressiveMotion.standardSpec()))
                         }
                     },
                     label = "digit_ticker_$index"
@@ -3512,8 +3502,7 @@ fun InteractiveAnalyticsChart(
 
 
 fun Color.harmonizeWith(primary: Color): Color {
-    val resultColorInt = com.google.android.material.color.MaterialColors.harmonize(this.toArgb(), primary.toArgb())
-    return Color(resultColorInt)
+    return androidx.compose.ui.graphics.lerp(this, primary, 0.15f)
 }
 
 class ExpressiveTouchIndication(private val bloomColor: Color) : IndicationNodeFactory {

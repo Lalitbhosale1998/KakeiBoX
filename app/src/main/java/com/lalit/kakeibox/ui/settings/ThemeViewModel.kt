@@ -1,7 +1,5 @@
 package com.personal.kakeibox.ui.settings
 
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.State
@@ -155,20 +153,6 @@ class ThemeViewModel @Inject constructor(
     fun setAppLanguage(language: AppLanguage) {
         viewModelScope.launch {
             preferencesRepository.setAppLanguage(language)
-            
-            val localeTag = when (language) {
-                AppLanguage.ENGLISH -> "en"
-                AppLanguage.JAPANESE -> "ja"
-            }
-            
-            try {
-                AppCompatDelegate.setApplicationLocales(
-                    LocaleListCompat.forLanguageTags(localeTag)
-                )
-            } catch (e: Exception) {
-                // Fallback for non-AppCompat environments if needed, 
-                // but we are using FragmentActivity which should work.
-            }
         }
     }
 
@@ -198,7 +182,6 @@ class ThemeViewModel @Inject constructor(
 
             biometricPrompt.authenticate(promptInfo)
         } else {
-            // Biometric not available, let them in or handle accordingly
             _isAuthenticated.value = true
         }
     }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -944,8 +945,8 @@ fun KotobaScreen(
                         // ── Option 1: M3 Expressive Spring Bottom Sheet Overlay ──
                         AnimatedVisibility(
                             visible = selectedVocabEntry != null,
-                            enter = slideInVertically(initialOffsetY = { it }, animationSpec = ExpressivePhysics.fluidBouncy()) + fadeIn(tween(250)),
-                            exit = slideOutVertically(targetOffsetY = { it }, animationSpec = ExpressivePhysics.fluidBouncy()) + fadeOut(tween(200))
+                            enter = slideInVertically(initialOffsetY = { it }, animationSpec = com.personal.kakeibox.ui.theme.ExpressivePhysics.fluidBouncy()) + fadeIn(com.personal.kakeibox.ui.theme.ExpressiveMotion.sheetEnterSpec()),
+                            exit = slideOutVertically(targetOffsetY = { it }, animationSpec = com.personal.kakeibox.ui.theme.ExpressivePhysics.fluidBouncy()) + fadeOut(com.personal.kakeibox.ui.theme.ExpressiveMotion.sheetExitSpec())
                         ) {
                             selectedVocabEntry?.let { targetEntry ->
                                 val liveEntry = allEntries.find { it.id == targetEntry.id } ?: targetEntry
@@ -1713,7 +1714,7 @@ fun ExpressiveVocabAddSheet(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true
                     )
@@ -1766,7 +1767,7 @@ fun ExpressiveVocabAddSheet(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true
                     )
@@ -1840,7 +1841,7 @@ fun ExpressiveVocabAddSheet(
                     onValueChange = { example = it },
                     label = { Text("例文 (Example Sentence)") },
                     placeholder = { Text("例: 彼は性格が幾帳面で、提出期限を一度も破ったことがない。") },
-                    leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     maxLines = 3

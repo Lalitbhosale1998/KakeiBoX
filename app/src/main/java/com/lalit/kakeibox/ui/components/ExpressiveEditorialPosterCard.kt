@@ -288,15 +288,15 @@ fun ExpressiveEditorialPosterCard(
                                 .size(46.dp)
                                 .rotate(-14f),
                             shape = RoundedCornerShape(14.dp),
-                            color = Color(0xFF0284C7),
-                            border = BorderStroke(1.5.dp, Color.White),
+                            color = MaterialTheme.colorScheme.tertiary,
+                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.8f)),
                             shadowElevation = 8.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Outlined.CreditCard,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onTertiary,
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
@@ -308,15 +308,15 @@ fun ExpressiveEditorialPosterCard(
                                 .size(50.dp)
                                 .rotate(8f),
                             shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFFEA580C),
-                            border = BorderStroke(1.5.dp, Color.White),
+                            color = MaterialTheme.colorScheme.secondary,
+                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)),
                             shadowElevation = 10.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Outlined.AccountBalanceWallet,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -328,8 +328,8 @@ fun ExpressiveEditorialPosterCard(
                                 .size(44.dp)
                                 .rotate(-4f),
                             shape = CircleShape,
-                            color = Color(0xFFEAB308),
-                            border = BorderStroke(1.5.dp, Color.White),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)),
                             shadowElevation = 7.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -337,7 +337,7 @@ fun ExpressiveEditorialPosterCard(
                                     text = "五円",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = Color(0xFF451A03)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }

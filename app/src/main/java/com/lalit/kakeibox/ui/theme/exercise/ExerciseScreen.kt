@@ -299,7 +299,7 @@ fun ExerciseScreen(
                 Surface(
                     modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
                     shape = CircleShape,
-                    color = Color(0xFF00F5D4)
+                    color = sheetColorScheme.outline
                 ) {
                     Box(modifier = Modifier.size(width = 36.dp, height = 5.dp))
                 }
@@ -1030,16 +1030,17 @@ fun WorkoutItemCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val nameLower = exercise.name.lowercase()
-    val (categoryName, categoryColor, categoryEmoji) = remember(nameLower) {
+    val colorScheme = MaterialTheme.colorScheme
+    val (categoryName, categoryColor, categoryEmoji) = remember(nameLower, colorScheme) {
         when {
-            nameLower.contains("run") || nameLower.contains("jog") || nameLower.contains("cardio") || nameLower.contains("treadmill") -> Triple("CARDIO", Color(0xFF00B0FF), "🏃")
-            nameLower.contains("squat") || nameLower.contains("leg") || nameLower.contains("lunge") -> Triple("LEGS", Color(0xFFFF9100), "🦵")
-            nameLower.contains("pushup") || nameLower.contains("press") || nameLower.contains("chest") || nameLower.contains("bench") -> Triple("CHEST", Color(0xFFFF1744), "💪")
-            nameLower.contains("pullup") || nameLower.contains("row") || nameLower.contains("back") || nameLower.contains("deadlift") -> Triple("BACK", Color(0xFF00E676), "🏋️")
-            nameLower.contains("stretch") || nameLower.contains("yoga") || nameLower.contains("flex") || nameLower.contains("warm") -> Triple("FLEXIBILITY", Color(0xFFD500F9), "🧘")
-            nameLower.contains("cycle") || nameLower.contains("bike") -> Triple("CYCLING", Color(0xFFFFEA00), "🚴")
-            nameLower.contains("swim") -> Triple("SWIMMING", Color(0xFF00E5FF), "🏊")
-            else -> Triple("STRENGTH", Color(0xFFFF3D00), "🏋️")
+            nameLower.contains("run") || nameLower.contains("jog") || nameLower.contains("cardio") || nameLower.contains("treadmill") -> Triple("CARDIO", colorScheme.primary, "🏃")
+            nameLower.contains("squat") || nameLower.contains("leg") || nameLower.contains("lunge") -> Triple("LEGS", colorScheme.secondary, "🦵")
+            nameLower.contains("pushup") || nameLower.contains("press") || nameLower.contains("chest") || nameLower.contains("bench") -> Triple("CHEST", colorScheme.tertiary, "💪")
+            nameLower.contains("pullup") || nameLower.contains("row") || nameLower.contains("back") || nameLower.contains("deadlift") -> Triple("BACK", colorScheme.secondaryContainer, "🏋️")
+            nameLower.contains("stretch") || nameLower.contains("yoga") || nameLower.contains("flex") || nameLower.contains("warm") -> Triple("FLEXIBILITY", colorScheme.tertiaryContainer, "🧘")
+            nameLower.contains("cycle") || nameLower.contains("bike") -> Triple("CYCLING", colorScheme.primaryContainer, "🚴")
+            nameLower.contains("swim") -> Triple("SWIMMING", colorScheme.primary, "🏊")
+            else -> Triple("STRENGTH", colorScheme.error, "🏋️")
         }
     }
 
@@ -1387,18 +1388,19 @@ fun ExerciseAddEditSheet(
     var dayOfWeek by remember { mutableStateOf(exercise?.dayOfWeek ?: selectedDay) }
 
     // Dynamic Category Detection
-    val detectedCategory = remember(name) {
+    val colorScheme = MaterialTheme.colorScheme
+    val detectedCategory = remember(name, colorScheme) {
         val nameLower = name.lowercase()
         when {
-            nameLower.contains("run") || nameLower.contains("jog") || nameLower.contains("cardio") || nameLower.contains("treadmill") -> Pair("CARDIO", Pair(Color(0xFF00B0FF), "🏃"))
-            nameLower.contains("squat") || nameLower.contains("leg") || nameLower.contains("lunge") -> Pair("LEGS", Pair(Color(0xFFFF9100), "🦵"))
-            nameLower.contains("pushup") || nameLower.contains("press") || nameLower.contains("chest") || nameLower.contains("bench") -> Pair("CHEST", Pair(Color(0xFFFF1744), "💪"))
-            nameLower.contains("pullup") || nameLower.contains("row") || nameLower.contains("back") || nameLower.contains("deadlift") -> Pair("BACK", Pair(Color(0xFF00E676), "🏋️"))
-            nameLower.contains("stretch") || nameLower.contains("yoga") || nameLower.contains("flex") || nameLower.contains("warm") -> Pair("FLEXIBILITY", Pair(Color(0xFFD500F9), "🧘"))
-            nameLower.contains("cycle") || nameLower.contains("bike") -> Pair("CYCLING", Pair(Color(0xFFFFEA00), "🚴"))
-            nameLower.contains("swim") -> Pair("SWIMMING", Pair(Color(0xFF00E5FF), "🏊"))
+            nameLower.contains("run") || nameLower.contains("jog") || nameLower.contains("cardio") || nameLower.contains("treadmill") -> Pair("CARDIO", Pair(colorScheme.primary, "🏃"))
+            nameLower.contains("squat") || nameLower.contains("leg") || nameLower.contains("lunge") -> Pair("LEGS", Pair(colorScheme.secondary, "🦵"))
+            nameLower.contains("pushup") || nameLower.contains("press") || nameLower.contains("chest") || nameLower.contains("bench") -> Pair("CHEST", Pair(colorScheme.tertiary, "💪"))
+            nameLower.contains("pullup") || nameLower.contains("row") || nameLower.contains("back") || nameLower.contains("deadlift") -> Pair("BACK", Pair(colorScheme.secondaryContainer, "🏋️"))
+            nameLower.contains("stretch") || nameLower.contains("yoga") || nameLower.contains("flex") || nameLower.contains("warm") -> Pair("FLEXIBILITY", Pair(colorScheme.tertiaryContainer, "🧘"))
+            nameLower.contains("cycle") || nameLower.contains("bike") -> Pair("CYCLING", Pair(colorScheme.primaryContainer, "🚴"))
+            nameLower.contains("swim") -> Pair("SWIMMING", Pair(colorScheme.primary, "🏊"))
             name.isBlank() -> null
-            else -> Pair("STRENGTH", Pair(Color(0xFFFF3D00), "🏋️"))
+            else -> Pair("STRENGTH", Pair(colorScheme.error, "🏋️"))
         }
     }
 

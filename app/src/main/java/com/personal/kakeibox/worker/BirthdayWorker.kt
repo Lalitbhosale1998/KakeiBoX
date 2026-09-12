@@ -1,9 +1,9 @@
 package com.personal.kakeibox.worker
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -42,22 +42,19 @@ class BirthdayWorker @AssistedInject constructor(
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "birthday_reminders"
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Birthday Reminders",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Notifications for birthday reminders"
-            }
-            notificationManager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            channelId,
+            "Birthday Reminders",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Notifications for birthday reminders"
         }
+        notificationManager.createNotificationChannel(channel)
 
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Use a proper icon if available
+        val notification = Notification.Builder(applicationContext, channelId)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Birthday Reminder! 🎂")
             .setContentText("It's $name's birthday today! Don't forget to wish them.")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .build()
 

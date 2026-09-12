@@ -323,11 +323,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 6000
-                50f at 0 with FastOutSlowInEasing
-                20f at 1500 with FastOutSlowInEasing
-                14f at 3000 with FastOutSlowInEasing
-                36f at 4500 with FastOutSlowInEasing
-                50f at 6000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing
+                20f at 1500 using FastOutSlowInEasing
+                14f at 3000 using FastOutSlowInEasing
+                36f at 4500 using FastOutSlowInEasing
+                50f at 6000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -340,11 +340,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 6000
-                50f at 0 with FastOutSlowInEasing
-                20f at 1500 with FastOutSlowInEasing
-                38f at 3000 with FastOutSlowInEasing
-                10f at 4500 with FastOutSlowInEasing
-                50f at 6000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing
+                20f at 1500 using FastOutSlowInEasing
+                38f at 3000 using FastOutSlowInEasing
+                10f at 4500 using FastOutSlowInEasing
+                50f at 6000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -357,11 +357,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 6000
-                50f at 0 with FastOutSlowInEasing
-                20f at 1500 with FastOutSlowInEasing
-                14f at 3000 with FastOutSlowInEasing
-                10f at 4500 with FastOutSlowInEasing
-                50f at 6000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing
+                20f at 1500 using FastOutSlowInEasing
+                14f at 3000 using FastOutSlowInEasing
+                10f at 4500 using FastOutSlowInEasing
+                50f at 6000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -374,11 +374,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 6000
-                50f at 0 with FastOutSlowInEasing
-                20f at 1500 with FastOutSlowInEasing
-                38f at 3000 with FastOutSlowInEasing
-                36f at 4500 with FastOutSlowInEasing
-                50f at 6000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing
+                20f at 1500 using FastOutSlowInEasing
+                38f at 3000 using FastOutSlowInEasing
+                36f at 4500 using FastOutSlowInEasing
+                50f at 6000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -412,11 +412,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 8000
-                50f at 0 with FastOutSlowInEasing     // Circle
-                8f at 2000 with FastOutSlowInEasing      // Pentagon
-                4f at 4000 with FastOutSlowInEasing      // Gem
-                40f at 6000 with FastOutSlowInEasing     // Ghost
-                50f at 8000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing     // Circle
+                8f at 2000 using FastOutSlowInEasing      // Pentagon
+                4f at 4000 using FastOutSlowInEasing      // Gem
+                40f at 6000 using FastOutSlowInEasing     // Ghost
+                50f at 8000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -429,11 +429,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 8000
-                50f at 0 with FastOutSlowInEasing
-                40f at 2000 with FastOutSlowInEasing
-                44f at 4000 with FastOutSlowInEasing
-                40f at 6000 with FastOutSlowInEasing
-                50f at 8000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing
+                40f at 2000 using FastOutSlowInEasing
+                44f at 4000 using FastOutSlowInEasing
+                40f at 6000 using FastOutSlowInEasing
+                50f at 8000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -446,11 +446,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 8000
-                50f at 0 with FastOutSlowInEasing
-                40f at 2000 with FastOutSlowInEasing
-                4f at 4000 with FastOutSlowInEasing
-                4f at 6000 with FastOutSlowInEasing
-                50f at 8000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing
+                40f at 2000 using FastOutSlowInEasing
+                4f at 4000 using FastOutSlowInEasing
+                4f at 6000 using FastOutSlowInEasing
+                50f at 8000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -463,11 +463,11 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 8000
-                50f at 0 with FastOutSlowInEasing
-                8f at 2000 with FastOutSlowInEasing
-                44f at 4000 with FastOutSlowInEasing
-                4f at 6000 with FastOutSlowInEasing
-                50f at 8000 with FastOutSlowInEasing
+                50f at 0 using FastOutSlowInEasing
+                8f at 2000 using FastOutSlowInEasing
+                44f at 4000 using FastOutSlowInEasing
+                4f at 6000 using FastOutSlowInEasing
+                50f at 8000 using FastOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),
@@ -481,12 +481,12 @@ private fun WelcomeStep() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 10000
-                4f at 0 with LinearOutSlowInEasing
-                6f at 2000 with LinearOutSlowInEasing
-                7f at 4000 with LinearOutSlowInEasing
-                9f at 6000 with LinearOutSlowInEasing
-                12f at 8000 with LinearOutSlowInEasing
-                4f at 10000 with LinearOutSlowInEasing
+                4f at 0 using LinearOutSlowInEasing
+                6f at 2000 using LinearOutSlowInEasing
+                7f at 4000 using LinearOutSlowInEasing
+                9f at 6000 using LinearOutSlowInEasing
+                12f at 8000 using LinearOutSlowInEasing
+                4f at 10000 using LinearOutSlowInEasing
             },
             repeatMode = RepeatMode.Restart
         ),

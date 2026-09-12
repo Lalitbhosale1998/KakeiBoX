@@ -55,7 +55,7 @@ object AppModule {
             KakeiboXDatabase::class.java,
             "kakeibox_database"
         )
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 

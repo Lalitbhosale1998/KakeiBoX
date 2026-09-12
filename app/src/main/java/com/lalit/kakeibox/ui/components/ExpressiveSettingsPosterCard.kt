@@ -45,13 +45,13 @@ fun ExpressiveSettingsPosterCard(
     onOpenThemeDrawer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val neonMint = Color(0xFF00E676)
-    val flameRed = Color(0xFFFF1744)
-    val mintText = Color(0xFFA7F3D0)
+    val neonMint = MaterialTheme.colorScheme.tertiary
+    val flameRed = MaterialTheme.colorScheme.error
+    val mintText = MaterialTheme.colorScheme.onTertiaryContainer
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(2.dp, neonMint.copy(alpha = 0.6f)),
         shadowElevation = 12.dp
