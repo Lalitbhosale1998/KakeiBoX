@@ -132,7 +132,7 @@ fun ExerciseScreen(
     )
 
     val bentoIdleColor by animateColorAsState(
-        targetValue = MaterialTheme.colorScheme.surfaceContainerLow,
+        targetValue = MaterialTheme.colorScheme.surfaceContainerHigh,
         label = "bento_idle_color"
     )
 
@@ -482,7 +482,7 @@ fun DailyProgressDashboard(
 @Composable
 fun RestDayDashboard(
     dayName: String,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     val haptic = LocalHapticFeedback.current
     val recoveryQuotes = remember {

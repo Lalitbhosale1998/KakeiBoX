@@ -947,7 +947,7 @@ fun KotobaScreen(
             onDismissRequest = { showAddSheet = false },
             sheetState = sheetState,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             dragHandle = {
                 Surface(
                     modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
@@ -983,7 +983,7 @@ fun VocabCardItem(
 
     val themeSettings = LocalThemeSettings.current
     val isPrimaryContainer = themeSettings.topAppBarBackground == TopAppBarBackground.PRIMARY_CONTAINER
-    val cardBgColor = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh
+    val cardBgColor = if (entry.isMastered) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerHighest
 
     var isPressed by remember { mutableStateOf(false) }
     val expressiveShape = rememberExpressiveCardShape(isPressed = isPressed)

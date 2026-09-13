@@ -206,7 +206,7 @@ fun HomeScreen(
     val sheetColorScheme = currentColorScheme
 
     MaterialTheme(colorScheme = sheetColorScheme) {
-        val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
+        val chalkBg = MaterialTheme.colorScheme.surfaceContainerHigh
         val neonMint = MaterialTheme.colorScheme.primary
         val mintText = MaterialTheme.colorScheme.onSurface
         val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
@@ -309,8 +309,9 @@ fun HomeScreen(
                                 scaleY = heroScale
                             },
                         shape = heroCardShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        shadowElevation = 0.dp
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shadowElevation = 6.dp,
+                        tonalElevation = 4.dp
                     ) {
                         Column(
                             modifier = Modifier

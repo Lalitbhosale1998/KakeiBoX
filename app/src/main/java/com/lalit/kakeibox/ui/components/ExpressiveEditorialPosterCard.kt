@@ -105,7 +105,7 @@ fun ExpressiveEditorialPosterCard(
 
     // Theme-Adaptive Color Palette (Crisp High-Contrast Zine for Light & Dark Mode)
     val isDark = isSystemInDarkTheme()
-    val chalkBg = MaterialTheme.colorScheme.surfaceContainerLow
+    val chalkBg = MaterialTheme.colorScheme.surfaceContainerHigh
     val mintText = MaterialTheme.colorScheme.onSurface
     val neonMint = MaterialTheme.colorScheme.primary
     val flameRed = MaterialTheme.colorScheme.secondary
@@ -115,8 +115,8 @@ fun ExpressiveEditorialPosterCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(28.dp)),
         color = chalkBg,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-        shadowElevation = 0.dp
+        shadowElevation = 6.dp,
+        tonalElevation = 4.dp
     ) {
         Box(
             modifier = Modifier

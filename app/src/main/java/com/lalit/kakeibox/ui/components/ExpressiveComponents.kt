@@ -728,7 +728,7 @@ fun BentoCard(
     isActive: Boolean = false,
     activeContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
     activeContentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    idleContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    idleContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     idleContentColor: Color = MaterialTheme.colorScheme.onSurface,
     cardShapePreference: CardShapePreference = CardShapePreference.PILL,
     onClick: (() -> Unit)? = null,
@@ -816,9 +816,7 @@ fun BentoCard(
     val cardShape = cardShapePreference.toShape(isPressed = isPressed)
     val cardBorder = if (isSpaceTerminal) {
         BorderStroke(1.5.dp, if (isActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
-    } else {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-    }
+    } else null
     val iconShape = if (isSpaceTerminal) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp)
 
     val glowIntensity = LocalGlowIntensity.current
@@ -841,8 +839,8 @@ fun BentoCard(
         contentColor = contentColor,
         shape = cardShape,
         border = cardBorder,
-        shadowElevation = 0.dp,
-        tonalElevation = 0.dp
+        shadowElevation = 4.dp,
+        tonalElevation = 3.dp
     ) {
         Column(
             modifier = Modifier

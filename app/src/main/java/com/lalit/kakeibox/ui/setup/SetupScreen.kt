@@ -836,11 +836,8 @@ private fun LangCurrencyStep(themeSettings: ThemeSettings, viewModel: ThemeViewM
                                     bottomStart = 12.dp,
                                     bottomEnd = engBottomEnd
                                 ),
-                                color = if (isEnglish) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-                                border = BorderStroke(
-                                    if (isEnglish) 2.dp else 1.dp,
-                                    if (isEnglish) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                                ),
+                                color = if (isEnglish) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                border = if (isEnglish) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
                                 shadowElevation = if (isEnglish) 6.dp else 0.dp
                             ) {
                                 Row(
@@ -895,11 +892,8 @@ private fun LangCurrencyStep(themeSettings: ThemeSettings, viewModel: ThemeViewM
                                     bottomStart = 12.dp,
                                     bottomEnd = japBottomEnd
                                 ),
-                                color = if (isJapanese) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-                                border = BorderStroke(
-                                    if (isJapanese) 2.dp else 1.dp,
-                                    if (isJapanese) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                                ),
+                                color = if (isJapanese) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                border = if (isJapanese) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
                                 shadowElevation = if (isJapanese) 6.dp else 0.dp
                             ) {
                                 Row(
@@ -978,11 +972,8 @@ private fun LangCurrencyStep(themeSettings: ThemeSettings, viewModel: ThemeViewM
                                         bottomStart = 10.dp,
                                         bottomEnd = curBottomEnd
                                     ),
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLow,
-                                    border = BorderStroke(
-                                        if (isSelected) 2.dp else 1.dp,
-                                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                                    ),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
                                     shadowElevation = if (isSelected) 8.dp else 0.dp
                                 ) {
                                     Column(
@@ -1198,6 +1189,10 @@ private fun ThemeFontStep(themeSettings: ThemeSettings, viewModel: ThemeViewMode
                     val fonts = listOf(
                         Pair(AppFont.GOOGLE_SANS_FLEX, "Google Sans 🌟"),
                         Pair(AppFont.NUNITO, "Nunito ✒️"),
+                        Pair(AppFont.OUTFIT, "Outfit ✨"),
+                        Pair(AppFont.PLAYFAIR, "Playfair 📖"),
+                        Pair(AppFont.MONOSPACE, "Monospace 💻"),
+                        Pair(AppFont.SYSTEM_SANS, "System Sans 📱"),
                         Pair(AppFont.CLIMATE_CRISIS, "Climate 🌋"),
                         Pair(AppFont.LUCKIEST_GUY, "Luckiest 🎯"),
                         Pair(AppFont.DELA_GOTHIC_ONE, "Dela Gothic ⛩️"),

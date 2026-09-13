@@ -59,9 +59,9 @@ fun ExpressiveSettingsPosterCard(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-        shadowElevation = 0.dp
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 6.dp,
+        tonalElevation = 4.dp
     ) {
         Column(
             modifier = Modifier

@@ -377,9 +377,9 @@ private fun ExpressiveSettingsHeroBanner(
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-        shadowElevation = 4.dp
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 6.dp,
+        tonalElevation = 4.dp
     ) {
         Column(
             modifier = Modifier
@@ -403,7 +403,7 @@ private fun ExpressiveSettingsHeroBanner(
                         text = "Settings & Vault",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -429,19 +429,19 @@ private fun ExpressiveSettingsHeroBanner(
                 HeroStatusChip(
                     icon = Icons.Outlined.Palette,
                     label = if (themeSettings.useDynamicColor) "Monet Dynamic Active" else "Custom Chroma Tint",
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
 
                 HeroStatusChip(
                     icon = if (themeSettings.privacyModeEnabled) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                     label = if (themeSettings.privacyModeEnabled) "Vault Masked" else "Vault Visible",
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
 
                 HeroStatusChip(
                     icon = Icons.Outlined.Code,
                     label = themeSettings.appFont.name.lowercase().replaceFirstChar { it.uppercase() },
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
             }
         }
@@ -456,8 +456,7 @@ private fun HeroStatusChip(
 ) {
     Surface(
         shape = CircleShape,
-        color = containerColor,
-        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        color = containerColor
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -767,11 +766,21 @@ private fun TypographySection(
         // Font Face Visual Selector & Live Preview
         ExpressiveSettingsCard(title = "Typeface Family Preview", icon = Icons.Outlined.Code) {
             val fonts = listOf(
-                AppFont.NUNITO to "Nunito",
-                AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded",
-                AppFont.OUTFIT to "Outfit",
-                AppFont.PLAYFAIR to "Playfair",
-                AppFont.MONOSPACE to "Monospace"
+                AppFont.NUNITO to "Nunito ✒️",
+                AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded 🌟",
+                AppFont.OUTFIT to "Outfit ✨",
+                AppFont.PLAYFAIR to "Playfair 📖",
+                AppFont.MONOSPACE to "Monospace 💻",
+                AppFont.SYSTEM_SANS to "System Sans 📱",
+                AppFont.CLIMATE_CRISIS to "Climate Crisis 🌋",
+                AppFont.LUCKIEST_GUY to "Luckiest Guy 🎯",
+                AppFont.DELA_GOTHIC_ONE to "Dela Gothic ⛩️",
+                AppFont.HACHI_MARU_POP to "Hachi Maru Pop 🌸",
+                AppFont.KOSUGI_MARU to "Kosugi Maru 🍡",
+                AppFont.MOCHIY_POP_P_ONE to "Mochiy Pop 🍡",
+                AppFont.POTTA_ONE to "Potta One 🍵",
+                AppFont.RAMPART_ONE to "Rampart One 🏯",
+                AppFont.WDXL_LUBRIFONT_JPN to "WDXL JPN 🎌"
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1107,9 +1116,9 @@ private fun ExpressiveSettingsCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        shadowElevation = 2.dp
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shadowElevation = 6.dp,
+        tonalElevation = 4.dp
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
