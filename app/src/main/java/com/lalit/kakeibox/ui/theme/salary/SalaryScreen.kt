@@ -3306,60 +3306,97 @@ fun InteractiveAnalyticsChart(
     }
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         shadowElevation = 0.dp,
         tonalElevation = 0.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
             val strings = getAppStrings(themeSettings.appLanguage)
-            Text(
-                text = strings.incomeVsSavingsTrend,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
-                letterSpacing = 2.0.sp,
-                modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
-            )
-
             val primaryColor = MaterialTheme.colorScheme.primary
-            val onPrimaryColorInt = MaterialTheme.colorScheme.onPrimary.toArgb()
-            
-            val textPaint = remember(onPrimaryColorInt) {
-                android.graphics.Paint().apply {
-                    color = onPrimaryColorInt
-                    textSize = 20f
-                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-                    textAlign = android.graphics.Paint.Align.CENTER
+            val tertiaryColor = MaterialTheme.colorScheme.tertiary
+
+            // Header + Active Selected Month Tooltip Badge
+            val activeIdx = if (selectedIndex in last6.indices) selectedIndex else last6.lastIndex
+            val activeEntry = last6.getOrNull(activeIdx)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = strings.incomeVsSavingsTrend,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = primaryColor,
+                    letterSpacing = 1.8.sp
+                )
+
+                if (activeEntry != null) {
+                    val savingsPercent = if (activeEntry.salaryAmount > 0) {
+                        ((activeEntry.savingsAmount.toDouble() / activeEntry.salaryAmount.toDouble()) * 100).toInt().coerceIn(0, 100)
+                    } else 0
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "${DateUtils.getShortMonthName(activeEntry.month)}: ",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp
+                            )
+                            Text(
+                                text = if (isPrivacyMode) "••••" else "${CurrencyUtils.formatAmount(activeEntry.salaryAmount, themeSettings.currencySymbol, isPrivacyMode, compact = true)} / ${savingsPercent}% ${strings.saved}",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 10.sp,
+                                color = primaryColor
+                            )
+                        }
+                    }
                 }
             }
 
-            // Canvas Chart
+            // Canvas Chart (Capsule Pills & Expressive Motion)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
+                    .height(140.dp)
             ) {
                 Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    val padding = 8.dp.toPx()
+                    val padding = 10.dp.toPx()
                     val chartWidth = size.width
                     val chartHeight = size.height
                     val barGroupCount = last6.size
                     val groupWidth = chartWidth / barGroupCount
-                    val barWidth = (groupWidth * 0.32f).coerceAtMost(32.dp.toPx())
-                    val gap = (groupWidth * 0.08f).coerceAtMost(16.dp.toPx())
+                    val barWidth = (groupWidth * 0.28f).coerceAtMost(22.dp.toPx())
+                    val gap = 6.dp.toPx()
 
                     last6.forEachIndexed { idx, entry ->
                         val groupCenterX = idx * groupWidth + (groupWidth / 2)
-                        
                         val scale = scaleAnims[idx].value
-                        val salaryHeight = (entry.salaryAmount.toFloat() / maxAmount.toFloat()) * (chartHeight - padding * 2) * scale
-                        val savingsHeight = (entry.savingsAmount.toFloat() / maxAmount.toFloat()) * (chartHeight - padding * 2) * scale
+
+                        val rawSalaryHeight = (entry.salaryAmount.toFloat() / maxAmount.toFloat()) * (chartHeight - padding * 2) * scale
+                        val rawSavingsHeight = (entry.savingsAmount.toFloat() / maxAmount.toFloat()) * (chartHeight - padding * 2) * scale
+
+                        val minPillHeight = barWidth
+                        val salaryHeight = rawSalaryHeight.coerceAtLeast(minPillHeight)
+                        val savingsHeight = if (entry.savingsAmount > 0) rawSavingsHeight.coerceAtLeast(minPillHeight) else minPillHeight
 
                         // Coordinates
                         val salaryX = groupCenterX - barWidth - gap / 2
@@ -3368,51 +3405,36 @@ fun InteractiveAnalyticsChart(
                         val salaryY = chartHeight - padding - salaryHeight
                         val savingsY = chartHeight - padding - savingsHeight
 
-                        // Colors
-                        val isSelected = selectedIndex == idx
-                        val salaryColor = if (isSelected) primaryColor else primaryColor.copy(alpha = 0.5f)
-                        val harmonizedGreen = Color(0xFF10B981).harmonizeWith(primaryColor)
-                        val savingsColor = if (isSelected) harmonizedGreen else harmonizedGreen.copy(alpha = 0.5f)
+                        // Selection & Color Tokens
+                        val isSelected = activeIdx == idx
+                        val salaryBarColor = if (isSelected) primaryColor else primaryColor.copy(alpha = 0.55f)
+                        val savingsBarColor = if (entry.savingsAmount > 0) {
+                            if (isSelected) tertiaryColor else tertiaryColor.copy(alpha = 0.55f)
+                        } else {
+                            tertiaryColor.copy(alpha = 0.2f) // Clean zero-savings placeholder cap
+                        }
 
-                        // Draw Salary bar
+                        val capsuleCorner = androidx.compose.ui.geometry.CornerRadius(barWidth / 2f, barWidth / 2f)
+
+                        // Draw Salary Capsule Bar
                         drawRoundRect(
-                            color = salaryColor,
+                            color = salaryBarColor,
                             topLeft = Offset(salaryX, salaryY),
-                            size = androidx.compose.ui.geometry.Size(barWidth, salaryHeight.coerceAtLeast(4f)),
-                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx(), 4.dp.toPx())
+                            size = androidx.compose.ui.geometry.Size(barWidth, salaryHeight),
+                            cornerRadius = capsuleCorner
                         )
-                        if (salaryHeight > 35f && !isPrivacyMode) {
-                            drawIntoCanvas { canvas ->
-                                canvas.nativeCanvas.drawText(
-                                    "${entry.salaryAmount / 1000}K",
-                                    salaryX + barWidth / 2,
-                                    salaryY + salaryHeight / 2 + 7f,
-                                    textPaint
-                                )
-                            }
-                        }
 
-                        // Draw Savings bar
+                        // Draw Savings Capsule Bar
                         drawRoundRect(
-                            color = savingsColor,
+                            color = savingsBarColor,
                             topLeft = Offset(savingsX, savingsY),
-                            size = androidx.compose.ui.geometry.Size(barWidth, savingsHeight.coerceAtLeast(4f)),
-                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx(), 4.dp.toPx())
+                            size = androidx.compose.ui.geometry.Size(barWidth, savingsHeight),
+                            cornerRadius = capsuleCorner
                         )
-                        if (savingsHeight > 35f && !isPrivacyMode) {
-                            drawIntoCanvas { canvas ->
-                                canvas.nativeCanvas.drawText(
-                                    "${entry.savingsAmount / 1000}K",
-                                    savingsX + barWidth / 2,
-                                    savingsY + savingsHeight / 2 + 7f,
-                                    textPaint
-                                )
-                            }
-                        }
                     }
                 }
-                
-                // Overlay Row to capture taps
+
+                // Overlay Row to capture tap interactions
                 Row(modifier = Modifier.fillMaxSize()) {
                     last6.forEachIndexed { idx, entry ->
                         Box(
@@ -3432,39 +3454,39 @@ fun InteractiveAnalyticsChart(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Labels Row
+            // Month Labels Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 last6.forEachIndexed { idx, entry ->
-                    val isSelected = selectedIndex == idx
+                    val isSelected = activeIdx == idx
                     val chartMonthLocale = if (themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE) java.util.Locale.JAPAN else java.util.Locale.ENGLISH
                     Text(
                         text = DateUtils.getShortMonthName(entry.month, chartMonthLocale),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        color = if (isSelected) primaryColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
                     )
                 }
             }
 
-            // Legend
-            Spacer(modifier = Modifier.height(12.dp))
+            // M3 Legend
+            Spacer(modifier = Modifier.height(14.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(primaryColor, CircleShape))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(strings.income, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(20.dp))
-                Box(modifier = Modifier.size(8.dp).background(Color(0xFF10B981), CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(tertiaryColor, CircleShape))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(strings.totalSavings, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
