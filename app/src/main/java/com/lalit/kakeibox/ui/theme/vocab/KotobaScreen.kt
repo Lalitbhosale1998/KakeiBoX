@@ -47,6 +47,8 @@ import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.ExpressiveSwitch
 import com.personal.kakeibox.ui.components.ExpressiveElasticToggle
+import com.personal.kakeibox.ui.components.SuperellipseShape
+import com.personal.kakeibox.ui.components.CookieShape
 import com.personal.kakeibox.ui.components.rememberExpressiveCardShape
 import com.personal.kakeibox.ui.theme.ExpressiveMotion
 import com.personal.kakeibox.ui.theme.ExpressivePhysics
@@ -1320,16 +1322,65 @@ fun ExpressiveVocabDetailView(
                             )
                         }
 
-                        // Gigantic Monumental Kanji Display (95.sp)
-                        Text(
-                            text = entry.kanjiWord,
-                            fontSize = 95.sp,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            lineHeight = 90.sp,
-                            textAlign = TextAlign.Center,
-                            letterSpacing = (-4).sp
-                        )
+                        // Gigantic Monumental Kanji Display (95.sp) with Dynamic Hanko Stamp Seal
+                        Box(contentAlignment = Alignment.TopEnd) {
+                            Text(
+                                text = entry.kanjiWord,
+                                fontSize = 95.sp,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = 90.sp,
+                                textAlign = TextAlign.Center,
+                                letterSpacing = (-4).sp
+                            )
+
+                            // 🏮 Dynamic M3 Expressive Japanese Hanko Stamp Seal
+                            val stampText = if (entry.isMastered) "習得" else "未習"
+                            val stampRotation by animateFloatAsState(
+                                targetValue = if (entry.isMastered) -12f else 0f,
+                                animationSpec = ExpressivePhysics.fluidBouncy(),
+                                label = "hanko_rotation"
+                            )
+                            val stampScale by animateFloatAsState(
+                                targetValue = if (entry.isMastered) 1.15f else 0.85f,
+                                animationSpec = ExpressivePhysics.fluidBouncy(),
+                                label = "hanko_scale"
+                            )
+                            val hankoBgColor = if (entry.isMastered) {
+                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.4f)
+                            }
+                            val hankoTextColor = if (entry.isMastered) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            }
+
+                            val hankoShape = if (entry.isMastered) CookieShape(petals = 8, scallopDepthPercent = 0.12f) else SuperellipseShape(cornerRadiusDp = 12f)
+
+                            Surface(
+                                modifier = Modifier
+                                    .padding(top = 4.dp, end = 4.dp)
+                                    .graphicsLayer {
+                                        rotationZ = stampRotation
+                                        scaleX = stampScale
+                                        scaleY = stampScale
+                                    },
+                                shape = hankoShape,
+                                color = hankoBgColor,
+                                border = BorderStroke(2.dp, hankoTextColor)
+                            ) {
+                                Text(
+                                    text = stampText,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = hankoTextColor,
+                                    letterSpacing = 1.sp,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 

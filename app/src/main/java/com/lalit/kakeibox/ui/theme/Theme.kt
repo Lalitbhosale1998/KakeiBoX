@@ -46,9 +46,15 @@ import com.personal.kakeibox.data.preferences.BackdropPattern
 import com.personal.kakeibox.data.preferences.GlowIntensity
 import com.personal.kakeibox.data.preferences.TouchSynesthesia
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+
 object ExpressivePhysics {
-    fun <T> fluidSnappy() = spring<T>(dampingRatio = 0.82f, stiffness = 400f)
-    fun <T> fluidBouncy() = spring<T>(dampingRatio = 0.65f, stiffness = 300f)
+    fun <T> fluidSnappy() = spring<T>(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)
+    fun <T> fluidBouncy() = spring<T>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+    fun <T> heroMorphSpec() = spring<T>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessVeryLow)
+    fun <T> sheetEnterSpec() = spring<T>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+    fun <T> sheetExitSpec() = spring<T>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)
 }
 
 private val LightColors = lightColorScheme(

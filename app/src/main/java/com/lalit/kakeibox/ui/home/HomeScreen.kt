@@ -65,6 +65,8 @@ import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.ExpressiveElasticToggle
 import com.personal.kakeibox.ui.components.RoundedPolygonShape
 import com.personal.kakeibox.ui.components.rememberExpressiveCardShape
+import com.personal.kakeibox.ui.components.AGSLFluidMeshBackground
+import com.personal.kakeibox.ui.theme.rememberPixelHaptics
 import com.personal.kakeibox.ui.exercise.ExerciseViewModel
 import com.personal.kakeibox.ui.salary.SalaryViewModel
 import com.personal.kakeibox.ui.settings.ThemeViewModel
@@ -153,6 +155,7 @@ fun HomeScreen(
     onNavigateTab: (Int) -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
+    val pixelHaptics = rememberPixelHaptics()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val strings = getAppStrings(themeSettings.appLanguage)
     val totalSalary by salaryViewModel.totalSalary.collectAsStateWithLifecycle()

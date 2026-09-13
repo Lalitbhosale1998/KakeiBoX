@@ -117,3 +117,50 @@ class CookieShape(
         return Outline.Generic(path)
     }
 }
+
+/**
+ * Material 3 Expressive Continuous Superellipse Curve (G2 Curvature Squircle).
+ * Renders smooth continuous corner curvature using exponent n ≈ 4.5.
+ */
+class SuperellipseShape(
+    val cornerRadiusDp: Float = 28f,
+    val exponent: Float = 4.5f
+) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val path = Path()
+        val radiusPx = cornerRadiusDp * density.density
+        val width = size.width
+        val height = size.height
+
+        if (width <= 0f || height <= 0f) return Outline.Generic(path)
+
+        val halfW = width / 2f
+        val halfH = height / 2f
+        val steps = 120
+
+        for (i in 0..steps) {
+            val angle = i * 2 * Math.PI / steps
+            val cosA = cos(angle)
+            val sinA = sin(angle)
+
+            val absCos = abs(cosA).pow(2.0 / exponent)
+            val absSin = abs(sinA).pow(2.0 / exponent)
+
+            val x = halfW + (halfW * sign(cosA) * absCos).toFloat()
+            val y = halfH + (halfH * sign(sinA) * absSin).toFloat()
+
+            if (i == 0) {
+                path.moveTo(x, y)
+            } else {
+                path.lineTo(x, y)
+            }
+        }
+        path.close()
+        return Outline.Generic(path)
+    }
+}
+

@@ -1759,16 +1759,18 @@ fun ExpressiveScrollableFab(
         label = "fab_corner"
     )
 
+    val shape = if (extended) SuperellipseShape(cornerRadiusDp = 28f) else CookieShape(petals = 6, scallopDepthPercent = 0.10f)
+
     Surface(
         modifier = modifier
             .height(56.dp)
             .width(fabWidth)
-            .clip(RoundedCornerShape(cornerRadius))
+            .clip(shape)
             .clickable {
                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                 onClick()
             },
-        shape = RoundedCornerShape(cornerRadius),
+        shape = shape,
         color = containerColor,
         contentColor = contentColor,
         shadowElevation = 8.dp

@@ -3,6 +3,7 @@ package com.personal.kakeibox.ui.exercise
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.components.ExpressiveSwitch
+import com.personal.kakeibox.ui.theme.rememberPixelHaptics
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -84,6 +85,7 @@ fun ExerciseScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val haptic = LocalHapticFeedback.current
+    val pixelHaptics = rememberPixelHaptics()
     val strings = getAppStrings(themeSettings.appLanguage)
 
     val completedSetsMap = remember(uiState.selectedDay) { mutableStateMapOf<Int, Set<Int>>() }
@@ -343,12 +345,13 @@ fun DailyProgressDashboard(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        AGSLFluidMeshBackground(alpha = 0.15f) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             // Radial Progress Circle Gauge
             Box(
                 contentAlignment = Alignment.Center,
@@ -477,6 +480,7 @@ fun DailyProgressDashboard(
             }
         }
     }
+}
 }
 
 @Composable
