@@ -2612,6 +2612,7 @@ fun ExpressiveAddEditSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 12.dp)
             .navigationBarsPadding()
             .imePadding(),
@@ -3021,6 +3022,8 @@ fun ExpressiveAddEditSheet(
                 }
             }
         }
+        
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
