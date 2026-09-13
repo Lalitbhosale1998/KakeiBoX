@@ -65,6 +65,7 @@ import com.personal.kakeibox.data.preferences.TopAppBarBackground
 import com.personal.kakeibox.ui.components.ExpressiveElasticToggle
 import com.personal.kakeibox.ui.components.RoundedPolygonShape
 import com.personal.kakeibox.ui.components.rememberExpressiveCardShape
+import com.personal.kakeibox.ui.exercise.ExerciseViewModel
 import com.personal.kakeibox.ui.salary.SalaryViewModel
 import com.personal.kakeibox.ui.settings.ThemeViewModel
 import com.personal.kakeibox.ui.vocab.VocabViewModel
@@ -80,10 +81,10 @@ fun JapaneseRedHankoStamp(
     modifier: Modifier = Modifier,
     rotation: Float = -10f
 ) {
-    val stampRed = MaterialTheme.colorScheme.error
+    val stampRed = Color(0xFFD32F2F)
     Surface(
         modifier = modifier.graphicsLayer { rotationZ = rotation },
-        shape = MaterialTheme.shapes.small,
+        shape = RoundedCornerShape(8.dp),
         color = stampRed.copy(alpha = 0.12f),
         border = BorderStroke(1.8.dp, stampRed.copy(alpha = 0.85f))
     ) {
@@ -146,6 +147,7 @@ val TicketNotchShape = GenericShape { size, _ ->
 @Composable
 fun HomeScreen(
     salaryViewModel: SalaryViewModel = hiltViewModel(),
+    exerciseViewModel: ExerciseViewModel = hiltViewModel(),
     vocabViewModel: VocabViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity),
     onNavigateTab: (Int) -> Unit = {}
@@ -179,11 +181,52 @@ fun HomeScreen(
         )
     }
 
+    val exerciseUiState by exerciseViewModel.uiState.collectAsStateWithLifecycle()
+    val currentSalaryEntry by salaryViewModel.currentEntry.collectAsStateWithLifecycle()
+
     // Interactive Press States for Liquid Bento Matrix
     var isHeroPressed by remember { mutableStateOf(false) }
     var isKanjiCardFlipped by remember { mutableStateOf(false) }
     var isWorkoutLoggedToday by remember { mutableStateOf(false) }
-    var workoutStreakCount by remember { mutableIntStateOf(14) }
+
+    val todayExerciseCount = exerciseUiState.exercises.size
+    val isRestDay = exerciseUiState.isRestDay
+
+    val workoutDisplayText = remember(isRestDay, todayExerciseCount) {
+        when {
+            isRestDay -> "休 息 日"
+            todayExerciseCount > 0 -> "🔥 $todayExerciseCount 種目"
+            else -> "0 種目"
+        }
+    }
+
+    val workoutStampText = remember(isRestDay, isWorkoutLoggedToday, todayExerciseCount) {
+        when {
+            isWorkoutLoggedToday -> "済"
+            isRestDay -> "休 息"
+            todayExerciseCount > 0 -> "鍛 錬"
+            else -> "休 憩"
+        }
+    }
+
+    val (savedBudgetText, budgetStampText) = remember(currentSalaryEntry, strings.saved) {
+        val entry = currentSalaryEntry
+        if (entry != null && entry.salaryAmount > 0) {
+            val ratio = (entry.savingsAmount.toDouble() / entry.salaryAmount.toDouble()).coerceIn(0.0, 1.0)
+            val percent = (ratio * 100).toInt()
+            val text = "$percent% ${strings.saved}"
+            val stamp = when {
+                entry.remainingAmount < 0 -> "超 過"
+                percent >= 50 -> "適 正"
+                percent in 20..49 -> "節 約"
+                percent in 1..19 -> "注 意"
+                else -> "警 告"
+            }
+            Pair(text, stamp)
+        } else {
+            Pair("0% ${strings.saved}", "未 設定")
+        }
+    }
 
     // Pulsing animations
     val infiniteTransition = rememberInfiniteTransition(label = "hero_pulse")
@@ -652,7 +695,7 @@ fun HomeScreen(
                                             .clickable {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 isWorkoutLoggedToday = !isWorkoutLoggedToday
-                                                if (isWorkoutLoggedToday) workoutStreakCount += 1 else workoutStreakCount = maxOf(14, workoutStreakCount - 1)
+                                                onNavigateTab(3)
                                             },
                                         shape = RoundedCornerShape(20.dp),
                                         color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
@@ -673,14 +716,14 @@ fun HomeScreen(
                                                     color = MaterialTheme.colorScheme.tertiary
                                                 )
                                                 Text(
-                                                    text = "🔥 $workoutStreakCount 日間",
+                                                    text = workoutDisplayText,
                                                     fontSize = 16.sp,
                                                     fontWeight = FontWeight.Black,
                                                     color = mintText
                                                 )
                                             }
                                             JapaneseRedHankoStamp(
-                                                text = if (isWorkoutLoggedToday) "済" else "鍛 錬",
+                                                text = workoutStampText,
                                                 rotation = -8f
                                             )
                                         }
@@ -712,13 +755,13 @@ fun HomeScreen(
                                                     color = neonMint
                                                 )
                                                 Text(
-                                                    text = "78% ${strings.saved}",
+                                                    text = savedBudgetText,
                                                     fontSize = 16.sp,
                                                     fontWeight = FontWeight.Black,
                                                     color = mintText
                                                 )
                                             }
-                                            JapaneseRedHankoStamp(text = "適 正", rotation = -6f)
+                                            JapaneseRedHankoStamp(text = budgetStampText, rotation = -6f)
                                         }
                                     }
                                 }
