@@ -699,23 +699,6 @@ private fun VisualSettingsSection(
                 )
             }
         }
-
-        // Top App Bar Style Card
-        ExpressiveSettingsCard(title = "Top Navigation Bar Surface", icon = Icons.Outlined.Tune) {
-            ExpressiveSegmentedControl(
-                options = listOf(
-                    TopAppBarBackground.SURFACE to "Surface Flat",
-                    TopAppBarBackground.PRIMARY_CONTAINER to "Primary Overlay"
-                ),
-                selectedOption = themeSettings.topAppBarBackground,
-                onOptionSelected = { viewModel.setTopAppBarBackground(it) },
-                activeColor = MaterialTheme.colorScheme.secondaryContainer,
-                onActiveColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                shape = RoundedCornerShape(16.dp),
-                height = 48.dp
-            )
-        }
     }
 }
 
@@ -732,7 +715,7 @@ private fun TypographySection(
             ExpressiveSegmentedControl(
                 options = listOf(
                     AppLanguage.ENGLISH to "English",
-                    AppLanguage.JAPANESE to "日本語 (Japanese)"
+                    AppLanguage.JAPANESE to "日本語"
                 ),
                 selectedOption = themeSettings.appLanguage,
                 onOptionSelected = { viewModel.setAppLanguage(it) },
@@ -786,44 +769,81 @@ private fun TypographySection(
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 fonts.forEach { (font, name) ->
                     val isSelected = themeSettings.appFont == font
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .elasticClick {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setAppFont(font)
-                            },
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-                            )
-
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Check,
-                                    contentDescription = "Selected",
-                                    tint = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    }
+                    ExpressiveFontItem(
+                        name = name,
+                        isSelected = isSelected,
+                        onSelect = { viewModel.setAppFont(font) }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExpressiveFontItem(
+    name: String,
+    isSelected: Boolean,
+    onSelect: () -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+
+    val animatedBgColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "font_item_bg"
+    )
+
+    val animatedTextColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "font_item_text"
+    )
+
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.02f else 1.0f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "font_item_scale"
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .clip(RoundedCornerShape(16.dp))
+            .elasticClick {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onSelect()
+            },
+        shape = RoundedCornerShape(16.dp),
+        color = animatedBgColor
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = animatedTextColor
+            )
+
+            AnimatedVisibility(
+                visible = isSelected,
+                enter = fadeIn() + scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)),
+                exit = fadeOut() + scaleOut()
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = "Selected",
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }
