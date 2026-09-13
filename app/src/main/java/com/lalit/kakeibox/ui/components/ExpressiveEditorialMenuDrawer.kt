@@ -492,7 +492,6 @@ private fun EditorialBentoCard(
                     text = kanjiHero,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.SansSerif,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 4.dp)
                 )

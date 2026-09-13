@@ -708,10 +708,11 @@ private fun TypographySection(
     viewModel: ThemeViewModel
 ) {
     val haptic = LocalHapticFeedback.current
+    val strings = getAppStrings(themeSettings.appLanguage)
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // App Language Card
-        ExpressiveSettingsCard(title = "App Language / 言語", icon = Icons.Outlined.Language) {
+        ExpressiveSettingsCard(title = strings.appLanguage, icon = Icons.Outlined.Language) {
             ExpressiveSegmentedControl(
                 options = listOf(
                     AppLanguage.ENGLISH to "English",
@@ -728,7 +729,7 @@ private fun TypographySection(
         }
 
         // Currency Symbol Card
-        ExpressiveSettingsCard(title = "Financial Currency Symbol", icon = Icons.Outlined.Payments) {
+        ExpressiveSettingsCard(title = strings.currencySymbol, icon = Icons.Outlined.Payments) {
             ExpressiveSegmentedControl(
                 options = listOf(
                     "₹" to "₹",
@@ -747,7 +748,7 @@ private fun TypographySection(
         }
 
         // Font Face Visual Selector & Live Preview
-        ExpressiveSettingsCard(title = "Typeface Family Preview", icon = Icons.Outlined.Code) {
+        ExpressiveSettingsCard(title = strings.appFontFamily, icon = Icons.Outlined.Code) {
             val fonts = listOf(
                 AppFont.NUNITO to "Nunito ✒️",
                 AppFont.GOOGLE_SANS_FLEX to "Google Sans Rounded 🌟",
@@ -854,8 +855,10 @@ private fun SecuritySection(
     themeSettings: com.personal.kakeibox.data.preferences.ThemeSettings,
     viewModel: ThemeViewModel
 ) {
+    val strings = getAppStrings(themeSettings.appLanguage)
+
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        ExpressiveSettingsCard(title = "Privacy Mode Protection", icon = Icons.Outlined.Shield) {
+        ExpressiveSettingsCard(title = strings.privacyModeProtection, icon = Icons.Outlined.Shield) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -863,7 +866,7 @@ private fun SecuritySection(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Mask Financial Totals",
+                        text = strings.maskSensitiveTotals,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -882,7 +885,7 @@ private fun SecuritySection(
             }
         }
 
-        ExpressiveSettingsCard(title = "Biometric Lock Guard", icon = Icons.Outlined.Fingerprint) {
+        ExpressiveSettingsCard(title = strings.biometricLockGuard, icon = Icons.Outlined.Fingerprint) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -890,13 +893,13 @@ private fun SecuritySection(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Biometric Authentication",
+                        text = strings.biometricsAndLock,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Require fingerprint scan on app launch to unlock records.",
+                        text = strings.protectAccountBiometrics,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -920,9 +923,10 @@ private fun DataSection(
     onReorderNav: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
+    val strings = getAppStrings(themeSettings.appLanguage)
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        ExpressiveSettingsCard(title = "Database Backup & Restore", icon = Icons.Outlined.Storage) {
+        ExpressiveSettingsCard(title = strings.dataManagement, icon = Icons.Outlined.Storage) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -951,7 +955,7 @@ private fun DataSection(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Backup DB",
+                            text = strings.backupDatabase,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -983,7 +987,7 @@ private fun DataSection(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Restore DB",
+                            text = strings.restoreDatabase,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer

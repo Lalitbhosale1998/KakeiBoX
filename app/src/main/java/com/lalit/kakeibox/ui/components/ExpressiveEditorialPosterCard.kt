@@ -268,7 +268,6 @@ fun ExpressiveEditorialPosterCard(
                             text = targetSalary,
                             fontSize = 44.sp,
                             fontWeight = FontWeight.Black,
-                            fontFamily = FontFamily.SansSerif,
                             letterSpacing = (-2.0).sp,
                             color = mintText,
                             lineHeight = 48.sp

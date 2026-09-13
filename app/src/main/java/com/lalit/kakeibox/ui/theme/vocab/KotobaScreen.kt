@@ -1325,7 +1325,6 @@ fun ExpressiveVocabDetailView(
                             text = entry.kanjiWord,
                             fontSize = 95.sp,
                             fontWeight = FontWeight.Black,
-                            fontFamily = FontFamily.SansSerif,
                             color = MaterialTheme.colorScheme.onSurface,
                             lineHeight = 90.sp,
                             textAlign = TextAlign.Center,

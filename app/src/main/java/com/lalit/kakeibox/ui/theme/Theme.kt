@@ -139,16 +139,7 @@ private fun getTypography(appFont: AppFont): androidx.compose.material3.Typograp
         AppFont.WDXL_LUBRIFONT_JPN -> com.personal.kakeibox.ui.theme.WDXLLubrifontJPNFontFamily
     }
 
-    val isDecorativeFont = when (appFont) {
-        AppFont.CLIMATE_CRISIS, AppFont.LUCKIEST_GUY -> true
-        else -> false
-    }
-
-    val bodyFontFamily = if (isDecorativeFont) {
-        com.personal.kakeibox.ui.theme.GoogleSansFlexFontFamily
-    } else {
-        displayFontFamily
-    }
+    val bodyFontFamily = displayFontFamily
 
     val isJapaneseFont = when (appFont) {
         AppFont.DELA_GOTHIC_ONE, AppFont.HACHI_MARU_POP, AppFont.KOSUGI_MARU,

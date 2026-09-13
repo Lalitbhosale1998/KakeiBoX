@@ -175,7 +175,6 @@ fun ExpressiveSettingsPosterCard(
                     text = "24",
                     fontSize = 58.sp,
                     fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.SansSerif,
                     letterSpacing = (-3).sp,
                     color = neonMint,
                     lineHeight = 56.sp
