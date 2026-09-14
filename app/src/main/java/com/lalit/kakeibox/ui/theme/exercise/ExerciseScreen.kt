@@ -1,5 +1,10 @@
 package com.personal.kakeibox.ui.exercise
 
+import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.components.EditorialQuoteFooter
+import com.personal.kakeibox.ui.components.EditorialSegment
+import com.personal.kakeibox.ui.components.InlineEditorialSentence
+import com.personal.kakeibox.ui.components.StackedCondensedHeader
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.components.ExpressiveSwitch
@@ -213,8 +218,41 @@ fun ExerciseScreen(
                     Spacer(modifier = Modifier.height(statusBarPadding + 76.dp))
                 }
 
-                // ── M3 Expressive Active Day Hero Header ───────────
-                item {
+                // 🎭 Editorial Poster Layout Banner for ExerciseScreen
+                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        ) {
+                            StackedCondensedHeader(
+                                lines = listOf("STRENGTH,", "FITNESS AND", "DISCIPLINE"),
+                                fontSize = 38,
+                                lineHeight = 40,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            InlineEditorialSentence(
+                                textSegments = listOf(
+                                    EditorialSegment.Text("TRACKING YOUR"),
+                                    EditorialSegment.Badge("WORKOUT", badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                                    EditorialSegment.Text("FOR"),
+                                    EditorialSegment.Badge(uiState.selectedDay.uppercase(), badgeColor = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                                )
+                            )
+
+                            EditorialQuoteFooter(
+                                quote = "Discipline is the bridge between goals and accomplishment.",
+                                author = "KakeiBoX Fitness",
+                                quoteColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    // ── M3 Expressive Active Day Hero Header ───────────
+                    item {
                     ExpressiveExerciseHeroHeader(
                         selectedDay = uiState.selectedDay,
                         daysOfWeek = daysOfWeek,
@@ -285,6 +323,7 @@ fun ExerciseScreen(
                     }
                 }
             }
+        }
         }
 
     }

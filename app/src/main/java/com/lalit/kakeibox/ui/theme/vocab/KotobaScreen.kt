@@ -55,6 +55,11 @@ import com.personal.kakeibox.ui.theme.ExpressivePhysics
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.ui.theme.getAppStrings
+import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.components.EditorialQuoteFooter
+import com.personal.kakeibox.ui.components.EditorialSegment
+import com.personal.kakeibox.ui.components.InlineEditorialSentence
+import com.personal.kakeibox.ui.components.StackedCondensedHeader
 import com.personal.kakeibox.ui.vocab.VocabViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
@@ -206,8 +211,79 @@ fun KotobaScreen(
 
                             Spacer(modifier = Modifier.height(4.dp))
 
-                            // ── NAVIGATION CONTROLLER (SEARCH OVERRIDE vs CURRICULUM LEVELS) ──
-                            if (searchQuery.isNotEmpty()) {
+                            // 🎭 100% PURE EDITORIAL POSTER FLASHCARD MODE FOR KOTOBA
+                            if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER) {
+                                val featuredEntry = remember(allEntries) {
+                                    allEntries.firstOrNull() ?: VocabEntry(
+                                        id = 1,
+                                        kanjiWord = "改善",
+                                        furiganaReading = "かいぜん",
+                                        meaning = "Kaizen (Improvement)",
+                                        category = "Vocabulary",
+                                        studyTag = "JLPT N1",
+                                        exampleSentence = "毎日少しずつ業務を改善していく。"
+                                    )
+                                }
+
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                                ) {
+                                    StackedCondensedHeader(
+                                        lines = listOf("KOTOBA,", "KANJI AND", "VOCABULARY"),
+                                        fontSize = 42,
+                                        lineHeight = 44,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+
+                                    InlineEditorialSentence(
+                                        textSegments = listOf(
+                                            EditorialSegment.Text("JAPANESE LANGUAGE"),
+                                            EditorialSegment.Badge(featuredEntry.studyTag.ifEmpty { "JLPT N1" }, badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                                            EditorialSegment.Text("DECK")
+                                        )
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Monumental Kanji Poster Display
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(
+                                            text = featuredEntry.furiganaReading,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 2.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = featuredEntry.kanjiWord,
+                                            fontSize = 54.sp,
+                                            fontWeight = FontWeight.Black,
+                                            letterSpacing = 2.sp,
+                                            lineHeight = 58.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+
+                                    InlineEditorialSentence(
+                                        textSegments = listOf(
+                                            EditorialSegment.Text(featuredEntry.meaning.uppercase()),
+                                            EditorialSegment.Badge("MASTERED", badgeColor = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                                        )
+                                    )
+
+                                    EditorialQuoteFooter(
+                                        quote = featuredEntry.exampleSentence.ifEmpty { "毎日少しずつ業務を改善していく。" },
+                                        author = "KakeiBoX Kotoba",
+                                        quoteColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                // ── NAVIGATION CONTROLLER ──
+                                if (searchQuery.isNotEmpty()) {
                                 // 🔍 SEARCH MODE: Display Search Results across all entries
                                 Text(
                                     text = if (isJapanese) "検索結果 (${filteredEntries.size}件)" else "Search Results (${filteredEntries.size})",
@@ -970,6 +1046,7 @@ fun KotobaScreen(
             )
         }
     }
+}
 }
 }
 

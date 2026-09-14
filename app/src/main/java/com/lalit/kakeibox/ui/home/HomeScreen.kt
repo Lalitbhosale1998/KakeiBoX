@@ -75,6 +75,10 @@ import com.personal.kakeibox.ui.theme.ExpressivePhysics
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
 import com.personal.kakeibox.ui.theme.expressiveBackground
 import com.personal.kakeibox.ui.theme.getAppStrings
+import com.personal.kakeibox.ui.components.EditorialQuoteFooter
+import com.personal.kakeibox.ui.components.EditorialSegment
+import com.personal.kakeibox.ui.components.InlineEditorialSentence
+import com.personal.kakeibox.ui.components.StackedCondensedHeader
 import com.personal.kakeibox.util.CurrencyUtils
 
 @Composable
@@ -158,6 +162,7 @@ fun HomeScreen(
     val pixelHaptics = rememberPixelHaptics()
     val themeSettings by themeViewModel.themeSettings.collectAsStateWithLifecycle()
     val strings = getAppStrings(themeSettings.appLanguage)
+    val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
     val totalSalary by salaryViewModel.totalSalary.collectAsStateWithLifecycle()
     val allVocab by vocabViewModel.allEntries.collectAsStateWithLifecycle()
     val isPrivacyMode = themeSettings.privacyModeEnabled
@@ -292,84 +297,153 @@ fun HomeScreen(
                     .padding(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // ── SINGLE MONUMENTAL 80% MONOLITHIC CARD SLATE ──
-                val heroCardShape = rememberExpressiveCardShape(isHeroPressed)
-
-                val heroScale by animateFloatAsState(
-                    targetValue = if (isHeroPressed) 0.98f else 1.0f,
-                    animationSpec = ExpressivePhysics.fluidSnappy(),
-                    label = "hero_card_scale"
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp)
-                ) {
-                    // ── Overhanging Floating Header Badge (Peeking 14.dp outside top of card) ──
-                    var isLiveGaugePressed by remember { mutableStateOf(false) }
-                    val liveGaugeShape = rememberExpressiveCardShape(isLiveGaugePressed, defaultCorner = 18.dp, pressedCorner = 30.dp)
-
-                    Surface(
-                        shape = liveGaugeShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        shadowElevation = 0.dp,
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer),
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = (-16).dp, y = (-14).dp)
-                            .zIndex(2f)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onPress = {
-                                        isLiveGaugePressed = true
-                                        tryAwaitRelease()
-                                        isLiveGaugePressed = false
-                                    }
-                                )
-                            }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = "⚡ ${strings.liveGauge}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
-
-                    // ── Main Monolithic Slate Surface Container (80% Visual Hero Canvas) ──
-                    Surface(
+                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER) {
+                    // 🎭 FULL-BLEED EDITORIAL POSTER LAYOUT (Inspired by media_1789372937227.png)
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .graphicsLayer {
-                                scaleX = heroScale
-                                scaleY = heroScale
-                            },
-                        shape = heroCardShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shadowElevation = 6.dp,
-                        tonalElevation = 4.dp
+                            .padding(vertical = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(28.dp)
                     ) {
+                        // 1. Monumental Stacked Condensed Title Header
+                        StackedCondensedHeader(
+                            lines = listOf("KAKEIBOX,", "EXPENSES AND", "SAVINGS"),
+                            fontSize = 42,
+                            lineHeight = 44,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        // 2. Subtitle with Inline Keyword Highlight Pill Badges
+                        InlineEditorialSentence(
+                            textSegments = listOf(
+                                EditorialSegment.Text("THE FATES OF YOUR"),
+                                EditorialSegment.Badge("FINANCES", badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                                EditorialSegment.Text("THIS MONTH")
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // 3. Hero Financial Number Block (Poster Typography)
                         Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = strings.totalCumulativeEarnings.uppercase(),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = formattedTotalEarnings,
+                                fontSize = 48.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-2).sp,
+                                lineHeight = 52.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // 4. Author / Category Metadata Block with Inline Pill Badges
+                        InlineEditorialSentence(
+                            textSegments = listOf(
+                                EditorialSegment.Text("PAYDAY IN"),
+                                EditorialSegment.Badge("${paydayInfo.daysRemaining} DAYS", badgeColor = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                                EditorialSegment.Text("SAVINGS"),
+                                EditorialSegment.Badge(savedBudgetText, badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer)
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // 5. Italicized Serif Editorial Quote Section
+                        EditorialQuoteFooter(
+                            quote = if (isJapanese) "継続は力なり。毎日少しずつ資産を積み重ねましょう。" else "Continuity is power. Manage your daily budget and savings with steady discipline.",
+                            author = "KakeiBoX Editorial",
+                            quoteColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    // ── STANDARD MONOLITHIC CARD SLATE ──
+                    val heroCardShape = rememberExpressiveCardShape(isHeroPressed)
+
+                    val heroScale by animateFloatAsState(
+                        targetValue = if (isHeroPressed) 0.98f else 1.0f,
+                        animationSpec = ExpressivePhysics.fluidSnappy(),
+                        label = "hero_card_scale"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                    ) {
+                        // ── Overhanging Floating Header Badge ──
+                        var isLiveGaugePressed by remember { mutableStateOf(false) }
+                        val liveGaugeShape = rememberExpressiveCardShape(isLiveGaugePressed, defaultCorner = 18.dp, pressedCorner = 30.dp)
+
+                        Surface(
+                            shape = liveGaugeShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            shadowElevation = 0.dp,
+                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (-16).dp, y = (-14).dp)
+                                .zIndex(2f)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onPress = {
+                                            isLiveGaugePressed = true
+                                            tryAwaitRelease()
+                                            isLiveGaugePressed = false
+                                        }
+                                    )
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = "⚡ ${strings.liveGauge}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+
+                        // ── Main Monolithic Slate Surface Container ──
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 22.dp, vertical = 24.dp),
-                            verticalArrangement = Arrangement.spacedBy(26.dp)
+                                .graphicsLayer {
+                                    scaleX = heroScale
+                                    scaleY = heroScale
+                                },
+                            shape = heroCardShape,
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shadowElevation = 6.dp,
+                            tonalElevation = 4.dp
                         ) {
-                            // ── MODULE 1: PAYDAY COMMAND CORE (TOP 30%) ──
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp, vertical = 24.dp),
+                                verticalArrangement = Arrangement.spacedBy(26.dp)
                             ) {
+                                // ── MODULE 1: PAYDAY COMMAND CORE ──
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -896,5 +970,6 @@ fun HomeScreen(
             }
         }
     }
+}
 }
 

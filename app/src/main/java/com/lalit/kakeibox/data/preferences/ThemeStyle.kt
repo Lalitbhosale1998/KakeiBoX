@@ -1,7 +1,8 @@
 package com.personal.kakeibox.data.preferences
 
 enum class ThemeStyle {
-    DEFAULT;
+    DEFAULT,
+    EDITORIAL_POSTER;
 
     companion object {
         fun fromStorage(value: String?): ThemeStyle {

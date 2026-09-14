@@ -649,6 +649,39 @@ private fun VisualSettingsSection(
             )
         }
 
+        // Editorial Poster UI Mode Switch Card
+        ExpressiveSettingsCard(title = "Editorial Poster UI Mode", icon = Icons.Outlined.Tune) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Full-Bleed Editorial Layout",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Replace standard bento grids with high-contrast stacked editorial typography & quote footers.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                ExpressiveSwitch(
+                    checked = themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER,
+                    onCheckedChange = { isPoster ->
+                        viewModel.setThemeStyle(
+                            if (isPoster) com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER
+                            else com.personal.kakeibox.data.preferences.ThemeStyle.DEFAULT
+                        )
+                    }
+                )
+            }
+        }
+
         // Dynamic Monet Tint Switch Card
         ExpressiveSettingsCard(title = "Dynamic Wallpaper Tinting", icon = Icons.Outlined.Palette) {
             Row(

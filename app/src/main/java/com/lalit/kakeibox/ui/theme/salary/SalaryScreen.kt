@@ -55,6 +55,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.graphics.SolidColor
+import com.personal.kakeibox.data.preferences.ThemeStyle
+import com.personal.kakeibox.ui.components.EditorialQuoteFooter
+import com.personal.kakeibox.ui.components.EditorialSegment
+import com.personal.kakeibox.ui.components.InlineEditorialSentence
+import com.personal.kakeibox.ui.components.StackedCondensedHeader
 import com.personal.kakeibox.ui.salary.SalaryUiState
 import com.personal.kakeibox.ui.salary.SalaryViewModel
 import com.personal.kakeibox.ui.theme.NunitoFontFamily
@@ -487,12 +492,7 @@ fun SalaryScreen(
                 backgroundCanvasStyle = themeSettings.backgroundCanvasStyle
             )
     ) {
-        val primaryColor = MaterialTheme.colorScheme.primary
-        val expressiveIndication = remember(primaryColor) { ExpressiveTouchIndication(primaryColor) }
-        CompositionLocalProvider(
-            androidx.compose.foundation.LocalIndication provides expressiveIndication
-        ) {
-            Scaffold(
+        Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = Color.Transparent,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -514,6 +514,87 @@ fun SalaryScreen(
                 item {
                     val isExpressive = true
                     Spacer(modifier = Modifier.height(statusBarPadding + 64.dp))
+                }
+
+                // 🎭 100% PURE EDITORIAL POSTER MODE FOR SALARY
+                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(24.dp)
+                        ) {
+                            StackedCondensedHeader(
+                                lines = listOf("SALARY,", "EARNINGS AND", "WEALTH"),
+                                fontSize = 42,
+                                lineHeight = 44,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            InlineEditorialSentence(
+                                textSegments = listOf(
+                                    EditorialSegment.Text("TRACKING YOUR"),
+                                    EditorialSegment.Badge("EARNINGS", badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                                    EditorialSegment.Text("&"),
+                                    EditorialSegment.Badge("SAVINGS", badgeColor = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
+                            val currentAmount = currentEntry?.salaryAmount ?: 0L
+                            val totalSalaryVal = totalSalary ?: 0L
+
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    text = strings.salary.uppercase(),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = com.personal.kakeibox.util.CurrencyUtils.formatAmount(
+                                        currentAmount,
+                                        themeSettings.currencySymbol,
+                                        themeSettings.privacyModeEnabled,
+                                        compact = false
+                                    ),
+                                    fontSize = 48.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = (-2).sp,
+                                    lineHeight = 52.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+
+                            InlineEditorialSentence(
+                                textSegments = listOf(
+                                    EditorialSegment.Text("TOTAL CUMULATIVE"),
+                                    EditorialSegment.Badge(
+                                        com.personal.kakeibox.util.CurrencyUtils.formatAmount(
+                                            totalSalaryVal,
+                                            themeSettings.currencySymbol,
+                                            themeSettings.privacyModeEnabled,
+                                            compact = true
+                                        ),
+                                        badgeColor = MaterialTheme.colorScheme.tertiaryContainer
+                                    )
+                                )
+                            )
+
+                            EditorialQuoteFooter(
+                                quote = if (isJapanese) "金銭の管理は心に平穏をもたらします。" else "Financial peace of mind comes from consistent awareness.",
+                                author = "KakeiBoX Salary",
+                                quoteColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
@@ -694,7 +775,9 @@ fun SalaryScreen(
                         }
                     }
                 }
+            }
 
+            if (themeSettings.themeStyle != com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER) {
                 // ── STATS & ANALYTICS CANVAS SLATE ──
                 item {
                     Column(
@@ -820,9 +903,8 @@ fun SalaryScreen(
                 }
             }
         }
-
     }
-    }
+}
 
     // Sheets & Dialogs (Update to Tonal Backgrounds)
     if (uiState.showAddEditDialog) {
@@ -928,7 +1010,7 @@ fun SalaryScreen(
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-private object AgslShaderHelper {
+object AgslShaderHelper {
     fun createShaderBrush(
         shaderCode: String,
         time: Float,
@@ -1440,6 +1522,7 @@ fun ExpressiveHeroCard(
     )
 
     val heroShape = themeSettings.earningsCardShape.toShape(isPressed = false)
+    val currentDensityVal = LocalDensity.current.density
 
     Surface(
         modifier = Modifier
@@ -1448,7 +1531,7 @@ fun ExpressiveHeroCard(
                 if (rotation != 0f) {
                     Modifier.graphicsLayer {
                         rotationY = rotation
-                        cameraDistance = 12f * density
+                        cameraDistance = 12f * currentDensityVal
                     }
                 } else Modifier
             )
@@ -2087,7 +2170,7 @@ fun ExpressiveHistoryBentoBox(
     )
 
     val primaryColor = MaterialTheme.colorScheme.primary
-    val warningColor = Color(0xFFF59E0B).harmonizeWith(primaryColor)
+    val warningColor = Color(0xFFF59E0B)
 
     val indicatorColor = when {
         savingsPercent >= 25 -> MaterialTheme.colorScheme.tertiary
@@ -3570,7 +3653,7 @@ fun Modifier.expressiveClickable(
 }
 
 // Helper to convert KMP Morph to Compose Path
-private fun androidx.graphics.shapes.Morph.toComposePath(progress: Float): androidx.compose.ui.graphics.Path {
+fun androidx.graphics.shapes.Morph.toComposePath(progress: Float): androidx.compose.ui.graphics.Path {
     val path = androidx.compose.ui.graphics.Path()
     var first = true
     this.forEachCubic(progress) { cubic ->
