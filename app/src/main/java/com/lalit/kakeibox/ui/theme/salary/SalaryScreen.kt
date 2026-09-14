@@ -3,6 +3,7 @@ package com.personal.kakeibox.ui.salary
 
 import com.personal.kakeibox.ui.theme.getAppStrings
 import com.personal.kakeibox.ui.theme.LocalThemeSettings
+import com.personal.kakeibox.ui.components.elasticClick
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -535,23 +536,45 @@ fun SalaryScreen(
                             InlineEditorialSentence(
                                 textSegments = listOf(
                                     EditorialSegment.Text("TRACKING YOUR"),
-                                    EditorialSegment.Badge("EARNINGS", badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                                    EditorialSegment.Badge(
+                                        "EARNINGS",
+                                        badgeColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        textColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.openAddDialog()
+                                        }
+                                    ),
                                     EditorialSegment.Text("&"),
-                                    EditorialSegment.Badge("SAVINGS", badgeColor = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    EditorialSegment.Badge(
+                                        "SAVINGS",
+                                        badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                        textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.openAddDialog()
+                                        }
+                                    )
                                 )
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
-
                             val isJapanese = themeSettings.appLanguage == com.personal.kakeibox.data.preferences.AppLanguage.JAPANESE
                             val currentAmount = currentEntry?.salaryAmount ?: 0L
+                            val remittanceAmount = currentEntry?.remittanceAmount ?: 0L
+                            val savingsAmount = currentEntry?.savingsAmount ?: 0L
                             val totalSalaryVal = totalSalary ?: 0L
 
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Column(
+                                modifier = Modifier.elasticClick {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.openAddDialog()
+                                },
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
                                 Text(
                                     text = strings.salary.uppercase(),
                                     style = MaterialTheme.typography.labelMedium,
-                                    fontSize = 12.sp,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 2.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -563,10 +586,10 @@ fun SalaryScreen(
                                         themeSettings.privacyModeEnabled,
                                         compact = false
                                     ),
-                                    fontSize = 48.sp,
+                                    fontSize = 44.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = (-2).sp,
-                                    lineHeight = 52.sp,
+                                    lineHeight = 48.sp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -581,10 +604,51 @@ fun SalaryScreen(
                                             themeSettings.privacyModeEnabled,
                                             compact = true
                                         ),
-                                        badgeColor = MaterialTheme.colorScheme.tertiaryContainer
+                                        badgeColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        textColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.toggleHistorySheet()
+                                        }
                                     )
                                 )
                             )
+
+                            // Rich Information Block A: Monthly Income Allocation
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    text = "MONTHLY ALLOCATION BREAKDOWN",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                InlineEditorialSentence(
+                                    textSegments = listOf(
+                                        EditorialSegment.Text("REMITTANCE"),
+                                        EditorialSegment.Badge(
+                                            com.personal.kakeibox.util.CurrencyUtils.formatAmount(remittanceAmount, themeSettings.currencySymbol, themeSettings.privacyModeEnabled, compact = true),
+                                            badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                            textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                viewModel.openAddDialog()
+                                            }
+                                        ),
+                                        EditorialSegment.Text("DIRECT SAVINGS"),
+                                        EditorialSegment.Badge(
+                                            com.personal.kakeibox.util.CurrencyUtils.formatAmount(savingsAmount, themeSettings.currencySymbol, themeSettings.privacyModeEnabled, compact = true),
+                                            badgeColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            textColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                viewModel.openAddDialog()
+                                            }
+                                        )
+                                    )
+                                )
+                            }
 
                             EditorialQuoteFooter(
                                 quote = if (isJapanese) "金銭の管理は心に平穏をもたらします。" else "Financial peace of mind comes from consistent awareness.",
@@ -2706,17 +2770,35 @@ fun ExpressiveAddEditSheet(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = if (uiState.editingEntry == null) strings.addSalary else strings.editSalary,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Black
-                )
-                Text(
-                    text = if (isJapanese) "月次の収入と配分を管理します" else "Track your monthly earnings & splits",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER) {
+                    StackedCondensedHeader(
+                        lines = if (uiState.editingEntry == null) listOf("NEW SALARY,", "EARNINGS AND", "ALLOCATION") else listOf("EDIT SALARY,", "WEALTH AND", "RECORD"),
+                        fontSize = 28,
+                        lineHeight = 30,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    InlineEditorialSentence(
+                        textSegments = listOf(
+                            EditorialSegment.Text("RECORDING YOUR"),
+                            EditorialSegment.Badge("SALARY", badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                            EditorialSegment.Text("&"),
+                            EditorialSegment.Badge("SAVINGS", badgeColor = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                        )
+                    )
+                } else {
+                    Text(
+                        text = if (uiState.editingEntry == null) strings.addSalary else strings.editSalary,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = if (isJapanese) "月次の収入と配分を管理します" else "Track your monthly earnings & splits",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
             }
             
             IconButton(
@@ -3104,6 +3186,15 @@ fun ExpressiveAddEditSheet(
                     )
                 }
             }
+        }
+        
+        if (themeSettings.themeStyle == com.personal.kakeibox.data.preferences.ThemeStyle.EDITORIAL_POSTER) {
+            Spacer(modifier = Modifier.height(12.dp))
+            EditorialQuoteFooter(
+                quote = if (isJapanese) "金銭的な平穏は、継続的な意識から生まれます。" else "Financial peace of mind comes from consistent awareness.",
+                author = "KakeiBoX Wealth Editorial",
+                quoteColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         
         Spacer(modifier = Modifier.height(32.dp))
