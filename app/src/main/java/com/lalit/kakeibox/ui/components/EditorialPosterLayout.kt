@@ -36,10 +36,12 @@ fun InlineKeywordBadge(
     text: String,
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.onTertiaryContainer
+    contentColor: Color = MaterialTheme.colorScheme.onTertiaryContainer,
+    onClick: (() -> Unit)? = null
 ) {
+    val clickableModifier = if (onClick != null) modifier.elasticClick { onClick() } else modifier
     Surface(
-        modifier = modifier.clip(RoundedCornerShape(6.dp)),
+        modifier = clickableModifier.clip(RoundedCornerShape(6.dp)),
         color = backgroundColor,
         shape = RoundedCornerShape(6.dp)
     ) {
@@ -113,6 +115,7 @@ fun InlineEditorialSentence(
                         text = segment.keyword,
                         backgroundColor = segment.badgeColor ?: MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = segment.textColor ?: MaterialTheme.colorScheme.onTertiaryContainer,
+                        onClick = segment.onClick,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
@@ -126,7 +129,8 @@ sealed class EditorialSegment {
     data class Badge(
         val keyword: String,
         val badgeColor: Color? = null,
-        val textColor: Color? = null
+        val textColor: Color? = null,
+        val onClick: (() -> Unit)? = null
     ) : EditorialSegment()
 }
 

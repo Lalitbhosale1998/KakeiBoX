@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.gestures.detectTapGestures
+import com.personal.kakeibox.ui.components.elasticClick
 import androidx.compose.ui.input.pointer.pointerInput
 import com.personal.kakeibox.data.entity.VocabEntry
 import com.personal.kakeibox.data.preferences.ThemeStyle
@@ -317,15 +318,27 @@ fun HomeScreen(
                         InlineEditorialSentence(
                             textSegments = listOf(
                                 EditorialSegment.Text("THE FATES OF YOUR"),
-                                EditorialSegment.Badge("FINANCES", badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                                EditorialSegment.Badge(
+                                    "FINANCES",
+                                    badgeColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    textColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(1)
+                                    }
+                                ),
                                 EditorialSegment.Text("THIS MONTH")
                             )
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // 3. Hero Financial Number Block (Poster Typography)
+                        // 3. Hero Financial Number Block (Poster Typography - Interactive)
                         Column(
+                            modifier = Modifier.elasticClick {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onNavigateTab(1)
+                            },
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
@@ -350,15 +363,108 @@ fun HomeScreen(
                         InlineEditorialSentence(
                             textSegments = listOf(
                                 EditorialSegment.Text("PAYDAY IN"),
-                                EditorialSegment.Badge("${paydayInfo.daysRemaining} DAYS", badgeColor = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                                EditorialSegment.Badge(
+                                    "${paydayInfo.daysRemaining} DAYS",
+                                    badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                    textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(1)
+                                    }
+                                ),
                                 EditorialSegment.Text("SAVINGS"),
-                                EditorialSegment.Badge(savedBudgetText, badgeColor = MaterialTheme.colorScheme.tertiaryContainer, textColor = MaterialTheme.colorScheme.onTertiaryContainer)
+                                EditorialSegment.Badge(
+                                    savedBudgetText,
+                                    badgeColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    textColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onNavigateTab(1)
+                                    }
+                                )
                             )
                         )
 
+                        // 5. Rich Information Block A: Monthly Financial Allocation & Status
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "FINANCIAL ALLOCATION & STATUS",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            InlineEditorialSentence(
+                                textSegments = listOf(
+                                    EditorialSegment.Text("BUDGET STATUS"),
+                                    EditorialSegment.Badge(
+                                        budgetStampText,
+                                        badgeColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        textColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onNavigateTab(1)
+                                        }
+                                    ),
+                                    EditorialSegment.Text("WORKOUT LOG"),
+                                    EditorialSegment.Badge(
+                                        workoutStampText,
+                                        badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                        textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onNavigateTab(2)
+                                        }
+                                    )
+                                )
+                            )
+                        }
+
+                        // 6. Rich Information Block B: Daily Kotoba & Fitness Discipline
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "DAILY KOTOBA & FITNESS DISCIPLINE",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            InlineEditorialSentence(
+                                textSegments = listOf(
+                                    EditorialSegment.Text("FEATURED KANJI"),
+                                    EditorialSegment.Badge(
+                                        featuredWord.kanjiWord,
+                                        badgeColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        textColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onNavigateTab(3)
+                                        }
+                                    ),
+                                    EditorialSegment.Text(featuredWord.furiganaReading.uppercase()),
+                                    EditorialSegment.Text("ROUTINE"),
+                                    EditorialSegment.Badge(
+                                        workoutDisplayText,
+                                        badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                        textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onNavigateTab(2)
+                                        }
+                                    )
+                                )
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // 5. Italicized Serif Editorial Quote Section
+                        // 7. Italicized Serif Editorial Quote Section
                         EditorialQuoteFooter(
                             quote = if (isJapanese) "継続は力なり。毎日少しずつ資産を積み重ねましょう。" else "Continuity is power. Manage your daily budget and savings with steady discipline.",
                             author = "KakeiBoX Editorial",

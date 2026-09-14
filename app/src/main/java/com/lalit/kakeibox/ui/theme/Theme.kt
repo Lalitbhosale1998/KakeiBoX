@@ -345,33 +345,7 @@ fun KakeiboXTheme(
         rawColorScheme
     }
 
-    val finalColorScheme = if (themeStyle == ThemeStyle.EDITORIAL_POSTER) {
-        colorScheme.copy(
-            primary = Color(0xFFA4F6B5),
-            onPrimary = Color(0xFF003816),
-            primaryContainer = Color(0xFF1B512D),
-            onPrimaryContainer = Color(0xFFA4F6B5),
-            secondary = Color(0xFF80DCA5),
-            onSecondary = Color(0xFF00381B),
-            secondaryContainer = Color(0xFF00522B),
-            onSecondaryContainer = Color(0xFF9CF9C0),
-            tertiary = Color(0xFFFFB0C9),
-            onTertiary = Color(0xFF5E1134),
-            tertiaryContainer = Color(0xFF881D4C),
-            onTertiaryContainer = Color(0xFFFFD9E2),
-            background = Color(0xFF0C140C),
-            onBackground = Color(0xFFE0E4DE),
-            surface = Color(0xFF0C140C),
-            onSurface = Color(0xFFE0E4DE),
-            surfaceContainerLowest = Color(0xFF0C140C),
-            surfaceContainerLow = Color(0xFF141D14),
-            surfaceContainer = Color(0xFF182118),
-            surfaceContainerHigh = Color(0xFF222C22),
-            surfaceContainerHighest = Color(0xFF2D372C)
-        )
-    } else {
-        colorScheme
-    }
+    val finalColorScheme = colorScheme
 
     // Per-flavor shape tokens: architectural (Shu-Nuri), pillow-round (O-Miki), default (all others)
     val shapes = KakeiboXShapes
